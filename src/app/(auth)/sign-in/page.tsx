@@ -16,6 +16,7 @@ import {
   Sparkles,
   BookOpen,
   Wallet,
+  Zap,
 } from "lucide-react";
 
 export default function SignInPage() {
@@ -25,7 +26,18 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const routeByRole = (roles: string[]) => {
+    if (roles.includes("admin") || roles.includes("co_admin")) {
+      router.push("/admin/dashboard");
+    } else if (roles.includes("lecturer")) {
+      router.push("/lecturer/dashboard");
+    } else {
+      router.push("/student/dashboard");
+    }
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,18 +57,36 @@ export default function SignInPage() {
         return;
       }
 
-      const roles = data.user?.roles || [];
-      if (roles.includes("admin") || roles.includes("co_admin")) {
-        router.push("/admin/dashboard");
-      } else if (roles.includes("lecturer")) {
-        router.push("/lecturer/dashboard");
-      } else {
-        router.push("/catalogue");
-      }
+      routeByRole(data.user?.roles || []);
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : "Authentication request failed.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleInstantDemoLogin = async (demoEmail: string, roleName: string) => {
+    setDemoLoading(roleName);
+    setErrorMsg(null);
+
+    try {
+      const res = await fetch("/api/auth/sign-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: demoEmail, isDemo: true }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setErrorMsg(data.error || "Instant login failed.");
+        return;
+      }
+
+      routeByRole(data.user?.roles || []);
+    } catch (err) {
+      setErrorMsg("Network error during instant sign-in.");
+    } finally {
+      setDemoLoading(null);
     }
   };
 
@@ -72,10 +102,6 @@ export default function SignInPage() {
         
         {/* Left Side: Scholarly Visual Brand Hero (5 cols) */}
         <div className="md:col-span-5 bg-gradient-to-br from-[#0B192C] via-[#162942] to-[#1E3E62] text-white p-8 md:p-10 flex flex-col justify-between relative overflow-hidden">
-          {/* Subtle decorative glow */}
-          <div className="absolute -top-24 -left-24 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
           <div className="relative z-10 space-y-6">
             <Link href="/" className="inline-flex items-center gap-2.5">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 backdrop-blur border border-white/20 text-amber-400 shadow-sm">
@@ -95,8 +121,8 @@ export default function SignInPage() {
               <h1 className="text-2xl font-extrabold leading-snug">
                 Welcome back to verified university resources.
               </h1>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Log in to access your study library, view your student wallet balance, or publish course materials.
+              <p className="text-xs text-slate-300 leading-relaxed font-normal">
+                Log in to access your study library, view your student wallet, or manage publications on your role dashboard.
               </p>
             </div>
 
@@ -104,41 +130,61 @@ export default function SignInPage() {
             <div className="space-y-3 pt-4 border-t border-white/10 text-xs text-slate-200">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                <span>Double-entry internal wallet (UGX)</span>
+                <span>Dedicated role dashboards (Student, Lecturer, Admin)</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                <span>Verified lecturers from MAK, KYU, MUST &amp; more</span>
+                <span>Double-entry internal wallet in exact UGX</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                <span>Protected study reader with personalized watermarks</span>
+                <span>Dynamic QR codes for classroom &amp; WhatsApp sharing</span>
               </div>
             </div>
           </div>
 
-          {/* Quick Test Accounts Switcher */}
-          <div className="relative z-10 pt-6 mt-6 border-t border-white/10 space-y-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-              <Sparkles className="h-3 w-3" />
-              Quick Demo Logins (Click to Fill):
+          {/* 1-Click Instant Demo Logins */}
+          <div className="relative z-10 pt-6 mt-6 border-t border-white/10 space-y-2.5">
+            <span className="text-[11px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+              <Zap className="h-3.5 w-3.5 text-amber-400" />
+              <span>1-Click Instant Demo Logins:</span>
             </span>
-            <div className="grid grid-cols-1 gap-1.5 text-xs">
+
+            <div className="grid grid-cols-1 gap-2 text-xs">
               <button
                 type="button"
-                onClick={() => handleApplyPreset("namukasa.grace@students.mak.ac.ug", "Makerere2026!")}
-                className="w-full text-left rounded-lg bg-white/10 hover:bg-white/20 px-3 py-1.5 transition flex items-center justify-between"
+                onClick={() => handleInstantDemoLogin("namukasa.grace@students.mak.ac.ug", "student")}
+                disabled={Boolean(demoLoading)}
+                className="w-full text-left rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 px-3.5 py-2 transition flex items-center justify-between"
               >
-                <span>Student (Grace — MAK)</span>
-                <span className="text-[10px] text-amber-300 font-mono">Fill</span>
+                <span>Student (Grace — Makerere)</span>
+                <span className="text-[10px] text-amber-300 font-bold font-mono">
+                  {demoLoading === "student" ? "Signing In..." : "Instant Login →"}
+                </span>
               </button>
+
               <button
                 type="button"
-                onClick={() => handleApplyPreset("prof.okello@cis.mak.ac.ug", "Lecturer2026!")}
-                className="w-full text-left rounded-lg bg-white/10 hover:bg-white/20 px-3 py-1.5 transition flex items-center justify-between"
+                onClick={() => handleInstantDemoLogin("prof.okello@cis.mak.ac.ug", "lecturer")}
+                disabled={Boolean(demoLoading)}
+                className="w-full text-left rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 px-3.5 py-2 transition flex items-center justify-between"
               >
-                <span>Lecturer (Prof. Okello)</span>
-                <span className="text-[10px] text-emerald-300 font-mono">Fill</span>
+                <span>Lecturer (Prof. Okello — MAK)</span>
+                <span className="text-[10px] text-emerald-300 font-bold font-mono">
+                  {demoLoading === "lecturer" ? "Signing In..." : "Instant Login →"}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleInstantDemoLogin("admin@ugandastudy.ug", "admin")}
+                disabled={Boolean(demoLoading)}
+                className="w-full text-left rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 px-3.5 py-2 transition flex items-center justify-between"
+              >
+                <span>Comptroller (Admin Audit)</span>
+                <span className="text-[10px] text-blue-300 font-bold font-mono">
+                  {demoLoading === "admin" ? "Signing In..." : "Instant Login →"}
+                </span>
               </button>
             </div>
           </div>
@@ -149,11 +195,11 @@ export default function SignInPage() {
           <div>
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight">
                   Sign in to your account
                 </h2>
-                <p className="text-xs text-slate-500 mt-1">
-                  Enter your university or personal email to continue
+                <p className="text-xs text-slate-500 mt-1 font-medium">
+                  Enter your email address and password to continue
                 </p>
               </div>
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
@@ -198,7 +244,7 @@ export default function SignInPage() {
                       e.preventDefault();
                       alert("Password reset instructions have been dispatched to your email address.");
                     }}
-                    className="text-[11px] font-semibold text-amber-700 hover:text-amber-800 hover:underline"
+                    className="text-[11px] font-bold text-amber-700 hover:underline"
                   >
                     Forgot password?
                   </a>
@@ -209,14 +255,14 @@ export default function SignInPage() {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your account password"
-                    className="w-full rounded-xl border border-slate-300 bg-slate-50/50 pl-10 pr-10 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-[#0B192C] focus:ring-2 focus:ring-[#0B192C]/10 outline-none transition font-medium"
+                    placeholder="Enter your password"
+                    className="w-full rounded-xl border border-slate-300 bg-slate-50/50 pl-10 pr-10 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-[#0B192C] focus:ring-2 focus:ring-[#0B192C]/10 outline-none transition"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 transition"
+                    className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -226,26 +272,33 @@ export default function SignInPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B192C] px-5 py-3 text-xs font-bold text-white shadow-md hover:bg-[#162942] active:scale-[0.99] disabled:opacity-50 transition"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B192C] px-5 py-3 text-xs font-black text-white hover:bg-slate-800 disabled:opacity-50 transition shadow-lg"
               >
-                <span>{loading ? "Authenticating..." : "Sign In to Platform"}</span>
-                <ArrowRight className="h-4 w-4 text-amber-400" />
+                {loading ? (
+                  <>
+                    <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Verifying Credentials...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Sign In to Dashboard</span>
+                    <ArrowRight className="h-3.5 w-3.5 text-amber-400" />
+                  </>
+                )}
               </button>
             </form>
           </div>
 
-          <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-            <span className="text-slate-500">
-              New to SomaUG Academic?{" "}
-              <Link href="/sign-up" className="font-extrabold text-[#0B192C] hover:underline">
-                Create an account →
-              </Link>
+          <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-xs gap-3">
+            <span className="text-slate-500 font-medium">
+              Don&apos;t have an account yet?
             </span>
             <Link
-              href="/catalogue"
-              className="font-semibold text-slate-600 hover:text-slate-900"
+              href="/sign-up"
+              className="font-black text-amber-700 hover:underline flex items-center gap-1"
             >
-              Browse Catalogue as Visitor
+              <span>Create an account</span>
+              <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
         </div>

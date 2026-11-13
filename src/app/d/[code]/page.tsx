@@ -12,6 +12,8 @@ import {
   Sparkles,
   AlertCircle,
   Building2,
+  QrCode,
+  Camera,
 } from "lucide-react";
 
 export default function DocumentCodeResolverPage() {
@@ -22,6 +24,7 @@ export default function DocumentCodeResolverPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState(rawCode);
+  const [activeTab, setActiveTab] = useState<"code" | "qr">("code");
 
   useEffect(() => {
     async function resolveCode() {
@@ -86,16 +89,42 @@ export default function DocumentCodeResolverPage() {
         ) : (
           <div className="space-y-6">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-800 shadow-sm">
-              <GraduationCap className="h-7 w-7" />
+              <QrCode className="h-7 w-7" />
             </div>
 
             <div className="space-y-1.5">
               <h1 className="text-xl font-black text-slate-900">
-                Enter Lecturer Document Code
+                Scan QR or Enter Document Code
               </h1>
               <p className="text-xs text-slate-500 leading-relaxed">
-                If your university lecturer shared a short access code via WhatsApp or in class, enter it below to jump directly to the PDF.
+                Scan the visual QR code projected in class, or enter the short code to open the verified lecture material.
               </p>
+            </div>
+
+            {/* Toggle Tabs */}
+            <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setActiveTab("code")}
+                className={`flex-1 py-2 rounded-lg transition ${
+                  activeTab === "code"
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                Enter Code
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("qr")}
+                className={`flex-1 py-2 rounded-lg transition ${
+                  activeTab === "qr"
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                Scan QR Code
+              </button>
             </div>
 
             {error && (
@@ -105,28 +134,66 @@ export default function DocumentCodeResolverPage() {
               </div>
             )}
 
-            <form onSubmit={handleManualSubmit} className="space-y-3">
-              <div className="relative">
-                <FileText className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
-                <input
-                  type="text"
-                  value={manualCode}
-                  onChange={(e) => setManualCode(e.target.value)}
-                  placeholder="e.g. CSC2101-NOTES or LAW2105"
-                  className="w-full rounded-xl border border-slate-300 pl-10 pr-4 py-3 text-sm font-mono font-bold uppercase text-slate-900 focus:ring-2 focus:ring-amber-500 outline-none"
-                  autoFocus
-                  required
-                />
-              </div>
+            {activeTab === "code" ? (
+              <form onSubmit={handleManualSubmit} className="space-y-3">
+                <div className="relative">
+                  <FileText className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={manualCode}
+                    onChange={(e) => setManualCode(e.target.value)}
+                    placeholder="e.g. CSC2101-NOTES, BRIBTE-EE1101"
+                    className="w-full rounded-xl border border-slate-300 pl-10 pr-4 py-3 text-sm font-mono font-bold uppercase text-slate-900 focus:ring-2 focus:ring-amber-500 outline-none"
+                    autoFocus
+                    required
+                  />
+                </div>
 
-              <button
-                type="submit"
-                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B192C] px-5 py-3 text-xs font-black text-white hover:bg-[#162942] transition shadow-md"
-              >
-                <span>Open Document on SomaUG</span>
-                <ArrowRight className="h-4 w-4 text-amber-400" />
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B192C] px-5 py-3 text-xs font-black text-white hover:bg-[#162942] transition shadow-md"
+                >
+                  <span>Open Document on SomaUG</span>
+                  <ArrowRight className="h-4 w-4 text-amber-400" />
+                </button>
+              </form>
+            ) : (
+              <div className="space-y-4">
+                <div className="relative rounded-2xl bg-slate-950 p-6 text-center border border-slate-800">
+                  <div className="relative mx-auto w-40 h-40 border-2 border-amber-400/80 rounded-2xl flex items-center justify-center overflow-hidden">
+                    <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_10px_#f59e0b] animate-bounce" />
+                    <Camera className="h-12 w-12 text-white/30" />
+                  </div>
+                  <p className="text-xs text-slate-300 font-medium pt-4">
+                    Point camera at lecturer&apos;s slide or printed handout
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-[11px] font-bold text-slate-500 block uppercase">
+                    Or Simulate Instant Scan:
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { name: "Makerere CSC2101", code: "CSC2101-NOTES" },
+                      { name: "Buganda Royal BRIBTE", code: "BRIBTE-EE1101" },
+                      { name: "Kampala Poly Mengo", code: "KPM-AUT2102" },
+                      { name: "UICT Nakawa", code: "UICT-TLC1204" },
+                    ].map((item) => (
+                      <button
+                        key={item.code}
+                        type="button"
+                        onClick={() => router.push(`/d/${item.code}`)}
+                        className="rounded-xl border border-slate-200 bg-slate-50 hover:bg-amber-50 hover:border-amber-400 p-2 text-[11px] font-bold text-slate-800 transition text-left flex items-center justify-between"
+                      >
+                        <span className="truncate">{item.name}</span>
+                        <QrCode className="h-3.5 w-3.5 text-amber-600 shrink-0 ml-1" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
               <Link href="/catalogue" className="font-bold text-amber-700 hover:underline">
@@ -142,3 +209,4 @@ export default function DocumentCodeResolverPage() {
     </div>
   );
 }
+

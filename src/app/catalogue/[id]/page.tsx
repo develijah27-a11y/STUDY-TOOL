@@ -29,6 +29,7 @@ import {
   Clock,
   Printer,
   KeyRound,
+  QrCode,
 } from "lucide-react";
 
 interface CatalogueDoc {
@@ -90,6 +91,7 @@ export default function DocumentDetailPage() {
   const [activeTab, setActiveTab] = useState<"preview" | "syllabus" | "integrity">("preview");
   const [copiedShare, setCopiedShare] = useState(false);
   const [copiedReceipt, setCopiedReceipt] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
 
   useEffect(() => {
     async function loadDetails() {
@@ -218,7 +220,8 @@ export default function DocumentDetailPage() {
   const handleShareToWhatsApp = () => {
     if (!doc || typeof window === "undefined") return;
     const directUrl = `${window.location.origin}/d/${doc.accessCode || doc.id}`;
-    const msg = `📚 *${doc.courseCode} Academic Document*\n\n*Title:* ${doc.title}\n*Price:* ${formatUGX(doc.priceUGX)}\n\n👉 *Open directly on SomaUG Academic:*\n${directUrl}\n\n💡 *Document Access Code:* *${doc.accessCode || doc.id}* (enter on somaug.ac.ug to read)`;
+    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=8&data=${encodeURIComponent(directUrl)}`;
+    const msg = `📚 *${doc.courseCode} Academic Document • SomaUG*\n\n*Title:* ${doc.title}\n*Price:* ${formatUGX(doc.priceUGX)}\n\n👉 *Open directly on SomaUG Academic:*\n${directUrl}\n\n📱 *Scannable Document QR Code:*\n${qrImageUrl}\n\n💡 *Scan the QR Code or enter Document Code:* *${doc.accessCode || doc.id}* on the platform to read.`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
@@ -268,6 +271,15 @@ export default function DocumentDetailPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowQrModal(true)}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100 transition shadow-sm"
+          >
+            <QrCode className="h-3.5 w-3.5 text-amber-700" />
+            <span>Show QR Code</span>
+          </button>
+
           <button
             type="button"
             onClick={handleCopyShareLink}
@@ -797,6 +809,99 @@ export default function DocumentDetailPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Visual Scannable QR Code Modal */}
+      {showQrModal && doc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-3xl bg-[#0B192C] border-2 border-amber-400 p-6 sm:p-8 text-white shadow-2xl space-y-6">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold">
+                  <QrCode className="h-5 w-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 block">
+                    Scannable Document QR Code
+                  </span>
+                  <h3 className="text-sm font-extrabold text-white">
+                    {doc.courseCode} • {doc.institutionShortCode}
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowQrModal(false)}
+                className="text-slate-400 hover:text-white font-bold text-lg p-1"
+                aria-label="Close QR Modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="rounded-2xl bg-white/10 border border-white/15 p-5 text-center space-y-4">
+              <div className="space-y-1">
+                <h4 className="text-sm font-black text-white line-clamp-2">
+                  {doc.title}
+                </h4>
+                <p className="text-[11px] text-amber-300 font-bold">
+                  Price: {formatUGX(doc.priceUGX)}
+                </p>
+              </div>
+
+              {/* QR Image */}
+              <div className="bg-white rounded-2xl p-4 max-w-[220px] mx-auto shadow-xl border-4 border-amber-400 space-y-2">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data=${encodeURIComponent(
+                    typeof window !== "undefined"
+                      ? `${window.location.origin}/d/${doc.accessCode || doc.id}`
+                      : `https://somaug.ac.ug/d/${doc.accessCode || doc.id}`
+                  )}`}
+                  alt={`QR code for ${doc.title}`}
+                  className="w-full h-auto aspect-square rounded-lg"
+                />
+                <span className="text-[10px] font-bold text-slate-800 uppercase tracking-wider block">
+                  Scan With Phone Camera
+                </span>
+              </div>
+
+              {/* Document Code */}
+              <div className="bg-black/50 border border-amber-400/50 rounded-xl p-2.5 max-w-xs mx-auto">
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">
+                  Document Access Code
+                </span>
+                <span className="text-lg font-mono font-black text-amber-400">
+                  {doc.accessCode || doc.id}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+              <a
+                href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=15&data=${encodeURIComponent(
+                  typeof window !== "undefined"
+                    ? `${window.location.origin}/d/${doc.accessCode || doc.id}`
+                    : `https://somaug.ac.ug/d/${doc.accessCode || doc.id}`
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                download={`QR-${doc.accessCode || doc.id}.png`}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 py-2.5 text-xs font-black text-slate-950 transition shadow-md"
+              >
+                <Download className="h-4 w-4" />
+                <span>Save QR Image</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={handleShareToWhatsApp}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-2.5 text-xs font-black text-white transition shadow-md"
+              >
+                <Share2 className="h-4 w-4" />
+                <span>Share WhatsApp</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

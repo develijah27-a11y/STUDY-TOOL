@@ -29,6 +29,7 @@ import {
   KeyRound,
   Presentation,
   Send,
+  Download,
 } from "lucide-react";
 
 interface PayoutItem {
@@ -203,8 +204,9 @@ export default function LecturerDashboardPage() {
 
   const handleShareToWhatsApp = (doc: { accessCode: string; title: string; courseCode: string; priceUGX?: number }) => {
     const directUrl = getDirectPlatformUrl(doc.accessCode);
+    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=${encodeURIComponent(directUrl)}`;
     const priceText = doc.priceUGX ? `\n*Price:* ${formatUGX(doc.priceUGX)}` : "";
-    const msg = `📚 *University Course Material*\n\n*Course:* ${doc.courseCode}\n*Document:* ${doc.title}${priceText}\n\n👉 *Open directly on SomaUG Academic:*\n${directUrl}\n\n💡 *Or enter Document Code:* *${doc.accessCode}* on the platform to read.`;
+    const msg = `📚 *University Course Material • SomaUG Academic*\n\n*Course:* ${doc.courseCode}\n*Document:* ${doc.title}${priceText}\n\n👉 *Open directly on SomaUG Academic:*\n${directUrl}\n\n📱 *Document Scannable QR Code:*\n${qrImageUrl}\n\n💡 *Scan the QR code above or enter Document Code: ${doc.accessCode} on the platform to read.*`;
     const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
     window.open(waUrl, "_blank");
   };
@@ -232,8 +234,8 @@ export default function LecturerDashboardPage() {
       selectedLecturerUserId === "user-lecturer-1"
         ? "lec-1"
         : selectedLecturerUserId === "user-lecturer-2"
-        ? "lec-2"
-        : "lec-pending";
+          ? "lec-2"
+          : "lec-pending";
 
     try {
       const res = await fetch("/api/wallet", {
@@ -314,7 +316,7 @@ export default function LecturerDashboardPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
-      
+
       {/* Top Banner: Available Earnings & Verification Switcher */}
       <div className="rounded-3xl bg-gradient-to-r from-[#0B192C] via-[#162942] to-[#1E3E62] text-white p-6 md:p-10 shadow-xl">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -449,7 +451,7 @@ export default function LecturerDashboardPage() {
 
       {/* Main Grid: Document Publishing Wizard & My Published Materials with Direct Links */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-        
+
         {/* Left Column (7 cols): Document Publishing Wizard */}
         <div className="lg:col-span-7 space-y-6">
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
@@ -478,40 +480,37 @@ export default function LecturerDashboardPage() {
               <button
                 type="button"
                 onClick={() => setPublishStep(1)}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition text-center ${
-                  publishStep === 1
-                    ? "bg-[#0B192C] text-white shadow-sm"
-                    : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-                }`}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold transition text-center ${publishStep === 1
+                  ? "bg-[#0B192C] text-white shadow-sm"
+                  : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                  }`}
               >
                 1. File &amp; Course
               </button>
               <button
                 type="button"
                 onClick={() => setPublishStep(2)}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition text-center ${
-                  publishStep === 2
-                    ? "bg-[#0B192C] text-white shadow-sm"
-                    : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-                }`}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold transition text-center ${publishStep === 2
+                  ? "bg-[#0B192C] text-white shadow-sm"
+                  : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                  }`}
               >
                 2. Pricing &amp; Split
               </button>
               <button
                 type="button"
                 onClick={() => setPublishStep(3)}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition text-center ${
-                  publishStep === 3
-                    ? "bg-[#0B192C] text-white shadow-sm"
-                    : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-                }`}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold transition text-center ${publishStep === 3
+                  ? "bg-[#0B192C] text-white shadow-sm"
+                  : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                  }`}
               >
                 3. Preview &amp; Publish
               </button>
             </div>
 
             <form onSubmit={handlePublishDocument} className="space-y-5">
-              
+
               {/* Step 1: File & Course Metadata */}
               {publishStep === 1 && (
                 <div className="space-y-4">
@@ -857,19 +856,19 @@ export default function LecturerDashboardPage() {
         </div>
       </div>
 
-      {/* Classroom Slide / QR Modal (For Projector or WhatsApp screenshot) */}
+      {/* Classroom Slide / QR Modal (For Projector, Classroom Display or WhatsApp sharing) */}
       {activeSlideDoc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-lg rounded-3xl bg-[#0B192C] border-2 border-amber-400 p-6 md:p-8 text-white shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
+          <div className="w-full max-w-lg rounded-3xl bg-[#0B192C] border-2 border-amber-400 p-6 md:p-8 text-white shadow-2xl space-y-6 my-auto">
             
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div className="flex items-center gap-2.5">
                 <div className="h-9 w-9 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold">
-                  <Presentation className="h-5 w-5" />
+                  <QrCode className="h-5 w-5" />
                 </div>
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 block">
-                    Classroom Projector Slide • SomaUG Academic
+                    Classroom Projector Slide &amp; Visual Scannable QR Code
                   </span>
                   <h3 className="text-sm font-extrabold text-white">
                     {activeSlideDoc.courseCode}: Course Material Access
@@ -879,13 +878,14 @@ export default function LecturerDashboardPage() {
               <button
                 type="button"
                 onClick={() => setActiveSlideDoc(null)}
-                className="text-slate-400 hover:text-white font-bold text-lg"
+                className="text-slate-400 hover:text-white font-bold text-lg p-1"
+                aria-label="Close Slide Modal"
               >
                 ✕
               </button>
             </div>
 
-            <div className="rounded-2xl bg-white/10 border border-white/15 p-6 text-center space-y-4">
+            <div className="rounded-2xl bg-white/10 border border-white/15 p-6 text-center space-y-5">
               <div className="space-y-1">
                 <span className="text-xs font-bold text-amber-300 uppercase">
                   {activeSlideDoc.institutionShortCode} Official Lecture Material
@@ -895,18 +895,32 @@ export default function LecturerDashboardPage() {
                 </h2>
               </div>
 
-              {/* High-visibility Code Display */}
-              <div className="bg-black/50 border border-amber-400/50 rounded-2xl p-4 space-y-1 max-w-xs mx-auto">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block">
-                  Document Access Code
+              {/* High-Resolution Scannable Visual QR Code */}
+              <div className="bg-white rounded-2xl p-4 max-w-[260px] mx-auto shadow-xl border-4 border-amber-400 space-y-2">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=8&data=${encodeURIComponent(
+                    getDirectPlatformUrl(activeSlideDoc.accessCode)
+                  )}`}
+                  alt={`Scannable QR Code for ${activeSlideDoc.title}`}
+                  className="w-full h-auto rounded-lg aspect-square"
+                />
+                <span className="text-[10px] font-bold text-slate-800 uppercase tracking-wider block">
+                  Scan With Phone Camera
                 </span>
-                <div className="text-2xl md:text-3xl font-mono font-black text-amber-400 tracking-wider">
+              </div>
+
+              {/* High-visibility Code Display */}
+              <div className="bg-black/50 border border-amber-400/50 rounded-2xl p-3.5 space-y-1 max-w-xs mx-auto">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
+                  Or Enter Document Access Code
+                </span>
+                <div className="text-xl md:text-2xl font-mono font-black text-amber-400 tracking-wider">
                   {activeSlideDoc.accessCode}
                 </div>
               </div>
 
               {/* Direct Platform Link */}
-              <div className="space-y-1 pt-2">
+              <div className="space-y-1 pt-1">
                 <span className="text-xs text-slate-300 font-medium block">
                   Direct Platform Link (Tap in WhatsApp to open directly):
                 </span>
@@ -916,15 +930,28 @@ export default function LecturerDashboardPage() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
               <button
                 type="button"
                 onClick={() => handleShareToWhatsApp(activeSlideDoc)}
                 className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-3 text-xs font-black text-white transition shadow-md"
               >
                 <Send className="h-4 w-4" />
-                <span>Send Direct Link to WhatsApp</span>
+                <span>Share QR to WhatsApp</span>
               </button>
+
+              <a
+                href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=15&data=${encodeURIComponent(
+                  getDirectPlatformUrl(activeSlideDoc.accessCode)
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                download={`QR-${activeSlideDoc.accessCode}.png`}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 py-3 text-xs font-black text-slate-950 transition shadow-md"
+              >
+                <Download className="h-4 w-4" />
+                <span>Download QR Image</span>
+              </a>
 
               <button
                 type="button"
@@ -934,8 +961,8 @@ export default function LecturerDashboardPage() {
                 <Copy className="h-4 w-4" />
                 <span>
                   {copiedItem === `link-${activeSlideDoc.accessCode}`
-                    ? "Link Copied!"
-                    : "Copy Direct Link"}
+                    ? "Copied!"
+                    : "Copy Link"}
                 </span>
               </button>
             </div>
