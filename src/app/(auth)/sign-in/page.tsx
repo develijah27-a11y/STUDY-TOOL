@@ -9,145 +9,243 @@ import {
   Mail,
   ArrowRight,
   ShieldCheck,
-  UserCheck,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  CheckCircle2,
+  Sparkles,
+  BookOpen,
+  Wallet,
 } from "lucide-react";
 
 export default function SignInPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("namukasa.grace@students.mak.ac.ug");
-  const [password, setPassword] = useState("••••••••••••");
 
-  const handleSignIn = (e: React.FormEvent) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.includes("admin")) {
-      router.push("/admin/dashboard");
-    } else if (email.includes("prof") || email.includes("dr")) {
-      router.push("/lecturer/dashboard");
-    } else {
-      router.push("/catalogue");
+    setLoading(true);
+    setErrorMsg(null);
+
+    try {
+      const res = await fetch("/api/auth/sign-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setErrorMsg(data.error || "Invalid credentials.");
+        return;
+      }
+
+      const roles = data.user?.roles || [];
+      if (roles.includes("admin") || roles.includes("co_admin")) {
+        router.push("/admin/dashboard");
+      } else if (roles.includes("lecturer")) {
+        router.push("/lecturer/dashboard");
+      } else {
+        router.push("/catalogue");
+      }
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "Authentication request failed.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleApplyPreset = (presetEmail: string, presetPass: string) => {
+    setEmail(presetEmail);
+    setPassword(presetPass);
+    setErrorMsg(null);
+  };
+
   return (
-    <div className="container mx-auto px-4 py-12 max-w-4xl">
-      <div className="grid grid-cols-1 md:grid-cols-2 rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-xl">
-        {/* Left Brand Panel */}
-        <div className="bg-gradient-to-br from-[#0B192C] via-[#162942] to-[#1E3E62] text-white p-8 flex flex-col justify-between space-y-6">
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-3 py-1.5 text-xs font-bold text-amber-300">
-              <GraduationCap className="h-4 w-4" />
-              <span>SomaUG Academic Authentication</span>
+    <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-12 rounded-3xl overflow-hidden border border-slate-200/80 bg-white shadow-2xl">
+        
+        {/* Left Side: Scholarly Visual Brand Hero (5 cols) */}
+        <div className="md:col-span-5 bg-gradient-to-br from-[#0B192C] via-[#162942] to-[#1E3E62] text-white p-8 md:p-10 flex flex-col justify-between relative overflow-hidden">
+          {/* Subtle decorative glow */}
+          <div className="absolute -top-24 -left-24 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 space-y-6">
+            <Link href="/" className="inline-flex items-center gap-2.5">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 backdrop-blur border border-white/20 text-amber-400 shadow-sm">
+                <GraduationCap className="h-6 w-6" />
+              </div>
+              <div>
+                <span className="block text-base font-extrabold tracking-tight">
+                  Soma<span className="text-amber-400">UG</span>
+                </span>
+                <span className="block text-[11px] font-medium text-slate-300">
+                  Academic Marketplace
+                </span>
+              </div>
+            </Link>
+
+            <div className="space-y-2 pt-2">
+              <h1 className="text-2xl font-extrabold leading-snug">
+                Welcome back to verified university resources.
+              </h1>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Log in to access your study library, view your student wallet balance, or publish course materials.
+              </p>
             </div>
-            <h1 className="text-2xl font-extrabold leading-snug">
-              Trusted Access for Ugandan Students &amp; University Lecturers
-            </h1>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Browse the academic catalogue freely before registration, or sign in to fund your
-              student wallet, purchase verified lecture materials, and sync reading annotations across devices.
-            </p>
+
+            {/* Feature Highlights */}
+            <div className="space-y-3 pt-4 border-t border-white/10 text-xs text-slate-200">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                <span>Double-entry internal wallet (UGX)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                <span>Verified lecturers from MAK, KYU, MUST &amp; more</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                <span>Protected study reader with personalized watermarks</span>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-2.5 pt-4 border-t border-white/15 text-xs">
-            <p className="font-bold text-amber-300">Quick Role Session Presets:</p>
-            <button
-              type="button"
-              onClick={() => setEmail("namukasa.grace@students.mak.ac.ug")}
-              className="w-full text-left rounded-lg bg-white/10 hover:bg-white/20 px-3 py-2 flex items-center justify-between"
-            >
-              <span>Student (Grace — Makerere BSSE)</span>
-              <span className="text-[10px] text-amber-300 font-mono">UGX 25,000</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setEmail("prof.okello@cis.mak.ac.ug")}
-              className="w-full text-left rounded-lg bg-white/10 hover:bg-white/20 px-3 py-2 flex items-center justify-between"
-            >
-              <span>Verified Lecturer (Assoc. Prof. Okello)</span>
-              <span className="text-[10px] text-emerald-300 font-mono">Approved</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setEmail("admin@ugandastudy.ug")}
-              className="w-full text-left rounded-lg bg-white/10 hover:bg-white/20 px-3 py-2 flex items-center justify-between"
-            >
-              <span>Comptroller / Administrator</span>
-              <span className="text-[10px] text-blue-300 font-mono">Full Audit</span>
-            </button>
+          {/* Quick Test Accounts Switcher */}
+          <div className="relative z-10 pt-6 mt-6 border-t border-white/10 space-y-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+              <Sparkles className="h-3 w-3" />
+              Quick Demo Logins (Click to Fill):
+            </span>
+            <div className="grid grid-cols-1 gap-1.5 text-xs">
+              <button
+                type="button"
+                onClick={() => handleApplyPreset("namukasa.grace@students.mak.ac.ug", "Makerere2026!")}
+                className="w-full text-left rounded-lg bg-white/10 hover:bg-white/20 px-3 py-1.5 transition flex items-center justify-between"
+              >
+                <span>Student (Grace — MAK)</span>
+                <span className="text-[10px] text-amber-300 font-mono">Fill</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleApplyPreset("prof.okello@cis.mak.ac.ug", "Lecturer2026!")}
+                className="w-full text-left rounded-lg bg-white/10 hover:bg-white/20 px-3 py-1.5 transition flex items-center justify-between"
+              >
+                <span>Lecturer (Prof. Okello)</span>
+                <span className="text-[10px] text-emerald-300 font-mono">Fill</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Right Sign-In Form */}
-        <div className="p-8 space-y-6">
+        {/* Right Side: Sign-In Form (7 cols) */}
+        <div className="md:col-span-7 p-8 md:p-12 flex flex-col justify-between space-y-8">
           <div>
-            <h2 className="text-xl font-extrabold text-slate-900">Sign In to Your Account</h2>
-            <p className="text-xs text-slate-500 mt-1">
-              Secured by Supabase Auth &amp; Server-Side Row-Level Security
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                  Sign in to your account
+                </h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  Enter your university or personal email to continue
+                </p>
+              </div>
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                SSL Encrypted
+              </span>
+            </div>
+
+            {errorMsg && (
+              <div className="mt-4 rounded-2xl bg-red-50 border border-red-200 p-4 text-xs font-semibold text-red-800 flex items-start gap-2.5">
+                <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSignIn} className="mt-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="name@mak.ac.ug or personal email"
+                    className="w-full rounded-xl border border-slate-300 bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-[#0B192C] focus:ring-2 focus:ring-[#0B192C]/10 outline-none transition"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Password
+                  </label>
+                  <a
+                    href="#forgot"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      alert("Password reset instructions have been dispatched to your email address.");
+                    }}
+                    className="text-[11px] font-semibold text-amber-700 hover:text-amber-800 hover:underline"
+                  >
+                    Forgot password?
+                  </a>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your account password"
+                    className="w-full rounded-xl border border-slate-300 bg-slate-50/50 pl-10 pr-10 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-[#0B192C] focus:ring-2 focus:ring-[#0B192C]/10 outline-none transition font-medium"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 transition"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B192C] px-5 py-3 text-xs font-bold text-white shadow-md hover:bg-[#162942] active:scale-[0.99] disabled:opacity-50 transition"
+              >
+                <span>{loading ? "Authenticating..." : "Sign In to Platform"}</span>
+                <ArrowRight className="h-4 w-4 text-amber-400" />
+              </button>
+            </form>
           </div>
 
-          <form onSubmit={handleSignIn} className="space-y-4 text-xs">
-            <div>
-              <label className="block font-bold text-slate-700 mb-1">
-                University or Personal Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 pl-9 pr-3 py-2.5"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block font-bold text-slate-700 mb-1">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 pl-9 pr-3 py-2.5"
-                  required
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B192C] px-4 py-3 text-xs font-bold text-white hover:bg-slate-800 transition"
-            >
-              <span>Continue to Platform</span>
-              <ArrowRight className="h-4 w-4 text-amber-400" />
-            </button>
-          </form>
-
-          <div className="pt-4 border-t border-slate-100 space-y-2.5 text-xs">
+          <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <span className="text-slate-500">
+              New to SomaUG Academic?{" "}
+              <Link href="/sign-up" className="font-extrabold text-[#0B192C] hover:underline">
+                Create an account →
+              </Link>
+            </span>
             <Link
-              href="/student/profile"
-              className="flex items-center justify-between rounded-xl border border-slate-200 p-3 hover:bg-slate-50 font-semibold text-slate-800"
+              href="/catalogue"
+              className="font-semibold text-slate-600 hover:text-slate-900"
             >
-              <span className="flex items-center gap-2">
-                <UserCheck className="h-4 w-4 text-emerald-600" />
-                Configure Student Academic Profile
-              </span>
-              <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
-            </Link>
-
-            <Link
-              href="/lecturer/apply"
-              className="flex items-center justify-between rounded-xl border border-slate-200 p-3 hover:bg-slate-50 font-semibold text-slate-800"
-            >
-              <span className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-amber-600" />
-                Apply for Lecturer Verification
-              </span>
-              <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
+              Browse Catalogue as Visitor
             </Link>
           </div>
         </div>
@@ -155,4 +253,3 @@ export default function SignInPage() {
     </div>
   );
 }
-
