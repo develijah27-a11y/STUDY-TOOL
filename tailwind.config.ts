@@ -16,6 +16,9 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-inter)", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -50,14 +53,23 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Official Brand Identity Palette
+        brand: {
+          navy: "#142B45",
+          teal: "#147D78",
+          softWhite: "#F7F8FA",
+          pureWhite: "#FFFFFF",
+          charcoal: "#243244",
+          mutedGold: "#E9B949",
+        },
         // Brand palette: Uganda Academic / Warm scholarly navy & gold/ochre & emerald
         academic: {
-          navy: "#0f2027",
-          slate: "#203a43",
-          teal: "#2c5364",
-          amber: "#d97706",
-          gold: "#f59e0b",
-          green: "#059669",
+          navy: "#142B45",
+          slate: "#243244",
+          teal: "#147D78",
+          amber: "#E9B949",
+          gold: "#E9B949",
+          green: "#147D78",
         },
       },
       borderRadius: {

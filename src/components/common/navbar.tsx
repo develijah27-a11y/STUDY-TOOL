@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { SITE_COPY } from "@/lib/constants/site-copy";
 import {
   BookOpen,
   Wallet,
@@ -46,10 +47,31 @@ export function Navbar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [quickCode, setQuickCode] = useState("");
+  const [authenticatedUser, setAuthenticatedUser] = useState<{ id: string; email?: string; role?: string } | null>(null);
 
   // Close sidebar drawer on route change
   useEffect(() => {
     setIsSidebarOpen(false);
+  }, [pathname]);
+
+  // Check authentication session
+  useEffect(() => {
+    async function checkSession() {
+      try {
+        const res = await fetch("/api/auth/session");
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.user) {
+            setAuthenticatedUser(data.user);
+          } else {
+            setAuthenticatedUser(null);
+          }
+        }
+      } catch {
+        setAuthenticatedUser(null);
+      }
+    }
+    checkSession();
   }, [pathname]);
 
   const navGroups: NavGroup[] = [
@@ -135,9 +157,9 @@ export function Navbar() {
               className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-slate-50 hover:bg-slate-100 px-4 py-1.5 text-xs font-semibold text-slate-700 transition shadow-inner"
             >
               <KeyRound className="h-3.5 w-3.5 text-amber-600" />
-              <span>Have a Document Code from WhatsApp?</span>
-              <span className="rounded bg-amber-500 text-slate-950 font-bold px-2 py-0.5 text-[10px]">
-                Enter Code
+              <span>{SITE_COPY.actions.haveCodePrompt}</span>
+              <span className="rounded bg-amber-500 text-slate-950 font-bold px-2 py-0.5 text-xs">
+                {SITE_COPY.actions.enterCode}
               </span>
             </button>
           </div>
@@ -148,29 +170,41 @@ export function Navbar() {
               type="button"
               onClick={() => setShowCodeModal(true)}
               className="md:hidden inline-flex items-center gap-1.5 rounded-full bg-slate-100 border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-800"
-              title="Enter Document Code"
+              title="Enter code"
             >
               <KeyRound className="h-3.5 w-3.5 text-amber-600" />
-              <span>Code</span>
+              <span>{SITE_COPY.actions.enterCode}</span>
             </button>
 
-            <Link
-              href="/student/wallet"
-              className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3.5 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-100 transition shadow-sm"
-              title="Student Wallet Balance"
-            >
-              <Wallet className="h-3.5 w-3.5 text-amber-600" />
-              <span className="hidden sm:inline">Wallet:</span>
-              <span className="font-extrabold text-emerald-800">UGX 25,000</span>
-            </Link>
+            {/* Wallet chip is rendered ONLY for authenticated users with active sessions */}
+            {authenticatedUser ? (
+              <Link
+                href={authenticatedUser.role === "lecturer" ? "/lecturer/dashboard" : "/student/wallet"}
+                className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3.5 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-100 transition shadow-sm"
+                title="Your Account Dashboard & Wallet"
+              >
+                <Wallet className="h-3.5 w-3.5 text-amber-600" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </Link>
+            ) : null}
 
-            <Link
-              href="/sign-in"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#0B192C] px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition shadow-sm"
-            >
-              <LogIn className="h-3.5 w-3.5 text-amber-400" />
-              <span>Sign In</span>
-            </Link>
+            {authenticatedUser ? (
+              <Link
+                href="/student/profile"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#0B192C] px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition shadow-sm"
+              >
+                <UserCheck className="h-3.5 w-3.5 text-amber-400" />
+                <span>Account</span>
+              </Link>
+            ) : (
+              <Link
+                href="/sign-in"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#0B192C] px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition shadow-sm"
+              >
+                <LogIn className="h-3.5 w-3.5 text-amber-400" />
+                <span>Sign In</span>
+              </Link>
+            )}
           </div>
         </div>
       </header>
@@ -368,7 +402,7 @@ export function Navbar() {
                   type="submit"
                   className="flex-1 inline-flex items-center justify-center gap-1 rounded-xl bg-[#0B192C] py-2 text-xs font-bold text-white hover:bg-slate-800"
                 >
-                  <span>Open PDF</span>
+                  <span>{SITE_COPY.actions.enterCode}</span>
                   <ArrowRight className="h-3.5 w-3.5 text-amber-400" />
                 </button>
               </div>
@@ -382,17 +416,16 @@ export function Navbar() {
 
 export function Footer() {
   return (
-    <footer className="border-t border-slate-200 bg-[#0B192C] text-slate-300 mt-16">
+    <footer className="border-t border-slate-800 bg-[#0B192C] text-slate-200 mt-16">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-white font-extrabold text-base">
               <BookOpen className="h-5 w-5 text-amber-400" />
-              <span>SomaUG Academic</span>
+              <span>{SITE_COPY.brand.name}</span>
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Official academic and vocational document marketplace for Ugandan universities,
-              polytechnics, and institutes. Instant student unlock via MTN &amp; Airtel Mobile Money.
+            <p className="text-xs text-slate-300 leading-relaxed font-normal">
+              {SITE_COPY.brand.footerDescription}
             </p>
           </div>
 
@@ -400,7 +433,7 @@ export function Footer() {
             <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-3">
               Universities
             </h3>
-            <ul className="space-y-2 text-xs text-slate-300">
+            <ul className="space-y-2 text-xs text-slate-300 font-medium">
               <li>Makerere University (MAK)</li>
               <li>Kyambogo University (KYU)</li>
               <li>Mbarara University (MUST)</li>
@@ -415,7 +448,7 @@ export function Footer() {
             <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-3">
               Vocational &amp; Technical Institutes
             </h3>
-            <ul className="space-y-2 text-xs text-slate-300">
+            <ul className="space-y-2 text-xs text-slate-300 font-medium">
               <li>Buganda Royal Institute (BRIBTE Mengo)</li>
               <li>Kampala Polytechnic Mengo (KPM)</li>
               <li>Uganda Institute of ICT (UICT Nakawa)</li>
@@ -428,22 +461,27 @@ export function Footer() {
 
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-3">
-              Academic Integrity &amp; Payment
+              {SITE_COPY.footer.securityHeading}
             </h3>
-            <p className="text-xs text-slate-400 leading-relaxed mb-3">
-              All transactions are secured by our double-entry ledger in exact integer UGX amounts.
-              Reading is DRM-protected with dynamic anti-piracy student watermarks.
+            <p className="text-xs text-slate-300 leading-relaxed mb-3 font-normal">
+              {SITE_COPY.footer.securityBody}
             </p>
-            <div className="flex flex-wrap gap-2 text-[11px] font-bold text-amber-300">
-              <span className="rounded bg-white/10 px-2 py-1">MTN MoMo</span>
-              <span className="rounded bg-white/10 px-2 py-1">Airtel Money</span>
-              <span className="rounded bg-white/10 px-2 py-1">UBTEB &amp; NCHE</span>
+            <div className="flex flex-wrap gap-2 text-xs font-bold text-slate-900">
+              <span className="rounded-lg bg-amber-400 px-2.5 py-1 shadow-sm">
+                MTN MoMo
+              </span>
+              <span className="rounded-lg bg-red-500 text-white px-2.5 py-1 shadow-sm">
+                Airtel Money
+              </span>
+              <span className="rounded-lg bg-white/20 text-white border border-white/30 px-2 py-1">
+                Uganda UGX
+              </span>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 border-t border-slate-800 pt-6 text-center text-xs text-slate-500">
-          &copy; {new Date().getFullYear()} SomaUG Academic. Republic of Uganda Academic &amp; Vocational Document Marketplace.
+        <div className="mt-8 border-t border-slate-800 pt-6 text-center text-xs text-slate-400">
+          {SITE_COPY.footer.copyright}
         </div>
       </div>
     </footer>

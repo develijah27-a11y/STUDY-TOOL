@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar, Footer } from "@/components/common/navbar";
 
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
+
 export const metadata: Metadata = {
-  title: "SomaUG Academic — Uganda University Document Marketplace",
+  title: "SomaUG Academic — Study Notes & Past Papers for Uganda Higher Education",
   description:
-    "Verified lecture notes, past paper solutions, and study guides from Ugandan university lecturers. Instant purchase with Student Wallet and MTN/Airtel Mobile Money.",
+    "Lecture notes, past paper marking guides, and practical handbooks from Ugandan lecturers. Instant access with MTN MoMo and Airtel Money.",
 };
 
 export default function RootLayout({
@@ -14,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
+    <html lang="en" className={inter.variable}>
+      <body className="flex min-h-screen flex-col bg-[#F7F8FA] text-[#243244] font-sans antialiased">
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
