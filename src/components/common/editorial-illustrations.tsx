@@ -179,3 +179,4 @@ export function MoMoEditorialIllustration({ className = "w-full h-full" }: Illus
     </svg>
   );
 }
+

@@ -786,9 +786,9 @@ class MarketplaceStore {
         id: "doc-csc2101-notes",
         accessCode: "CSC2101-NOTES",
         lecturerId: "lec-1",
-        title: "CSC 2101: Complete Data Structures & Algorithms Lecture Compendium (2026/2027 Edition)",
+        title: "CSC 2101: Data Structures and Algorithms Notes",
         description:
-          "Comprehensive 48-page lecture compendium covering Asymptotic Analysis, Trees, AVL Balances, Graph Traversals (BFS/DFS), Dijkstra's Shortest Path, and Dynamic Programming with worked Uganda examination case studies.",
+          "Comprehensive 48-page lecture notes covering Asymptotic Analysis, Trees, AVL Balances, Graph Traversals (BFS/DFS), Dijkstra's Shortest Path, and Dynamic Programming with worked examination case studies.",
         institutionId: "inst-mak",
         programmeId: "prog-bsse",
         courseUnitId: "course-csc2101",
@@ -812,9 +812,9 @@ class MarketplaceStore {
         id: "doc-csc2101-pastpapers",
         accessCode: "CSC2101-PAPERS",
         lecturerId: "lec-1",
-        title: "CSC 2101: 5-Year Solved Past Examination Papers & Marking Guide (2021–2025)",
+        title: "CSC 2101: Solved Past Papers and Guide",
         description:
-          "Step-by-step model solutions, complexity proofs, and C/Java code implementations for Makerere University CSC 2101 final examinations from 2021 to 2025, including common examiner pitfalls.",
+          "Step-by-step model solutions, complexity proofs, and C/Java code implementations for final examinations from 2021 to 2025, including common examiner pitfalls.",
         institutionId: "inst-mak",
         programmeId: "prog-bsse",
         courseUnitId: "course-csc2101",
@@ -838,7 +838,7 @@ class MarketplaceStore {
         id: "doc-bsse3102-cloud",
         accessCode: "BSSE3102-LAB",
         lecturerId: "lec-1",
-        title: "BSSE 3102: Distributed Systems, Consensus Protocols & Microservices Lab Manual",
+        title: "BSSE 3102: Distributed Systems Lab Manual",
         description:
           "Practical guide covering Raft Consensus, Vector Clocks, gRPC, Idempotent Payment Ledgers, and Fault-Tolerant Distributed Transactions.",
         institutionId: "inst-mak",
@@ -864,7 +864,7 @@ class MarketplaceStore {
         id: "doc-law2105-constitution",
         accessCode: "LAW2105-CASE",
         lecturerId: "lec-2",
-        title: "LAW 2105: Constitutional Law of Uganda — Landmark Supreme Court Cases & Doctrines",
+        title: "LAW 2105: Constitutional Law and Notes",
         description:
           "Authoritative casebook and analytical commentary on the 1995 Constitution of the Republic of Uganda, Separation of Powers, Human Rights Enforcement (Article 50), and Electoral Jurisprudence.",
         institutionId: "inst-mak",
@@ -890,9 +890,9 @@ class MarketplaceStore {
         id: "doc-short-2page-summary",
         accessCode: "CSC2101-CHEAT",
         lecturerId: "lec-1",
-        title: "CSC 2101: Quick 2-Page Big-O Complexity & Recurrence Relations Cheat Sheet",
+        title: "CSC 2101: Big-O Complexity Summary",
         description:
-          "High-density 2-page reference sheet for Master Theorem, Common Data Structure Operations, and Sorting Algorithm complexities. (No page preview per 1–2 page protection policy).",
+          "High-density 2-page reference sheet for Master Theorem, Common Data Structure Operations, and Sorting Algorithm complexities.",
         institutionId: "inst-mak",
         programmeId: "prog-bsse",
         courseUnitId: "course-csc2101",
@@ -917,7 +917,7 @@ class MarketplaceStore {
         id: "doc-bribte-electrical",
         accessCode: "BRIBTE-EE1101",
         lecturerId: "lec-1",
-        title: "BRIBTE EE 1101: Domestic & 3-Phase Industrial Electrical Installation Workshop Guide",
+        title: "EE 1101: Industrial Electrical Installation Manual",
         description:
           "Practical UBTEB syllabus handbook covering consumer units, conduit piping, earthing systems, 3-phase motor starters, solar PV wiring, and safety standards approved for Buganda Royal Institute technicians.",
         institutionId: "inst-bribte",
@@ -943,7 +943,7 @@ class MarketplaceStore {
         id: "doc-kpm-automotive",
         accessCode: "KPM-AUT2102",
         lecturerId: "lec-1",
-        title: "Kampala Polytechnic Mengo: Motor Vehicle Engine Overhaul & Common Rail Diesel Guide",
+        title: "AUT 2102: Automotive Engine Overhaul Handbook",
         description:
           "Step-by-step automotive workshop manual for cylinder head resurfacing, piston ring clearance, turbocharger troubleshooting, and electronic fuel injection diagnostics for Kampala Polytechnic engineering students.",
         institutionId: "inst-kpm",
@@ -969,7 +969,7 @@ class MarketplaceStore {
         id: "doc-uict-telecom",
         accessCode: "UICT-TLC1204",
         lecturerId: "lec-1",
-        title: "UICT Nakawa: Optical Fibre Splicing, Fusion Welding & OTDR Testing Manual",
+        title: "TLC 1204: Fibre Optic Splicing Guide",
         description:
           "Field technician practical guide for optical fiber fusion splicing, attenuation decibel measurements, patch panel termination, and fiber-to-the-home (FTTH) deployment in Uganda.",
         institutionId: "inst-uict",

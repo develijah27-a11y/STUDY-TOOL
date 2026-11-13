@@ -236,7 +236,7 @@ export default function DocumentDetailPage() {
 
   const handleCopyReceipt = () => {
     if (!receipt || !doc) return;
-    const text = `SomaUG Academic Receipt\nRef: ${receipt.receiptReference}\nOrder: ${receipt.orderNumber}\nDocument: ${doc.title}\nAmount: ${formatUGX(receipt.grossAmountUGX)}\nLecturer Share: ${formatUGX(receipt.lecturerEarningsUGX)}\nStatus: COMPLETED (Verified Double-Entry)`;
+    const text = `SomaUG Academic Receipt\nRef: ${receipt.receiptReference}\nOrder: ${receipt.orderNumber}\nDocument: ${doc.title}\nAmount: ${formatUGX(receipt.grossAmountUGX)}\nLecturer Share: ${formatUGX(receipt.lecturerEarningsUGX)}\nStatus: COMPLETED (Verified Purchase)`;
     navigator.clipboard.writeText(text);
     setCopiedReceipt(true);
     setTimeout(() => setCopiedReceipt(false), 2500);
@@ -334,18 +334,18 @@ export default function DocumentDetailPage() {
               {doc.description}
             </p>
 
-            {/* Author Credentials & Peer Verification */}
+            {/* Author Credentials */}
             <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/70 p-4 rounded-xl">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-600 text-white font-extrabold text-base shadow-sm">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#147D78] text-white font-extrabold text-base shadow-sm">
                   {doc.lecturerName.split(" ").slice(-1)[0]?.slice(0, 2) || "LC"}
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="font-extrabold text-sm text-slate-900">{doc.lecturerName}</span>
-                    <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                    <span className="font-extrabold text-sm text-[#142B45]">{doc.lecturerName}</span>
+                    <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">
                       <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                      Verified Academic
+                      Course Lecturer
                     </span>
                   </div>
                   <span className="block text-xs text-slate-500 font-medium">{doc.lecturerDepartment}</span>
@@ -354,11 +354,11 @@ export default function DocumentDetailPage() {
 
               <div className="text-left sm:text-right">
                 <div className="flex items-center sm:justify-end gap-1 text-xs font-extrabold text-slate-900">
-                  <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                  <span>{doc.salesCount} Verified Student Readers</span>
+                  <Sparkles className="h-3.5 w-3.5 text-[#E9B949]" />
+                  <span>{doc.salesCount} Student Readers</span>
                 </div>
-                <span className="text-[11px] text-slate-500 font-medium">
-                  Authoritative University Compendium
+                <span className="text-xs text-slate-500 font-medium">
+                  Course Study Material
                 </span>
               </div>
             </div>
@@ -372,11 +372,11 @@ export default function DocumentDetailPage() {
                 onClick={() => setActiveTab("preview")}
                 className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-t-xl transition ${
                   activeTab === "preview"
-                    ? "bg-white text-slate-900 border-t-2 border-amber-500 shadow-sm"
+                    ? "bg-white text-slate-900 border-t-2 border-[#147D78] shadow-sm"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                 }`}
               >
-                <Eye className="h-3.5 w-3.5 text-amber-600" />
+                <Eye className="h-3.5 w-3.5 text-[#147D78]" />
                 <span>Sample Page Preview</span>
               </button>
 
@@ -385,7 +385,7 @@ export default function DocumentDetailPage() {
                 onClick={() => setActiveTab("syllabus")}
                 className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-t-xl transition ${
                   activeTab === "syllabus"
-                    ? "bg-white text-slate-900 border-t-2 border-amber-500 shadow-sm"
+                    ? "bg-white text-slate-900 border-t-2 border-[#147D78] shadow-sm"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                 }`}
               >
@@ -398,12 +398,12 @@ export default function DocumentDetailPage() {
                 onClick={() => setActiveTab("integrity")}
                 className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-t-xl transition ${
                   activeTab === "integrity"
-                    ? "bg-white text-slate-900 border-t-2 border-amber-500 shadow-sm"
+                    ? "bg-white text-slate-900 border-t-2 border-[#147D78] shadow-sm"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                 }`}
               >
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                <span>Digital Rights &amp; Integrity</span>
+                <span>Security &amp; Reader Protection</span>
               </button>
             </div>
 
@@ -426,7 +426,7 @@ export default function DocumentDetailPage() {
                             onClick={() => setPreviewPageNum(pNum)}
                             className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
                               previewPageNum === pNum
-                                ? "bg-[#0B192C] text-white shadow-sm"
+                                ? "bg-[#142B45] text-white shadow-sm"
                                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                             }`}
                           >
@@ -447,10 +447,10 @@ export default function DocumentDetailPage() {
                         <Lock className="h-6 w-6" />
                       </div>
                       <h3 className="text-sm font-bold text-slate-900">
-                        Sample Preview Restricted by Platform Policy (1–2 Page Summary)
+                        Sample Preview Restricted for 1–2 Page Reference
                       </h3>
                       <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
-                        To preserve the academic value of concise 1–2 page reference cheat sheets,
+                        To preserve the study value of concise 1–2 page reference cheat sheets,
                         full body text is unlocked upon one-click purchase with your student wallet.
                       </p>
                     </div>
@@ -466,15 +466,15 @@ export default function DocumentDetailPage() {
                       {previewLoading ? (
                         <div className="py-12 text-center text-slate-500 font-sans">
                           <div className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-amber-500 border-t-transparent mb-2"></div>
-                          <p className="text-xs">Fetching verified sample page text...</p>
+                          <p className="text-xs">Fetching sample page text...</p>
                         </div>
                       ) : (
                         previewContent
                       )}
 
-                      <div className="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500 font-sans">
+                      <div className="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500 font-sans">
                         <span>Showing Page {previewPageNum} of {doc.pageCount}</span>
-                        <span>Official SomaUG Academic Watermark Active</span>
+                        <span>SomaUG Academic Watermark Active</span>
                       </div>
                     </div>
                   )}
@@ -495,7 +495,7 @@ export default function DocumentDetailPage() {
                         <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                         <div>
                           <span className="text-xs font-bold text-slate-900 block">{topic}</span>
-                          <span className="text-[11px] text-slate-500">
+                          <span className="text-xs text-slate-500">
                             Covered with worked examples and exam tips
                           </span>
                         </div>
@@ -509,18 +509,18 @@ export default function DocumentDetailPage() {
                 <div className="space-y-4 text-xs text-slate-700 leading-relaxed">
                   <div className="flex items-center gap-2 font-bold text-slate-900">
                     <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                    <span>Double-Entry Digital Rights Enforcement</span>
+                    <span>Protected Study Material</span>
                   </div>
                   <p>
-                    Every document published on SomaUG Academic has its cryptographic SHA-256 hash
-                    recorded in the immutable database ledger. When purchased, your active student
-                    entitlement is recorded atomically in our PostgreSQL database with row-level security.
+                    Every document published on SomaUG Academic is linked directly to your student
+                    account. When purchased, your entitlement is activated instantly and watermarked
+                    with your student details to protect the author&apos;s academic copyright.
                   </p>
-                  <div className="rounded-xl bg-slate-100 p-4 font-mono text-[11px] space-y-1">
-                    <div>• Document ID: {doc.id}</div>
-                    <div>• Verified Institution: {doc.institutionName}</div>
-                    <div>• Anti-Piracy Watermarking: Dynamic Student Identity + Timestamp</div>
-                    <div>• Access Mode: Infinite cloud reads across any mobile or desktop browser</div>
+                  <div className="rounded-xl bg-slate-100 p-4 font-mono text-xs space-y-1">
+                    <div>• Course Code: {doc.courseCode}</div>
+                    <div>• Institution: {doc.institutionName} ({doc.institutionShortCode})</div>
+                    <div>• Document Format: Study Reader Edition</div>
+                    <div>• Access: Read online anytime on phone, tablet or laptop</div>
                   </div>
                 </div>
               )}
@@ -530,32 +530,32 @@ export default function DocumentDetailPage() {
 
         {/* Right Column: Checkout & Wallet Card */}
         <div className="space-y-6">
-          <div className="rounded-2xl border-2 border-[#0B192C] bg-white p-6 shadow-lg space-y-6 sticky top-24">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-md space-y-6 sticky top-24">
             
-            {/* Price Header with 85/15 Commission Breakdown */}
+            {/* Price Header with 85/15 Fair Share Breakdown */}
             <div className="space-y-2">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Official Marketplace Price
+                Course Material Price
               </span>
               <div className="flex items-baseline justify-between">
-                <span className="text-3xl font-black text-slate-900 tracking-tight">
+                <span className="text-3xl font-black text-[#142B45] tracking-tight">
                   {formatUGX(doc.priceUGX)}
                 </span>
-                <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-extrabold text-emerald-800">
+                <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-bold text-emerald-800">
                   Instant Unlock
                 </span>
               </div>
 
               <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-1.5 text-xs">
-                <div className="flex items-center justify-between text-slate-600 font-medium">
+                <div className="flex items-center justify-between text-slate-700 font-medium">
                   <span className="flex items-center gap-1">
-                    <BadgePercent className="h-3.5 w-3.5 text-emerald-600" />
+                    <BadgePercent className="h-3.5 w-3.5 text-[#147D78]" />
                     Lecturer Share (85%):
                   </span>
-                  <span className="font-bold text-emerald-900">{formatUGX(lecturerNet)}</span>
+                  <span className="font-bold text-emerald-800">{formatUGX(lecturerNet)}</span>
                 </div>
-                <div className="flex items-center justify-between text-slate-500 text-[11px]">
-                  <span>SomaUG Platform Infrastructure (15%):</span>
+                <div className="flex items-center justify-between text-slate-600 text-xs">
+                  <span>Platform &amp; Payment Service (15%):</span>
                   <span>{formatUGX(platformFee)}</span>
                 </div>
               </div>
@@ -567,7 +567,7 @@ export default function DocumentDetailPage() {
                 <label className="text-xs font-bold text-slate-700">
                   Student Account:
                 </label>
-                <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded">
+                <span className="text-xs text-amber-800 font-bold bg-amber-50 px-2 py-0.5 rounded">
                   Demo Switcher
                 </span>
               </div>
@@ -578,7 +578,7 @@ export default function DocumentDetailPage() {
                   setPurchaseError(null);
                   setReceipt(null);
                 }}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-900 shadow-sm focus:ring-2 focus:ring-amber-500"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-900 shadow-sm focus:ring-2 focus:ring-[#147D78]"
               >
                 <option value="user-student-1">Grace Namukasa (Sufficient Balance)</option>
                 <option value="user-student-2">Ivan Mugisha (Low Balance Demo)</option>
@@ -586,19 +586,19 @@ export default function DocumentDetailPage() {
             </div>
 
             {/* Wallet Balance Status */}
-            <div className="rounded-xl bg-gradient-to-r from-slate-900 to-[#162942] text-white p-4 space-y-2">
+            <div className="rounded-xl bg-[#142B45] text-white p-4 space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-slate-300 flex items-center gap-1.5 font-medium">
-                  <Wallet className="h-3.5 w-3.5 text-amber-400" />
+                  <Wallet className="h-3.5 w-3.5 text-[#E9B949]" />
                   Your Wallet Balance:
                 </span>
-                <span className={`font-black text-sm ${hasSufficientFunds ? "text-emerald-400" : "text-amber-400"}`}>
+                <span className={`font-black text-sm ${hasSufficientFunds ? "text-emerald-400" : "text-[#E9B949]"}`}>
                   {formatUGX(walletBalance)}
                 </span>
               </div>
 
               {!hasSufficientFunds && (
-                <p className="text-[11px] text-amber-300 font-medium">
+                <p className="text-xs text-amber-300 font-medium">
                   Short by {formatUGX(doc.priceUGX - walletBalance)}. Top up with MTN MoMo or Airtel Money.
                 </p>
               )}
@@ -612,14 +612,14 @@ export default function DocumentDetailPage() {
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                     <span>Unlocked &amp; Ready in Library</span>
                   </div>
-                  <p className="text-emerald-800 text-[11px]">
-                    You hold an active, verified entitlement for v{doc.currentVersion}.0. All {doc.pageCount} pages are ready to read.
+                  <p className="text-emerald-800 text-xs">
+                    You hold an active entitlement for v{doc.currentVersion}.0. All {doc.pageCount} pages are ready to read.
                   </p>
                 </div>
 
                 <Link
                   href={`/student/read/${doc.id}`}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3.5 text-sm font-extrabold text-white shadow-md hover:bg-emerald-700 active:scale-[0.99] transition"
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#147D78] px-4 py-3.5 text-sm font-bold text-white shadow-md hover:bg-[#116965] active:scale-[0.99] transition"
                 >
                   <BookOpen className="h-4 w-4" />
                   <span>Open Full Study Reader ({doc.pageCount} Pages)</span>
@@ -631,21 +631,21 @@ export default function DocumentDetailPage() {
                   <button
                     type="button"
                     onClick={() => setShowCheckoutModal(true)}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B192C] px-4 py-3.5 text-sm font-black text-white shadow-lg hover:bg-[#162942] active:scale-[0.99] transition"
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#142B45] px-4 py-3.5 text-sm font-bold text-white shadow-lg hover:bg-[#1A3859] active:scale-[0.99] transition"
                   >
-                    <Lock className="h-4 w-4 text-amber-400" />
+                    <Lock className="h-4 w-4 text-[#E9B949]" />
                     <span>Purchase with Wallet ({formatUGX(doc.priceUGX)})</span>
                   </button>
                 ) : (
                   <div className="space-y-2">
                     <Link
                       href="/student/wallet"
-                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-3.5 text-sm font-black text-slate-950 shadow-md hover:bg-amber-400 active:scale-[0.99] transition"
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#E9B949] hover:bg-[#d9a838] px-4 py-3.5 text-sm font-bold text-[#142B45] shadow-md active:scale-[0.99] transition"
                     >
-                      <Smartphone className="h-4 w-4 text-slate-950" />
+                      <Smartphone className="h-4 w-4 text-[#142B45]" />
                       <span>Deposit via MTN / Airtel Money</span>
                     </Link>
-                    <p className="text-center text-[11px] text-slate-500 font-medium">
+                    <p className="text-center text-xs text-slate-500 font-medium">
                       Takes ~15 seconds to credit via USSD prompt
                     </p>
                   </div>

@@ -92,3 +92,4 @@ export const SITE_COPY = {
     copyright: `© ${new Date().getFullYear()} SomaUG Academic. Study materials for Ugandan higher education and vocational institutes.`,
   },
 } as const;
+

@@ -344,80 +344,103 @@ export default function CataloguePage() {
             return (
               <div
                 key={doc.id}
-                className={`flex flex-col justify-between rounded-2xl border bg-white p-6 shadow-sm hover:shadow-md transition-all ${
-                  isMatch ? "border-amber-300 ring-2 ring-amber-400/20" : "border-slate-200/80"
+                className={`flex flex-col justify-between rounded-2xl border bg-white p-5 shadow-sm hover:shadow-md transition-all space-y-4 ${
+                  isMatch ? "border-[#E9B949] ring-2 ring-[#E9B949]/20" : "border-slate-200"
                 }`}
               >
-                <div className="space-y-3.5">
+                <div className="space-y-3">
+                  {/* Top Row: Course Code Badge & Prominent Price */}
                   <div className="flex items-center justify-between gap-2">
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-800">
-                      <Building2 className="h-3.5 w-3.5 text-slate-600" />
-                      {doc.institutionShortCode} • {doc.courseCode}
+                    <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-mono font-bold text-slate-800">
+                      {doc.courseCode}
                     </span>
-                    <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-extrabold text-amber-900">
+                    <span className="text-base font-bold text-[#142B45]">
                       {formatUGX(doc.priceUGX)}
                     </span>
                   </div>
 
                   {isMatch && (
-                    <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-0.5 text-[11px] font-bold text-amber-900">
+                    <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-0.5 text-xs font-bold text-amber-900">
                       <Sparkles className="h-3 w-3 text-amber-600" />
                       Matched to Enrolled Semester Course
                     </div>
                   )}
 
+                  {/* Title limited to 2 lines */}
                   <Link href={`/catalogue/${doc.id}`} className="block group">
-                    <h2 className="text-base font-extrabold text-slate-900 group-hover:text-amber-700 transition line-clamp-2 leading-snug">
+                    <h2 className="text-base font-bold text-[#142B45] group-hover:text-[#147D78] transition line-clamp-2 leading-snug">
                       {doc.title}
                     </h2>
                   </Link>
 
-                  <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
+                  {/* Lecturer Name directly under Title */}
+                  <div className="text-xs text-slate-600 font-medium truncate">
+                    By {doc.lecturerName}
+                  </div>
+
+                  {/* Description snippet */}
+                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed font-normal">
                     {doc.description}
                   </p>
 
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    <span className="rounded-md bg-blue-50 border border-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800">
+                  {/* Document Type Badge & Topics */}
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    <span className="rounded-md bg-blue-50 border border-blue-100 px-2 py-0.5 text-xs font-bold text-blue-800">
                       {DOCUMENT_TYPE_LABELS[doc.documentType] || doc.documentType}
                     </span>
                     {(doc.topics || []).slice(0, 2).map((t) => (
                       <span
                         key={t}
-                        className="rounded-md bg-slate-50 border border-slate-200 px-2 py-0.5 text-[10px] text-slate-600"
+                        className="rounded-md bg-slate-50 border border-slate-200 px-2 py-0.5 text-xs text-slate-600 font-normal"
                       >
                         {t}
                       </span>
                     ))}
                   </div>
+
+                  {/* Page Count, Institution & Preview Availability */}
+                  <div className="flex items-center gap-2 pt-1 text-xs text-slate-500 font-normal">
+                    <span className="font-semibold text-slate-700">{doc.institutionShortCode}</span>
+                    <span>•</span>
+                    <span>{doc.pageCount} pages</span>
+                    {doc.allowedPreviewPages?.length > 0 && (
+                      <>
+                        <span>•</span>
+                        <Link
+                          href={`/catalogue/${doc.id}#preview`}
+                          className="font-bold text-[#147D78] hover:underline"
+                        >
+                          Preview first 2 pages
+                        </Link>
+                      </>
+                    )}
+                  </div>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-slate-100 space-y-3">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-1 font-bold text-slate-800 truncate">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                      <span className="truncate">{doc.lecturerName}</span>
-                    </span>
-                    <span className="text-[11px] text-slate-500 font-medium shrink-0">
-                      {doc.pageCount} pages • v{doc.currentVersion}
-                    </span>
-                  </div>
+                {/* Card Action Row */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <Link
+                    href={`/catalogue/${doc.id}`}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#142B45] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#1A3859] active:scale-[0.99] transition"
+                  >
+                    <FileText className="h-3.5 w-3.5 text-[#E9B949]" />
+                    <span>View &amp; Buy</span>
+                  </Link>
 
-                  <div className="flex items-center gap-2">
-                    <Link
-                      href={`/catalogue/${doc.id}`}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#0B192C] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#162942] active:scale-[0.99] transition"
-                    >
-                      <FileText className="h-3.5 w-3.5" />
-                      <span>Details &amp; Buy</span>
-                    </Link>
-                    <Link
-                      href={`/student/read/${doc.id}`}
-                      className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition"
-                      title="Open in Study Reader"
-                    >
-                      <BookOpen className="h-3.5 w-3.5" />
-                    </Link>
-                  </div>
+                  <Link
+                    href={`/d/${doc.accessCode || doc.id}`}
+                    className="inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition"
+                    aria-label="Enter unlock code"
+                    title="Enter unlock code"
+                  >
+                    <BookOpen className="h-3.5 w-3.5 text-slate-600" />
+                    <span className="text-xs font-bold text-slate-700">Code</span>
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
+        </div>
                 </div>
               </div>
             );
