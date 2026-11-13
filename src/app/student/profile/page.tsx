@@ -1,0 +1,243 @@
+"use client";
+
+import React, { useState } from "react";
+import Link from "next/link";
+import {
+  GraduationCap,
+  Building2,
+  BookOpen,
+  CheckCircle2,
+  ArrowRight,
+  History,
+} from "lucide-react";
+
+export default function StudentAcademicProfilePage() {
+  const [institution, setInstitution] = useState("inst-mak");
+  const [programme, setProgramme] = useState("prog-bsse");
+  const [academicYear, setAcademicYear] = useState(2);
+  const [semester, setSemester] = useState(1);
+  const [selectedCourses, setSelectedCourses] = useState<string[]>([
+    "CSC 2101",
+    "BSSE 3102",
+  ]);
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
+
+  const toggleCourse = (code: string) => {
+    setSelectedCourses((prev) =>
+      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
+    );
+  };
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavedMessage(
+      "Academic profile updated! Catalogue rankings now prioritize your enrolled courses while keeping all universities accessible."
+    );
+    setTimeout(() => setSavedMessage(null), 4000);
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8 space-y-8 max-w-4xl">
+      <div className="rounded-2xl bg-gradient-to-r from-[#0B192C] via-[#162942] to-[#1E3E62] text-white p-6 md:p-8 shadow-lg">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 border border-amber-400/40 px-3 py-1 text-xs font-bold text-amber-300">
+              <GraduationCap className="h-3.5 w-3.5" />
+              <span>Progressive Student Academic Profile</span>
+            </span>
+            <h1 className="text-2xl md:text-3xl font-extrabold">
+              Grace Namukasa — Academic Preferences
+            </h1>
+            <p className="text-xs text-slate-300">
+              Customize your university, programme, and active course units to surface relevant
+              lecture compendiums automatically. All fields are optional and can be updated each semester.
+            </p>
+          </div>
+          <Link
+            href="/catalogue"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 shrink-0"
+          >
+            <span>Explore Matched Catalogue</span>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+          <h2 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+            <Building2 className="h-5 w-5 text-amber-600" />
+            <span>Current Semester Enrolment (Optional)</span>
+          </h2>
+
+          <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  University / Institution
+                </label>
+                <select
+                  value={institution}
+                  onChange={(e) => setInstitution(e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 font-medium"
+                >
+                  <option value="inst-mak">MAK — Makerere University</option>
+                  <option value="inst-kyu">KYU — Kyambogo University</option>
+                  <option value="inst-must">MUST — Mbarara University of Science &amp; Tech</option>
+                  <option value="inst-ucu">UCU — Uganda Christian University</option>
+                  <option value="inst-mubs">MUBS — Makerere University Business School</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Degree Programme
+                </label>
+                <select
+                  value={programme}
+                  onChange={(e) => setProgramme(e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 font-medium"
+                >
+                  <option value="prog-bsse">BSSE — B.Sc. Software Engineering</option>
+                  <option value="prog-bcs">BCS — B.Sc. Computer Science</option>
+                  <option value="prog-llb">LLB — Bachelor of Laws</option>
+                  <option value="prog-bba">BBA — Bachelor of Business Administration</option>
+                  <option value="prog-beng">BENG — B.Eng. Civil &amp; Building</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Academic Year
+                </label>
+                <select
+                  value={academicYear}
+                  onChange={(e) => setAcademicYear(Number(e.target.value))}
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 font-medium"
+                >
+                  {[1, 2, 3, 4, 5].map((y) => (
+                    <option key={y} value={y}>
+                      Year {y}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Semester / Term
+                </label>
+                <select
+                  value={semester}
+                  onChange={(e) => setSemester(Number(e.target.value))}
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 font-medium"
+                >
+                  <option value={1}>Semester I</option>
+                  <option value={2}>Semester II</option>
+                  <option value={3}>Recess / Term III</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block font-bold text-slate-700 mb-2">
+                Active Course Units (Click to toggle priority matching):
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  "CSC 2101",
+                  "BSSE 3102",
+                  "LAW 2105",
+                  "ACC 1102",
+                  "CIV 2201",
+                  "MED 2104",
+                ].map((code) => {
+                  const active = selectedCourses.includes(code);
+                  return (
+                    <button
+                      key={code}
+                      type="button"
+                      onClick={() => toggleCourse(code)}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
+                        active
+                          ? "bg-[#0B192C] text-white border-[#0B192C]"
+                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                      }`}
+                    >
+                      {active ? "✓ " : "+ "}
+                      {code}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {savedMessage && (
+              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-emerald-900 font-semibold flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                <span>{savedMessage}</span>
+              </div>
+            )}
+
+            <div className="pt-2 flex items-center gap-3">
+              <button
+                type="submit"
+                className="rounded-xl bg-[#0B192C] px-5 py-2.5 text-xs font-bold text-white hover:bg-slate-800"
+              >
+                Save Academic Profile
+              </button>
+              <Link
+                href="/catalogue"
+                className="text-xs font-semibold text-slate-500 hover:text-slate-800"
+              >
+                Skip for now →
+              </Link>
+            </div>
+          </form>
+        </div>
+
+        {/* Preserved Academic History Card */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <History className="h-4 w-4 text-amber-600" />
+            <span>Preserved Academic History</span>
+          </h3>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            Your previous semesters are preserved so you can always revisit foundational course
+            materials and past examination guides.
+          </p>
+
+          <div className="space-y-3 pt-2 text-xs">
+            <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-1">
+              <span className="font-bold text-slate-900 block">
+                Year 2, Semester I (Current — 2026/2027)
+              </span>
+              <span className="text-slate-600 block">
+                Makerere University • BSSE • CSC 2101, BSSE 3102
+              </span>
+            </div>
+
+            <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-1">
+              <span className="font-bold text-slate-800 block">
+                Year 1, Semester II (Completed — 2025/2026)
+              </span>
+              <span className="text-slate-500 block">
+                Makerere University • BSSE • BSSE 1204, MTH 1101
+              </span>
+              <Link
+                href="/catalogue"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 hover:underline pt-1"
+              >
+                <BookOpen className="h-3 w-3" />
+                View Year 1 Materials
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
