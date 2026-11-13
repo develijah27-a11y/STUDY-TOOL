@@ -213,12 +213,25 @@ export default function CataloguePage() {
               onChange={(e) => setSelectedInstitution(e.target.value)}
               className="w-full rounded-xl border border-slate-300 bg-slate-50/50 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#0B192C]"
             >
-              <option value="all">All Universities</option>
-              {institutions.map((i) => (
-                <option key={i.id} value={i.id}>
-                  {i.shortCode} — {i.name}
-                </option>
-              ))}
+              <option value="all">All Institutions (Univ &amp; Vocational)</option>
+              <optgroup label="Universities">
+                {institutions
+                  .filter((i: any) => !i.category || i.category === "university")
+                  .map((i) => (
+                    <option key={i.id} value={i.id}>
+                      {i.shortCode} — {i.name}
+                    </option>
+                  ))}
+              </optgroup>
+              <optgroup label="Vocational, Technical &amp; Colleges">
+                {institutions
+                  .filter((i: any) => i.category && i.category !== "university")
+                  .map((i) => (
+                    <option key={i.id} value={i.id}>
+                      {i.shortCode} — {i.name}
+                    </option>
+                  ))}
+              </optgroup>
             </select>
           </div>
 

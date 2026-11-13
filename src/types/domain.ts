@@ -67,8 +67,9 @@ export interface LecturerProfile {
 export interface Institution {
   id: string;
   name: string;
-  shortCode: string; // e.g. "MAK", "KYU", "MUST", "UCU", "MUBS"
+  shortCode: string; // e.g. "MAK", "KYU", "MUST", "UCU", "MUBS", "BRIBTE", "KPM", "UICT"
   location: string;
+  category?: "university" | "vocational_polytechnic" | "college" | "specialized";
   logoUrl?: string;
   isVerified: boolean;
   createdAt: string;
