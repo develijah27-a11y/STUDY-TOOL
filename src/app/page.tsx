@@ -13,6 +13,7 @@ import {
   Building2,
   FileText,
   Sparkles,
+  KeyRound,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -68,6 +69,18 @@ export default function HomePage() {
                 <ArrowRight className="h-4 w-4" />
               </button>
             </form>
+
+            {/* Quick Access Code Prompt for WhatsApp Shared Codes */}
+            <div className="flex items-center gap-2 text-xs text-slate-300 pt-1">
+              <KeyRound className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+              <span>Received a Document Access Code on WhatsApp?</span>
+              <Link
+                href="/d"
+                className="font-bold text-amber-400 hover:text-amber-300 underline"
+              >
+                Enter Code Directly →
+              </Link>
+            </div>
 
             {/* Institution Filter Pills */}
             <div className="flex flex-wrap items-center gap-2 pt-2">

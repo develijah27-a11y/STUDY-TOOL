@@ -623,6 +623,7 @@ class MarketplaceStore {
     this.documents = [
       {
         id: "doc-csc2101-notes",
+        accessCode: "CSC2101-NOTES",
         lecturerId: "lec-1",
         title: "CSC 2101: Complete Data Structures & Algorithms Lecture Compendium (2026/2027 Edition)",
         description:
@@ -648,6 +649,7 @@ class MarketplaceStore {
       },
       {
         id: "doc-csc2101-pastpapers",
+        accessCode: "CSC2101-PAPERS",
         lecturerId: "lec-1",
         title: "CSC 2101: 5-Year Solved Past Examination Papers & Marking Guide (2021–2025)",
         description:
@@ -673,6 +675,7 @@ class MarketplaceStore {
       },
       {
         id: "doc-bsse3102-cloud",
+        accessCode: "BSSE3102-LAB",
         lecturerId: "lec-1",
         title: "BSSE 3102: Distributed Systems, Consensus Protocols & Microservices Lab Manual",
         description:
@@ -698,6 +701,7 @@ class MarketplaceStore {
       },
       {
         id: "doc-law2105-constitution",
+        accessCode: "LAW2105-CASE",
         lecturerId: "lec-2",
         title: "LAW 2105: Constitutional Law of Uganda — Landmark Supreme Court Cases & Doctrines",
         description:
@@ -723,6 +727,7 @@ class MarketplaceStore {
       },
       {
         id: "doc-short-2page-summary",
+        accessCode: "CSC2101-CHEAT",
         lecturerId: "lec-1",
         title: "CSC 2101: Quick 2-Page Big-O Complexity & Recurrence Relations Cheat Sheet",
         description:

@@ -54,6 +54,7 @@ export async function GET(req: NextRequest) {
 
     return {
       ...d,
+      accessCode: d.accessCode || d.id,
       institutionName: inst?.name || "University",
       institutionShortCode: inst?.shortCode || "UNI",
       programmeCode: prog?.code || "",

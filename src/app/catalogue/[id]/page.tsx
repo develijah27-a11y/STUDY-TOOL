@@ -28,10 +28,12 @@ import {
   Info,
   Clock,
   Printer,
+  KeyRound,
 } from "lucide-react";
 
 interface CatalogueDoc {
   id: string;
+  accessCode?: string;
   title: string;
   description: string;
   institutionName: string;
@@ -213,11 +215,17 @@ export default function DocumentDetailPage() {
     }
   };
 
+  const handleShareToWhatsApp = () => {
+    if (!doc || typeof window === "undefined") return;
+    const directUrl = `${window.location.origin}/d/${doc.accessCode || doc.id}`;
+    const msg = `📚 *${doc.courseCode} Academic Document*\n\n*Title:* ${doc.title}\n*Price:* ${formatUGX(doc.priceUGX)}\n\n👉 *Open directly on SomaUG Academic:*\n${directUrl}\n\n💡 *Document Access Code:* *${doc.accessCode || doc.id}* (enter on somaug.ac.ug to read)`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+  };
+
   const handleCopyShareLink = () => {
-    if (typeof window !== "undefined") {
-      const url = window.location.href;
-      const text = `Check out "${doc?.title}" (${doc?.courseCode}) on SomaUG Academic: ${url}`;
-      navigator.clipboard.writeText(text);
+    if (typeof window !== "undefined" && doc) {
+      const url = `${window.location.origin}/d/${doc.accessCode || doc.id}`;
+      navigator.clipboard.writeText(url);
       setCopiedShare(true);
       setTimeout(() => setCopiedShare(false), 2500);
     }
@@ -263,10 +271,19 @@ export default function DocumentDetailPage() {
           <button
             type="button"
             onClick={handleCopyShareLink}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-emerald-700 transition shadow-sm"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition shadow-sm"
           >
-            <Share2 className="h-3.5 w-3.5 text-emerald-600" />
-            <span>{copiedShare ? "Link & Text Copied!" : "Share to WhatsApp Group"}</span>
+            <Copy className="h-3.5 w-3.5 text-slate-500" />
+            <span>{copiedShare ? "Link Copied!" : "Copy Direct Link"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleShareToWhatsApp}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 text-xs font-bold transition shadow-sm"
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            <span>Share to WhatsApp</span>
           </button>
         </div>
       </div>
@@ -290,6 +307,10 @@ export default function DocumentDetailPage() {
               </span>
               <span className="rounded-lg bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-xs font-bold text-emerald-800">
                 v{doc.currentVersion}.0 • {doc.pageCount} Pages
+              </span>
+              <span className="rounded-lg bg-slate-900 text-amber-400 font-mono px-3 py-1 text-xs font-bold shadow-sm flex items-center gap-1">
+                <KeyRound className="h-3 w-3" />
+                Doc Code: {doc.accessCode || doc.id}
               </span>
             </div>
 

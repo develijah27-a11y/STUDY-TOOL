@@ -96,6 +96,7 @@ export interface CourseUnit {
 
 export interface Document {
   id: string;
+  accessCode?: string; // Direct short code for WhatsApp & lecture sharing (e.g. "CSC2101-NOTES")
   lecturerId: string;
   title: string;
   description: string;

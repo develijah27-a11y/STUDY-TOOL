@@ -25,6 +25,10 @@ import {
   Check,
   Info,
   DollarSign,
+  QrCode,
+  KeyRound,
+  Presentation,
+  Send,
 } from "lucide-react";
 
 interface PayoutItem {
@@ -41,8 +45,10 @@ interface PayoutItem {
 
 interface PublishedDoc {
   id: string;
+  accessCode: string;
   title: string;
   courseCode: string;
+  institutionShortCode: string;
   priceUGX: number;
   pageCount: number;
   salesCount: number;
@@ -56,9 +62,8 @@ export default function LecturerDashboardPage() {
   const [payouts, setPayouts] = useState<PayoutItem[]>([]);
   const [myDocuments, setMyDocuments] = useState<PublishedDoc[]>([]);
 
-  // Multi-step publishing wizard step (1 to 4)
+  // Multi-step publishing wizard step (1 to 3)
   const [publishStep, setPublishStep] = useState(1);
-  const [fileName, setFileName] = useState("CSC_2101_Lecture_Compendium.pdf");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [courseUnitId, setCourseUnitId] = useState("course-csc2101");
@@ -70,6 +75,16 @@ export default function LecturerDashboardPage() {
   const [publishing, setPublishing] = useState(false);
   const [publishResult, setPublishResult] = useState<string | null>(null);
   const [publishError, setPublishError] = useState<string | null>(null);
+  const [lastPublishedDoc, setLastPublishedDoc] = useState<{
+    id: string;
+    accessCode: string;
+    title: string;
+    courseCode: string;
+  } | null>(null);
+
+  // Direct Sharing & Slide Modal State
+  const [copiedItem, setCopiedItem] = useState<string | null>(null);
+  const [activeSlideDoc, setActiveSlideDoc] = useState<PublishedDoc | null>(null);
 
   // Payout Request State
   const [showPayoutModal, setShowPayoutModal] = useState(false);
@@ -104,8 +119,10 @@ export default function LecturerDashboardPage() {
         const catData = await catRes.json();
         const docs = (catData.documents || []).map((d: any) => ({
           id: d.id,
+          accessCode: d.accessCode || d.id,
           title: d.title,
           courseCode: d.courseCode,
+          institutionShortCode: d.institutionShortCode || "MAK",
           priceUGX: d.priceUGX,
           pageCount: d.pageCount,
           salesCount: d.salesCount,
@@ -126,6 +143,7 @@ export default function LecturerDashboardPage() {
     e.preventDefault();
     setPublishError(null);
     setPublishResult(null);
+    setLastPublishedDoc(null);
     setPublishing(true);
 
     try {
@@ -153,11 +171,18 @@ export default function LecturerDashboardPage() {
         return;
       }
 
+      const published = data.document;
       setPublishResult(
-        `Successfully published "${data.document.title}". Sample preview pages: [${
-          data.document.allowedPreviewPages.join(", ") || "None (1-2 page short policy)"
-        }]. Students can now discover and purchase.`
+        `Successfully published "${published.title}". Generated Document Access Code: ${
+          published.accessCode || published.id
+        }.`
       );
+      setLastPublishedDoc({
+        id: published.id,
+        accessCode: published.accessCode || published.id,
+        title: published.title,
+        courseCode: courseUnitId.replace("course-", "").toUpperCase(),
+      });
       setTitle("");
       setDescription("");
       setPublishStep(1);
@@ -167,6 +192,34 @@ export default function LecturerDashboardPage() {
     } finally {
       setPublishing(false);
     }
+  };
+
+  const getDirectPlatformUrl = (accessCode: string) => {
+    if (typeof window !== "undefined") {
+      return `${window.location.origin}/d/${accessCode}`;
+    }
+    return `https://somaug.ac.ug/d/${accessCode}`;
+  };
+
+  const handleShareToWhatsApp = (doc: { accessCode: string; title: string; courseCode: string; priceUGX?: number }) => {
+    const directUrl = getDirectPlatformUrl(doc.accessCode);
+    const priceText = doc.priceUGX ? `\n*Price:* ${formatUGX(doc.priceUGX)}` : "";
+    const msg = `📚 *University Course Material*\n\n*Course:* ${doc.courseCode}\n*Document:* ${doc.title}${priceText}\n\n👉 *Open directly on SomaUG Academic:*\n${directUrl}\n\n💡 *Or enter Document Code:* *${doc.accessCode}* on the platform to read.`;
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    window.open(waUrl, "_blank");
+  };
+
+  const handleCopyLink = (accessCode: string) => {
+    const directUrl = getDirectPlatformUrl(accessCode);
+    navigator.clipboard.writeText(directUrl);
+    setCopiedItem(`link-${accessCode}`);
+    setTimeout(() => setCopiedItem(null), 2500);
+  };
+
+  const handleCopyCode = (accessCode: string) => {
+    navigator.clipboard.writeText(accessCode);
+    setCopiedItem(`code-${accessCode}`);
+    setTimeout(() => setCopiedItem(null), 2500);
   };
 
   const handleRequestPayout = async (e: React.FormEvent) => {
@@ -248,7 +301,7 @@ export default function LecturerDashboardPage() {
     if (typeof window !== "undefined") {
       const origin = window.location.origin;
       const url = `${origin}/collections/${shareCode}`;
-      const msg = `Official Course Pack for CSC 2101: ${url}\nInstant access via Student Wallet on SomaUG Academic.`;
+      const msg = `Official Course Pack: ${url}\nInstant access via Student Wallet on SomaUG Academic.`;
       navigator.clipboard.writeText(msg);
       setCopiedCollectionLink(true);
       setTimeout(() => setCopiedCollectionLink(false), 2500);
@@ -268,7 +321,7 @@ export default function LecturerDashboardPage() {
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 border border-emerald-400/30 px-3.5 py-1 text-xs font-bold text-emerald-300">
               <CheckCircle2 className="h-3.5 w-3.5" />
-              <span>Verified Academic Publisher &amp; Earnings Hub</span>
+              <span>Verified Academic Publisher &amp; Document Sharing Hub</span>
             </div>
 
             <div className="space-y-1">
@@ -332,7 +385,69 @@ export default function LecturerDashboardPage() {
         </div>
       </div>
 
-      {/* Main Grid: Multi-step Publishing Wizard & Course Pack Sharing */}
+      {/* Immediate WhatsApp Share Card for newly published document */}
+      {lastPublishedDoc && (
+        <div className="rounded-3xl border-2 border-emerald-500 bg-emerald-50/90 p-6 shadow-lg animate-in fade-in duration-300 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-emerald-200 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md">
+                <Share2 className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 block">
+                  Publication Ready for Students
+                </span>
+                <h3 className="text-base font-extrabold text-emerald-950">
+                  {lastPublishedDoc.title}
+                </h3>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handleShareToWhatsApp(lastPublishedDoc)}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-3 text-xs font-black shadow-md transition"
+            >
+              <Send className="h-4 w-4" />
+              <span>Share Link to Class WhatsApp</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+            <div className="rounded-2xl bg-white border border-emerald-200 p-4 space-y-2">
+              <span className="text-slate-500 font-bold block">Document Access Code:</span>
+              <div className="flex items-center justify-between">
+                <span className="text-base font-black text-slate-900">{lastPublishedDoc.accessCode}</span>
+                <button
+                  type="button"
+                  onClick={() => handleCopyCode(lastPublishedDoc.accessCode)}
+                  className="rounded-lg bg-slate-100 hover:bg-slate-200 px-3 py-1 font-sans text-xs font-bold text-slate-800"
+                >
+                  {copiedItem === `code-${lastPublishedDoc.accessCode}` ? "Copied!" : "Copy Code"}
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-white border border-emerald-200 p-4 space-y-2">
+              <span className="text-slate-500 font-bold block">Direct Platform Link:</span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-800 truncate max-w-[200px]">
+                  {getDirectPlatformUrl(lastPublishedDoc.accessCode)}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleCopyLink(lastPublishedDoc.accessCode)}
+                  className="rounded-lg bg-emerald-100 hover:bg-emerald-200 px-3 py-1 font-sans text-xs font-bold text-emerald-900"
+                >
+                  {copiedItem === `link-${lastPublishedDoc.accessCode}` ? "Copied!" : "Copy Link"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Grid: Document Publishing Wizard & My Published Materials with Direct Links */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         
         {/* Left Column (7 cols): Document Publishing Wizard */}
@@ -345,15 +460,14 @@ export default function LecturerDashboardPage() {
                 </div>
                 <div>
                   <h2 className="text-base font-extrabold text-slate-900">
-                    Publish Course Material (Multi-Step Validated)
+                    Publish Course Material &amp; Generate WhatsApp Access Link
                   </h2>
                   <p className="text-xs text-slate-500 font-medium">
-                    Strict SHA-256 integrity, 85/15 split preview, and server-enforced preview policy
+                    Produces a direct link and short code that brings students to the document on SomaUG
                   </p>
                 </div>
               </div>
 
-              {/* Step Counter */}
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-mono font-bold text-slate-700">
                 Step {publishStep} of 3
               </span>
@@ -392,7 +506,7 @@ export default function LecturerDashboardPage() {
                     : "bg-slate-50 text-slate-600 hover:bg-slate-100"
                 }`}
               >
-                3. Preview &amp; Honor Code
+                3. Preview &amp; Publish
               </button>
             </div>
 
@@ -606,12 +720,6 @@ export default function LecturerDashboardPage() {
                     </div>
                   )}
 
-                  {publishResult && (
-                    <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3.5 text-xs text-emerald-900 font-medium">
-                      {publishResult}
-                    </div>
-                  )}
-
                   <div className="flex justify-between pt-2">
                     <button
                       type="button"
@@ -626,11 +734,11 @@ export default function LecturerDashboardPage() {
                       className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-xs font-black text-white hover:bg-emerald-700 disabled:opacity-40 transition shadow-md"
                     >
                       {publishing ? (
-                        "Publishing to Blockchain/DB..."
+                        "Publishing & Generating Access Link..."
                       ) : (
                         <>
                           <CheckCircle2 className="h-4 w-4" />
-                          <span>Publish Publication Instantly</span>
+                          <span>Publish &amp; Generate WhatsApp Access Link</span>
                         </>
                       )}
                     </button>
@@ -641,118 +749,106 @@ export default function LecturerDashboardPage() {
           </div>
         </div>
 
-        {/* Right Column (5 cols): WhatsApp Course Pack Generator & QR Hub */}
+        {/* Right Column (5 cols): Published PDFs with Direct Links, Codes, WhatsApp Share & Projector Slide */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
-            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-800">
-                <Share2 className="h-5 w-5" />
-              </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-sm font-extrabold text-slate-900">
-                  WhatsApp Course Pack Generator
+                  My Course PDFs &amp; Access Codes ({myDocuments.length})
                 </h3>
                 <p className="text-[11px] text-slate-500">
-                  Bundle documents into one shareable link for class WhatsApp groups
+                  Share direct links or short codes to WhatsApp class groups
                 </p>
               </div>
             </div>
 
-            <form onSubmit={handleCreateCollection} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Course Pack Name:
-                </label>
-                <input
-                  type="text"
-                  value={colTitle}
-                  onChange={(e) => setColTitle(e.target.value)}
-                  placeholder="e.g. CSC 2101 Semester 1 Complete Bundle"
-                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-amber-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Description / Instructions for Class:
-                </label>
-                <textarea
-                  rows={2}
-                  value={colDesc}
-                  onChange={(e) => setColDesc(e.target.value)}
-                  placeholder="Official lecture notes and 2020-2025 past paper marking guides..."
-                  className="w-full rounded-xl border border-slate-300 p-2.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-amber-500"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isPendingLecturer}
-                className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-40 transition shadow-sm"
-              >
-                <Share2 className="h-3.5 w-3.5" />
-                <span>Generate WhatsApp Share Pack</span>
-              </button>
-            </form>
-
-            {/* Generated Collection Result */}
-            {createdCollectionCode && (
-              <div className="rounded-2xl border border-emerald-300 bg-emerald-50/70 p-4 space-y-3 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="font-extrabold text-emerald-950">Pack Generated!</span>
-                  <span className="font-mono font-bold text-emerald-800 text-[11px]">
-                    {createdCollectionCode}
-                  </span>
-                </div>
-
-                <p className="text-[11px] text-slate-700">
-                  Share code ready. Click below to copy pre-formatted WhatsApp announcement text with direct link:
-                </p>
-
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleCopyPackLink(createdCollectionCode)}
-                    className="flex-1 inline-flex items-center justify-center gap-1 rounded-xl bg-emerald-700 py-2 text-xs font-bold text-white hover:bg-emerald-800"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                    <span>{copiedCollectionLink ? "Copied!" : "Copy WhatsApp Msg"}</span>
-                  </button>
-
-                  <Link
-                    href={`/collections/${createdCollectionCode}`}
-                    className="inline-flex items-center justify-center gap-1 rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-bold text-emerald-900 hover:bg-emerald-50"
-                  >
-                    <span>View Pack</span>
-                    <ExternalLink className="h-3 w-3" />
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Published Documents List */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-            <h3 className="text-xs font-extrabold text-slate-900 border-b border-slate-100 pb-2">
-              My Published Publications ({myDocuments.length})
-            </h3>
-            <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+            <div className="space-y-4 max-h-[560px] overflow-y-auto pr-1">
               {myDocuments.map((doc) => (
                 <div
                   key={doc.id}
-                  className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-1 text-xs"
+                  className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-3 text-xs hover:border-slate-300 transition"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 truncate max-w-[200px]">
-                      {doc.title}
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="font-extrabold text-slate-900 block line-clamp-1">
+                        {doc.title}
+                      </span>
+                      <span className="text-[11px] text-slate-500">
+                        {doc.courseCode} • {doc.pageCount} pages • {doc.salesCount} students enrolled
+                      </span>
+                    </div>
+                    <span className="font-black text-emerald-700 shrink-0">
+                      {formatUGX(doc.priceUGX)}
                     </span>
-                    <span className="font-black text-emerald-700">{formatUGX(doc.priceUGX)}</span>
                   </div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-500">
-                    <span>{doc.courseCode} • {doc.pageCount} pages</span>
-                    <span className="font-bold text-slate-700">{doc.salesCount} Students</span>
+
+                  {/* Document Access Code & Direct URL Box */}
+                  <div className="rounded-xl bg-white border border-slate-200 p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] text-slate-500 font-bold flex items-center gap-1">
+                        <KeyRound className="h-3 w-3 text-amber-600" />
+                        Code:
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded text-[11px]">
+                          {doc.accessCode}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyCode(doc.accessCode)}
+                          className="text-[10px] font-bold text-slate-600 hover:text-slate-900 underline"
+                        >
+                          {copiedItem === `code-${doc.accessCode}` ? "Copied" : "Copy"}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-slate-500 font-bold">Direct Link:</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-emerald-800 text-[10px] truncate max-w-[130px]">
+                          /d/{doc.accessCode}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyLink(doc.accessCode)}
+                          className="text-[10px] font-bold text-emerald-800 hover:underline"
+                        >
+                          {copiedItem === `link-${doc.accessCode}` ? "Copied" : "Copy Link"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions: Share to WhatsApp & Projector Slide View */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => handleShareToWhatsApp(doc)}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white py-2 text-xs font-bold transition shadow-sm"
+                    >
+                      <Send className="h-3.5 w-3.5" />
+                      <span>Share to WhatsApp</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveSlideDoc(doc)}
+                      className="inline-flex items-center justify-center gap-1 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 px-3 py-2 text-xs font-bold transition shadow-sm"
+                      title="Show Classroom Projector Slide & QR Code"
+                    >
+                      <Presentation className="h-3.5 w-3.5 text-amber-600" />
+                      <span>Slide / QR</span>
+                    </button>
+
+                    <Link
+                      href={`/catalogue/${doc.id}`}
+                      className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white hover:bg-slate-100 p-2 text-slate-700"
+                      title="View Document Details Page"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -761,7 +857,93 @@ export default function LecturerDashboardPage() {
         </div>
       </div>
 
-      {/* Payout Modal */}
+      {/* Classroom Slide / QR Modal (For Projector or WhatsApp screenshot) */}
+      {activeSlideDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-lg rounded-3xl bg-[#0B192C] border-2 border-amber-400 p-6 md:p-8 text-white shadow-2xl space-y-6">
+            
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold">
+                  <Presentation className="h-5 w-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 block">
+                    Classroom Projector Slide • SomaUG Academic
+                  </span>
+                  <h3 className="text-sm font-extrabold text-white">
+                    {activeSlideDoc.courseCode}: Course Material Access
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveSlideDoc(null)}
+                className="text-slate-400 hover:text-white font-bold text-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="rounded-2xl bg-white/10 border border-white/15 p-6 text-center space-y-4">
+              <div className="space-y-1">
+                <span className="text-xs font-bold text-amber-300 uppercase">
+                  {activeSlideDoc.institutionShortCode} Official Lecture Material
+                </span>
+                <h2 className="text-lg md:text-xl font-black text-white">
+                  {activeSlideDoc.title}
+                </h2>
+              </div>
+
+              {/* High-visibility Code Display */}
+              <div className="bg-black/50 border border-amber-400/50 rounded-2xl p-4 space-y-1 max-w-xs mx-auto">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block">
+                  Document Access Code
+                </span>
+                <div className="text-2xl md:text-3xl font-mono font-black text-amber-400 tracking-wider">
+                  {activeSlideDoc.accessCode}
+                </div>
+              </div>
+
+              {/* Direct Platform Link */}
+              <div className="space-y-1 pt-2">
+                <span className="text-xs text-slate-300 font-medium block">
+                  Direct Platform Link (Tap in WhatsApp to open directly):
+                </span>
+                <div className="font-mono text-xs font-bold text-emerald-300 bg-white/5 py-2 px-3 rounded-xl border border-white/10 break-all">
+                  {getDirectPlatformUrl(activeSlideDoc.accessCode)}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => handleShareToWhatsApp(activeSlideDoc)}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-3 text-xs font-black text-white transition shadow-md"
+              >
+                <Send className="h-4 w-4" />
+                <span>Send Direct Link to WhatsApp</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleCopyLink(activeSlideDoc.accessCode)}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 py-3 text-xs font-bold text-white transition"
+              >
+                <Copy className="h-4 w-4" />
+                <span>
+                  {copiedItem === `link-${activeSlideDoc.accessCode}`
+                    ? "Link Copied!"
+                    : "Copy Direct Link"}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payout Request Modal */}
       {showPayoutModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl space-y-5 border border-slate-200">

@@ -138,8 +138,14 @@ export class PublishingAndDeliveryService {
     const docId = `doc-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     const storageKey = `docs/${docId}-v1.pdf`;
 
+    const cleanCodePrefix = params.courseUnitId
+      ? params.courseUnitId.replace(/^course-/, "").toUpperCase()
+      : "DOC";
+    const accessCode = `${cleanCodePrefix}-${Math.floor(1000 + Math.random() * 9000)}`;
+
     const newDoc: Document = {
       id: docId,
+      accessCode,
       lecturerId,
       title: params.title.trim(),
       description: params.description.trim(),
