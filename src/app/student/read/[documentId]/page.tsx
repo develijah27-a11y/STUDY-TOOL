@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -15,6 +15,17 @@ import {
   ShieldCheck,
   CheckCircle2,
   ArrowLeft,
+  Sun,
+  Moon,
+  Coffee,
+  Maximize2,
+  Minimize2,
+  Trash2,
+  Sparkles,
+  BookOpen,
+  Share2,
+  AlertCircle,
+  Clock,
 } from "lucide-react";
 
 interface BookmarkItem {
@@ -29,6 +40,8 @@ interface NoteItem {
   noteText: string;
 }
 
+type ReaderTheme = "light" | "sepia" | "dark";
+
 export default function ProtectedReaderPage() {
   const params = useParams();
   const documentId = String(params?.documentId || "doc-csc2101-notes");
@@ -37,6 +50,10 @@ export default function ProtectedReaderPage() {
   const [pageNumber, setPageNumber] = useState(1);
   const [totalPages, setTotalPages] = useState(48);
   const [zoomPercent, setZoomPercent] = useState(100);
+  const [fontSize, setFontSize] = useState<"sm" | "base" | "lg">("base");
+  const [theme, setTheme] = useState<ReaderTheme>("light");
+  const [sidebarTab, setSidebarTab] = useState<"notes" | "bookmarks" | "report">("notes");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const [authorized, setAuthorized] = useState<boolean>(true);
   const [accessMode, setAccessMode] = useState<string>("permitted_preview");
@@ -44,6 +61,7 @@ export default function ProtectedReaderPage() {
   const [docTitle, setDocTitle] = useState<string>("Loading publication...");
   const [pageBodyText, setPageBodyText] = useState<string>("");
   const [accessError, setAccessError] = useState<string | null>(null);
+  const [loadingPage, setLoadingPage] = useState(false);
 
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [notes, setNotes] = useState<NoteItem[]>([]);
@@ -52,8 +70,9 @@ export default function ProtectedReaderPage() {
   const [reportCategory, setReportCategory] = useState("document_error");
   const [reportStatus, setReportStatus] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchPage() {
+  const fetchPage = useCallback(async () => {
+    setLoadingPage(true);
+    try {
       const res = await fetch(
         `/api/reader?userId=${studentId}&documentId=${documentId}&page=${pageNumber}`
       );
@@ -75,8 +94,8 @@ export default function ProtectedReaderPage() {
       setBookmarks(data.bookmarks || []);
       setNotes(data.notes || []);
 
-      // Auto-sync reading progress
-      await fetch("/api/reader", {
+      // Auto-sync reading progress asynchronously
+      fetch("/api/reader", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -85,341 +104,566 @@ export default function ProtectedReaderPage() {
           documentId,
           pageNumber,
         }),
-      });
+      }).catch(() => {});
+    } catch (err) {
+      setAccessError("Network error loading page content.");
+    } finally {
+      setLoadingPage(false);
     }
-    fetchPage();
   }, [studentId, documentId, pageNumber]);
 
+  useEffect(() => {
+    fetchPage();
+  }, [fetchPage]);
+
+  // Keyboard navigation support
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      if (e.key === "ArrowLeft") {
+        setPageNumber((p) => Math.max(1, p - 1));
+      } else if (e.key === "ArrowRight") {
+        setPageNumber((p) => Math.min(totalPages, p + 1));
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [totalPages]);
+
   const handleAddBookmark = async () => {
-    const res = await fetch("/api/reader", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "add_bookmark",
-        studentId,
-        documentId,
-        pageNumber,
-        title: `Page ${pageNumber} Reference`,
-      }),
-    });
-    const data = await res.json();
-    if (data.bookmark) {
-      setBookmarks((prev) => [...prev, data.bookmark]);
+    const exists = bookmarks.some((b) => b.pageNumber === pageNumber);
+    if (exists) return;
+
+    try {
+      const res = await fetch("/api/reader", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "add_bookmark",
+          studentId,
+          documentId,
+          pageNumber,
+          title: `Page ${pageNumber} Reference`,
+        }),
+      });
+      const data = await res.json();
+      if (data.bookmark) {
+        setBookmarks((prev) => [...prev, data.bookmark]);
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
   const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newNoteText.trim()) return;
-    const res = await fetch("/api/reader", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "add_note",
-        studentId,
-        documentId,
-        pageNumber,
-        noteText: newNoteText,
-      }),
-    });
-    const data = await res.json();
-    if (data.note) {
-      setNotes((prev) => [...prev, data.note]);
-      setNewNoteText("");
+
+    try {
+      const res = await fetch("/api/reader", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "add_note",
+          studentId,
+          documentId,
+          pageNumber,
+          noteText: newNoteText,
+        }),
+      });
+      const data = await res.json();
+      if (data.note) {
+        setNotes((prev) => [...prev, data.note]);
+        setNewNoteText("");
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!reportText.trim()) return;
-    const res = await fetch("/api/reader", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "report_document",
-        studentId,
-        documentId,
-        category: reportCategory,
-        details: reportText,
-      }),
-    });
-    if (res.ok) {
-      setReportText("");
-      setReportStatus("Report submitted to Academic Moderation & Lecturer.");
-      setTimeout(() => setReportStatus(null), 4000);
+
+    try {
+      const res = await fetch("/api/reader", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "report_document",
+          studentId,
+          documentId,
+          category: reportCategory,
+          details: reportText,
+        }),
+      });
+      if (res.ok) {
+        setReportText("");
+        setReportStatus("Report submitted to Academic Moderation team.");
+        setTimeout(() => setReportStatus(null), 4000);
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
   const completionPercent = Math.round((pageNumber / Math.max(1, totalPages)) * 100);
+  const isBookmarked = bookmarks.some((b) => b.pageNumber === pageNumber);
+  const currentPageNotes = notes.filter((n) => n.pageNumber === pageNumber);
+
+  // Theme style classes
+  const themeClasses = {
+    light: "bg-white text-slate-900 border-slate-300",
+    sepia: "bg-[#FBF0D9] text-[#433422] border-[#E8D8B8]",
+    dark: "bg-[#121820] text-slate-100 border-slate-800",
+  };
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
-      {/* Top Reader Toolbar */}
-      <div className="rounded-xl bg-[#0f2027] text-white p-4 flex flex-wrap items-center justify-between gap-4 shadow">
-        <div className="flex items-center gap-3">
-          <Link
-            href={`/catalogue/${documentId}`}
-            className="rounded-lg bg-white/10 p-2 text-white hover:bg-white/20"
-            title="Back to Document Details"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-amber-400 uppercase">
-                {accessMode === "entitled_full_access"
-                  ? "Full Purchased Entitlement"
-                  : "Sample Preview Mode"}
-              </span>
-              <span className="text-[11px] text-slate-300">
-                • Progress: {completionPercent}%
-              </span>
+    <div className="min-h-screen bg-slate-100/70 pb-12">
+      {/* Sticky Reader Navigation Bar */}
+      <header className="sticky top-0 z-30 border-b border-slate-800 bg-[#0B192C] text-white shadow-md">
+        <div className="container mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+          
+          {/* Left: Back & Document Metadata */}
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/catalogue/${documentId}`}
+              className="rounded-xl bg-white/10 p-2 text-white hover:bg-white/20 transition"
+              title="Back to Document Details"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+            
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                  {accessMode === "entitled_full_access"
+                    ? "Full Entitlement"
+                    : "Sample Preview"}
+                </span>
+                <span className="text-[11px] text-slate-300 font-medium">
+                  • {completionPercent}% completed
+                </span>
+              </div>
+              <h1 className="text-xs sm:text-sm font-extrabold truncate max-w-[220px] sm:max-w-md md:max-w-lg">
+                {docTitle}
+              </h1>
             </div>
-            <h1 className="text-sm md:text-base font-bold truncate max-w-md md:max-w-xl">
-              {docTitle}
-            </h1>
           </div>
-        </div>
 
-        {/* Page Navigation & Zoom Controls for Android & Desktop */}
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
-            disabled={pageNumber <= 1}
-            className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-bold hover:bg-white/20 disabled:opacity-40"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Prev
-          </button>
-
-          <span className="rounded-md bg-slate-800 px-3 py-1.5 text-xs font-mono font-bold">
-            Page {pageNumber} / {totalPages}
-          </span>
-
-          <button
-            type="button"
-            onClick={() => setPageNumber((p) => Math.min(totalPages, p + 1))}
-            disabled={pageNumber >= totalPages}
-            className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-bold hover:bg-white/20 disabled:opacity-40"
-          >
-            Next
-            <ChevronRight className="h-4 w-4" />
-          </button>
-
-          <div className="hidden sm:flex items-center gap-1 ml-2 border-l border-white/15 pl-2">
+          {/* Center: Pagination Controls */}
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setZoomPercent((z) => Math.max(80, z - 10))}
-              className="rounded bg-white/10 p-1.5 hover:bg-white/20"
-              title="Zoom Out"
+              onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
+              disabled={pageNumber <= 1}
+              className="inline-flex items-center gap-1 rounded-xl bg-white/10 px-3 py-1.5 text-xs font-bold hover:bg-white/20 disabled:opacity-30 transition"
             >
-              <ZoomOut className="h-3.5 w-3.5" />
+              <ChevronLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Prev</span>
             </button>
-            <span className="text-xs font-mono px-1.5">{zoomPercent}%</span>
+
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 font-mono text-xs font-bold">
+              <span>{pageNumber}</span>
+              <span className="text-slate-500">/</span>
+              <span>{totalPages}</span>
+            </div>
+
             <button
               type="button"
-              onClick={() => setZoomPercent((z) => Math.min(140, z + 10))}
-              className="rounded bg-white/10 p-1.5 hover:bg-white/20"
-              title="Zoom In"
+              onClick={() => setPageNumber((p) => Math.min(totalPages, p + 1))}
+              disabled={pageNumber >= totalPages}
+              className="inline-flex items-center gap-1 rounded-xl bg-white/10 px-3 py-1.5 text-xs font-bold hover:bg-white/20 disabled:opacity-30 transition"
             >
-              <ZoomIn className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Next</span>
+              <ChevronRight className="h-4 w-4" />
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={handleAddBookmark}
-            className="inline-flex items-center gap-1 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-slate-950 hover:bg-amber-400"
-          >
-            <BookmarkIcon className="h-3.5 w-3.5" />
-            Bookmark Page {pageNumber}
-          </button>
-        </div>
-      </div>
-
-      {/* Main Reader Grid: Protected Canvas + Study Annotations Sidebar */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Protected Document Viewport */}
-        <div className="lg:col-span-2">
-          {!authorized ? (
-            <div className="rounded-xl border-2 border-amber-400 bg-white p-8 text-center space-y-4 shadow-sm">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-800">
-                <Lock className="h-6 w-6" />
-              </div>
-              <h2 className="text-lg font-extrabold text-slate-900">
-                Protected Page {pageNumber} Requires Purchase Entitlement
-              </h2>
-              <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
-                {accessError}
-              </p>
-              <div className="flex justify-center gap-3 pt-2">
-                <Link
-                  href={`/catalogue/${documentId}`}
-                  className="rounded-lg bg-[#0f2027] px-5 py-2.5 text-xs font-bold text-white hover:bg-slate-800"
-                >
-                  Purchase Full Document with Student Wallet
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => setPageNumber(1)}
-                  className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
-                >
-                  Return to Page 1 Sample
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-xl border border-slate-300 bg-white p-6 md:p-10 shadow-md relative overflow-hidden select-none">
-              {/* Personalized Dynamic Watermark Header */}
-              <div className="mb-6 rounded-lg bg-slate-100 border border-slate-200 px-3 py-2 text-[11px] font-mono font-semibold text-slate-700 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
-                  {watermarkText}
-                </span>
-                <span className="text-slate-400">DRM Protected</span>
-              </div>
-
-              {/* Diagonal Background Watermark */}
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.04] rotate-[-24deg]">
-                <span className="text-3xl font-extrabold uppercase tracking-widest text-slate-900">
-                  {watermarkText}
-                </span>
-              </div>
-
-              {/* Rendered Page Content */}
-              <div
-                style={{ fontSize: `${Math.round((13 * zoomPercent) / 100)}px` }}
-                className="relative z-10 font-mono text-slate-800 whitespace-pre-wrap leading-relaxed min-h-[420px]"
+          {/* Right: Theme, Zoom, Bookmark & Sidebar Toggle */}
+          <div className="flex items-center gap-2">
+            
+            {/* Theme Selector */}
+            <div className="hidden sm:flex items-center rounded-xl bg-slate-900 p-1 border border-slate-700">
+              <button
+                type="button"
+                onClick={() => setTheme("light")}
+                className={`p-1.5 rounded-lg transition ${theme === "light" ? "bg-white text-slate-900" : "text-slate-400 hover:text-white"}`}
+                title="Light Mode"
               >
-                {pageBodyText}
-              </div>
+                <Sun className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setTheme("sepia")}
+                className={`p-1.5 rounded-lg transition ${theme === "sepia" ? "bg-[#E8D8B8] text-amber-950" : "text-slate-400 hover:text-white"}`}
+                title="Sepia Academic Mode"
+              >
+                <Coffee className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setTheme("dark")}
+                className={`p-1.5 rounded-lg transition ${theme === "dark" ? "bg-slate-700 text-amber-400" : "text-slate-400 hover:text-white"}`}
+                title="Dark Mode"
+              >
+                <Moon className="h-3.5 w-3.5" />
+              </button>
+            </div>
 
-              <div className="mt-8 pt-4 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
-                <span>
-                  Notice: Browser DRM embeds buyer identity &amp; blocks direct PDF file download.
-                </span>
-                <span>
-                  Page {pageNumber} of {totalPages}
-                </span>
+            {/* Zoom Controls */}
+            <div className="hidden md:flex items-center gap-1 bg-white/10 px-2 py-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setZoomPercent((z) => Math.max(80, z - 10))}
+                className="text-slate-300 hover:text-white"
+                title="Zoom Out"
+              >
+                <ZoomOut className="h-3.5 w-3.5" />
+              </button>
+              <span className="text-[11px] font-mono px-1">{zoomPercent}%</span>
+              <button
+                type="button"
+                onClick={() => setZoomPercent((z) => Math.min(140, z + 10))}
+                className="text-slate-300 hover:text-white"
+                title="Zoom In"
+              >
+                <ZoomIn className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            {/* Quick Bookmark Toggle */}
+            <button
+              type="button"
+              onClick={handleAddBookmark}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm ${
+                isBookmarked
+                  ? "bg-amber-500 text-slate-950"
+                  : "bg-white/10 text-white hover:bg-white/20"
+              }`}
+            >
+              <BookmarkIcon className={`h-3.5 w-3.5 ${isBookmarked ? "fill-current" : ""}`} />
+              <span className="hidden sm:inline">{isBookmarked ? "Bookmarked" : "Bookmark"}</span>
+            </button>
+
+            {/* Drawer Toggle */}
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition"
+              title="Toggle Study Notes & Bookmarks Drawer"
+            >
+              <StickyNote className="h-4 w-4 text-amber-400" />
+            </button>
+          </div>
+        </div>
+
+        {/* Reading Progress Indicator Line */}
+        <div className="w-full bg-slate-800 h-1">
+          <div
+            className="bg-amber-400 h-1 transition-all duration-300"
+            style={{ width: `${completionPercent}%` }}
+          />
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+          
+          {/* Document Reader Canvas Viewport (8 or 12 cols depending on sidebar) */}
+          <div className={isSidebarOpen ? "lg:col-span-8" : "lg:col-span-12"}>
+            {!authorized ? (
+              <div className="rounded-3xl border-2 border-amber-400 bg-white p-8 md:p-12 text-center space-y-5 shadow-lg">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 text-amber-800 shadow-sm">
+                  <Lock className="h-8 w-8" />
+                </div>
+                
+                <div className="space-y-2 max-w-md mx-auto">
+                  <h2 className="text-xl font-black text-slate-900">
+                    Protected Page {pageNumber} Locked
+                  </h2>
+                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                    {accessError}
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row justify-center gap-3 pt-3">
+                  <Link
+                    href={`/catalogue/${documentId}`}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B192C] px-6 py-3 text-xs font-black text-white hover:bg-[#162942] transition shadow-md"
+                  >
+                    <ShieldCheck className="h-4 w-4 text-amber-400" />
+                    <span>Purchase Full Publication with Wallet</span>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => setPageNumber(1)}
+                    className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+                  >
+                    Return to Permitted Sample Page 1
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div
+                className={`rounded-3xl border p-6 sm:p-10 md:p-14 shadow-lg relative overflow-hidden select-none transition-colors duration-200 ${
+                  themeClasses[theme]
+                }`}
+                style={{ transform: `scale(${zoomPercent / 100})`, transformOrigin: "top center" }}
+              >
+                {/* Dynamic Watermark Banner */}
+                <div className="mb-8 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 px-4 py-2.5 text-xs font-mono font-bold flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>{watermarkText}</span>
+                  </span>
+                  <span className="text-[11px] opacity-70">Anti-Piracy DRM Active</span>
+                </div>
+
+                {/* Subtitle / Document Header on First Page */}
+                <div className="border-b border-current/10 pb-4 mb-6">
+                  <span className="text-[10px] font-black uppercase tracking-wider opacity-60">
+                    University Course Compendium • Page {pageNumber} of {totalPages}
+                  </span>
+                  <h2 className="text-xl sm:text-2xl font-black mt-1">
+                    {docTitle}
+                  </h2>
+                </div>
+
+                {/* Main Rendered Page Text */}
+                {loadingPage ? (
+                  <div className="py-24 text-center space-y-3">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-amber-500 border-t-transparent"></div>
+                    <p className="text-xs font-bold opacity-60">Decrypting authenticated page content...</p>
+                  </div>
+                ) : (
+                  <div className="font-mono text-xs sm:text-sm leading-relaxed whitespace-pre-wrap min-h-[400px]">
+                    {pageBodyText}
+                  </div>
+                )}
+
+                {/* Subtle Repeated Watermark Pattern at Bottom */}
+                <div className="mt-12 pt-6 border-t border-current/10 flex flex-col sm:flex-row sm:items-center justify-between text-[11px] opacity-50 font-mono gap-2">
+                  <span>Protected Academic Copy — Authorized for {studentId}</span>
+                  <span>SomaUG Ledger Integrity Verified</span>
+                </div>
+              </div>
+            )}
+
+            {/* Bottom Floating Navigation for Mobile Handsets */}
+            <div className="flex items-center justify-between gap-4 mt-6">
+              <button
+                type="button"
+                onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
+                disabled={pageNumber <= 1}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-xs font-bold text-slate-800 hover:bg-slate-50 disabled:opacity-40 shadow-sm"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span>Previous Page</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPageNumber((p) => Math.min(totalPages, p + 1))}
+                disabled={pageNumber >= totalPages}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B192C] px-4 py-3 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-40 shadow-sm"
+              >
+                <span>Next Page</span>
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Collapsible Study Sidebar (4 cols): Notes, Bookmarks & Issues */}
+          {isSidebarOpen && (
+            <div className="lg:col-span-4 space-y-6">
+              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+                
+                {/* Sidebar Tab Header */}
+                <div className="flex border-b border-slate-100 pb-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSidebarTab("notes")}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition ${
+                      sidebarTab === "notes"
+                        ? "bg-amber-100 text-amber-900"
+                        : "text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    <StickyNote className="h-3.5 w-3.5" />
+                    <span>Page Notes ({currentPageNotes.length})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSidebarTab("bookmarks")}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition ${
+                      sidebarTab === "bookmarks"
+                        ? "bg-amber-100 text-amber-900"
+                        : "text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    <BookmarkIcon className="h-3.5 w-3.5" />
+                    <span>Bookmarks ({bookmarks.length})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSidebarTab("report")}
+                    className={`p-2 rounded-xl text-xs font-bold transition ${
+                      sidebarTab === "report"
+                        ? "bg-red-100 text-red-900"
+                        : "text-slate-400 hover:bg-slate-100"
+                    }`}
+                    title="Report Issue"
+                  >
+                    <Flag className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                {/* Tab 1: Notes & Annotations */}
+                {sidebarTab === "notes" && (
+                  <div className="space-y-4">
+                    <form onSubmit={handleAddNote} className="space-y-2">
+                      <label className="block text-xs font-bold text-slate-700">
+                        Add Study Note for Page {pageNumber}:
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={newNoteText}
+                        onChange={(e) => setNewNoteText(e.target.value)}
+                        placeholder="e.g. Remember theorem definition for exam section 3..."
+                        className="w-full rounded-xl border border-slate-200 p-3 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                      <button
+                        type="submit"
+                        className="w-full rounded-xl bg-[#0B192C] px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition"
+                      >
+                        Save Page Note
+                      </button>
+                    </form>
+
+                    <div className="space-y-2 pt-2 border-t border-slate-100">
+                      <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                        Saved Notes for Current Page:
+                      </span>
+                      {currentPageNotes.length === 0 ? (
+                        <p className="text-xs text-slate-400 py-2">
+                          No notes saved on Page {pageNumber} yet.
+                        </p>
+                      ) : (
+                        currentPageNotes.map((nt) => (
+                          <div
+                            key={nt.id}
+                            className="rounded-xl border border-amber-200 bg-amber-50/60 p-3 text-xs text-slate-800 leading-relaxed space-y-1"
+                          >
+                            <p>{nt.noteText}</p>
+                            <span className="text-[10px] text-amber-800 font-bold block">
+                              Page {nt.pageNumber} Annotation
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab 2: Saved Bookmarks */}
+                {sidebarTab === "bookmarks" && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-700">Saved Document Bookmarks</span>
+                      <button
+                        type="button"
+                        onClick={handleAddBookmark}
+                        className="text-[11px] font-bold text-amber-700 hover:underline"
+                      >
+                        + Bookmark Current Page
+                      </button>
+                    </div>
+
+                    {bookmarks.length === 0 ? (
+                      <p className="text-xs text-slate-400 py-3 text-center">
+                        No pages bookmarked yet.
+                      </p>
+                    ) : (
+                      <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                        {bookmarks.map((bm) => (
+                          <button
+                            key={bm.id}
+                            type="button"
+                            onClick={() => setPageNumber(bm.pageNumber)}
+                            className={`w-full text-left rounded-xl border p-3 text-xs font-bold transition flex items-center justify-between ${
+                              pageNumber === bm.pageNumber
+                                ? "bg-amber-50 border-amber-300 text-amber-950"
+                                : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2">
+                              <BookmarkIcon className="h-3.5 w-3.5 text-amber-600 fill-current" />
+                              <span>{bm.title || `Page ${bm.pageNumber}`}</span>
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-mono">Jump →</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Tab 3: Content or Formatting Report */}
+                {sidebarTab === "report" && (
+                  <form onSubmit={handleReportSubmit} className="space-y-3 text-xs">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">
+                        Report Issue to Moderation:
+                      </label>
+                      <select
+                        value={reportCategory}
+                        onChange={(e) => setReportCategory(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-900"
+                      >
+                        <option value="document_error">Typo / Syllabus Error on this Page</option>
+                        <option value="rendering_issue">Visual / Formatting Rendering Bug</option>
+                        <option value="copyright_infringement">Academic Copyright Concern</option>
+                        <option value="other">Other Inquiry</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <textarea
+                        rows={3}
+                        value={reportText}
+                        onChange={(e) => setReportText(e.target.value)}
+                        placeholder="Describe the issue with this page..."
+                        className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-red-400"
+                        required
+                      />
+                    </div>
+
+                    {reportStatus && (
+                      <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-900 font-medium">
+                        {reportStatus}
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      className="w-full rounded-xl bg-red-600 px-3.5 py-2.5 text-xs font-bold text-white hover:bg-red-700 transition"
+                    >
+                      Submit Report
+                    </button>
+                  </form>
+                )}
               </div>
             </div>
           )}
-        </div>
-
-        {/* Study Sidebar: Bookmarks, Private Notes & Quality Reporting */}
-        <div className="space-y-6">
-          {/* Bookmarks Card */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <BookmarkIcon className="h-4 w-4 text-amber-600" />
-              <span>Saved Bookmarks ({bookmarks.length})</span>
-            </h2>
-            {bookmarks.length === 0 ? (
-              <p className="text-xs text-slate-500">
-                Click &ldquo;Bookmark Page&rdquo; in the toolbar to save key exam formulas or pages.
-              </p>
-            ) : (
-              <div className="flex flex-wrap gap-1.5">
-                {bookmarks.map((b) => (
-                  <button
-                    key={b.id}
-                    type="button"
-                    onClick={() => setPageNumber(b.pageNumber)}
-                    className="rounded-md bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-bold text-amber-900 hover:bg-amber-100"
-                  >
-                    Page {b.pageNumber}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Private Study Notes Card */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <StickyNote className="h-4 w-4 text-emerald-600" />
-              <span>Private Study Notes (Strictly Private to You)</span>
-            </h2>
-
-            <form onSubmit={handleAddNote} className="space-y-2">
-              <textarea
-                rows={2}
-                value={newNoteText}
-                onChange={(e) => setNewNoteText(e.target.value)}
-                placeholder={`Write a personal note for Page ${pageNumber}...`}
-                className="w-full rounded-lg border border-slate-300 p-2.5 text-xs focus:border-slate-900 outline-none"
-              />
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-[#0f2027] px-3 py-2 text-xs font-bold text-white hover:bg-slate-800"
-              >
-                Save Note on Page {pageNumber}
-              </button>
-            </form>
-
-            <div className="space-y-2 max-h-48 overflow-y-auto pt-2">
-              {notes.map((n) => (
-                <div
-                  key={n.id}
-                  className="rounded-lg bg-slate-50 border border-slate-200 p-2.5 text-xs space-y-1"
-                >
-                  <div className="flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={() => setPageNumber(n.pageNumber)}
-                      className="font-bold text-amber-700 hover:underline"
-                    >
-                      Page {n.pageNumber}
-                    </button>
-                    <span className="text-[10px] text-slate-400">Private</span>
-                  </div>
-                  <p className="text-slate-700">{n.noteText}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Report Document Error or Copyright Concern (Journey 16) */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
-            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <Flag className="h-4 w-4 text-red-600" />
-              <span>Report Document Error or Copyright Issue</span>
-            </h2>
-            <form onSubmit={handleReportSubmit} className="space-y-2.5">
-              <select
-                value={reportCategory}
-                onChange={(e) => setReportCategory(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs"
-              >
-                <option value="document_error">Typo / Formula Error on Page</option>
-                <option value="copyright_infringement">Suspected Copyright Infringement</option>
-                <option value="low_quality">Illegible / Missing Content</option>
-              </select>
-              <input
-                type="text"
-                value={reportText}
-                onChange={(e) => setReportText(e.target.value)}
-                placeholder="Describe the issue and page number..."
-                className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs"
-              />
-              <button
-                type="submit"
-                className="w-full rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-800 hover:bg-red-100"
-              >
-                Submit Report to Moderation
-              </button>
-              {reportStatus && (
-                <p className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  {reportStatus}
-                </p>
-              )}
-            </form>
-          </div>
         </div>
       </div>
     </div>
   );
 }
-

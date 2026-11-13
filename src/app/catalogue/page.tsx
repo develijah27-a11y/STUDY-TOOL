@@ -12,6 +12,10 @@ import {
   FileText,
   BookOpen,
   GraduationCap,
+  Sparkles,
+  SlidersHorizontal,
+  ChevronRight,
+  TrendingUp,
 } from "lucide-react";
 
 interface EnrichedDoc {
@@ -38,6 +42,16 @@ interface EnrichedDoc {
   salesCount: number;
 }
 
+const DOCUMENT_TYPE_LABELS: Record<string, string> = {
+  lecture_notes: "Lecture Notes",
+  past_paper_solution: "Past Paper Solution",
+  study_guide: "Study Guide",
+  lab_manual: "Lab Manual",
+  curriculum_summary: "Summary / Cheat Sheet",
+  textbook_supplement: "Textbook Supplement",
+  assignment_guide: "Assignment Guide",
+};
+
 export default function CataloguePage() {
   const [documents, setDocuments] = useState<EnrichedDoc[]>([]);
   const [institutions, setInstitutions] = useState<Array<{ id: string; name: string; shortCode: string }>>([]);
@@ -50,6 +64,7 @@ export default function CataloguePage() {
   const [selectedType, setSelectedType] = useState("all");
   const [maxPrice, setMaxPrice] = useState<number>(50000);
   const [prioritizeAcademicProfile, setPrioritizeAcademicProfile] = useState(true);
+  const [sortBy, setSortBy] = useState<"relevant" | "price_asc" | "price_desc" | "sales">("relevant");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -92,15 +107,20 @@ export default function CataloguePage() {
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter((d) =>
-        [d.title, d.description, d.courseCode, d.courseName, d.lecturerName, ...d.topics]
+        [d.title, d.description, d.courseCode, d.courseName, d.lecturerName, ...(d.topics || [])]
           .join(" ")
           .toLowerCase()
           .includes(q)
       );
     }
 
-    // Rank strong academic profile match (Makerere BSSE Year 2 CSC 2101) highest when enabled
-    if (prioritizeAcademicProfile) {
+    if (sortBy === "price_asc") {
+      list.sort((a, b) => a.priceUGX - b.priceUGX);
+    } else if (sortBy === "price_desc") {
+      list.sort((a, b) => b.priceUGX - a.priceUGX);
+    } else if (sortBy === "sales") {
+      list.sort((a, b) => b.salesCount - a.salesCount);
+    } else if (prioritizeAcademicProfile) {
       list.sort((a, b) => {
         const aMatch = a.courseCode === "CSC 2101" ? 2 : a.institutionShortCode === "MAK" ? 1 : 0;
         const bMatch = b.courseCode === "CSC 2101" ? 2 : b.institutionShortCode === "MAK" ? 1 : 0;
@@ -117,6 +137,7 @@ export default function CataloguePage() {
     maxPrice,
     searchQuery,
     prioritizeAcademicProfile,
+    sortBy,
   ]);
 
   const resetFilters = () => {
@@ -125,56 +146,72 @@ export default function CataloguePage() {
     setSelectedCourse("all");
     setSelectedType("all");
     setMaxPrice(50000);
+    setSortBy("relevant");
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      {/* Header & Student Academic Profile Match Banner */}
-      <div className="rounded-xl bg-[#0f2027] text-white p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold">Academic Resource Catalogue</h1>
-          <p className="text-xs text-slate-300">
-            Search verified lecture compendiums, past examination solutions, and laboratory manuals across Ugandan universities.
+    <div className="container mx-auto px-4 py-8 space-y-8">
+      
+      {/* Hero Header & Course Unit Match Banner */}
+      <div className="rounded-3xl bg-gradient-to-r from-[#0B192C] via-[#162942] to-[#1E3E62] text-white p-6 md:p-10 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="space-y-2 max-w-2xl">
+          <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/20 border border-amber-400/30 px-3.5 py-1 text-xs font-bold text-amber-300">
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>Ugandan Academic Resource Catalogue</span>
+          </div>
+          <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">
+            Discover Verified Lecture Materials in UGX.
+          </h1>
+          <p className="text-xs md:text-sm text-slate-300 leading-relaxed">
+            Curated materials from verified lecturers across Makerere, Kyambogo, MUST, UCU, and MUBS.
+            Instant unlock with your student wallet.
           </p>
         </div>
 
-        <div className="flex items-center gap-3 rounded-lg bg-white/10 border border-white/15 px-4 py-2.5">
-          <GraduationCap className="h-5 w-5 text-amber-400 shrink-0" />
-          <div className="text-xs">
-            <span className="block font-bold text-white">Active Student Profile: Grace Namukasa</span>
-            <span className="text-slate-300">Makerere University • BSSE Year 2, Sem 1</span>
+        {/* Academic Profile Priority Pill */}
+        <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-4 sm:p-5 flex items-center justify-between gap-4 max-w-md">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400">
+              <GraduationCap className="h-5 w-5" />
+            </div>
+            <div className="text-xs">
+              <span className="block font-bold text-white">Student Course Match</span>
+              <span className="text-slate-300">Makerere University • BSSE Year 2 (CSC 2101)</span>
+            </div>
           </div>
-          <label className="ml-2 flex items-center gap-1.5 text-xs font-semibold text-amber-300 cursor-pointer">
+          <label className="flex items-center gap-1.5 text-xs font-bold text-amber-300 cursor-pointer bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
             <input
               type="checkbox"
               checked={prioritizeAcademicProfile}
               onChange={(e) => setPrioritizeAcademicProfile(e.target.checked)}
-              className="rounded border-white/30"
+              className="rounded"
             />
-            Boost My Course
+            Boost
           </label>
         </div>
       </div>
 
-      {/* Search & Structured Filter Controls */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
-          <div className="md:col-span-2 relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+      {/* Filter & Search Toolbar */}
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm space-y-4">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
+          {/* Search Box */}
+          <div className="md:col-span-5 relative">
+            <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search title, course code (CSC 2101), lecturer, or topic..."
-              className="w-full rounded-lg border border-slate-300 pl-9 pr-3 py-2 text-xs focus:border-slate-900 outline-none"
+              placeholder="Search by title, course unit (e.g. CSC 2101, LAW 2105), or lecturer..."
+              className="w-full rounded-xl border border-slate-300 bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-[#0B192C] focus:ring-2 focus:ring-[#0B192C]/10 outline-none transition"
             />
           </div>
 
-          <div>
+          {/* University Filter */}
+          <div className="md:col-span-2">
             <select
               value={selectedInstitution}
               onChange={(e) => setSelectedInstitution(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-800"
+              className="w-full rounded-xl border border-slate-300 bg-slate-50/50 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#0B192C]"
             >
               <option value="all">All Universities</option>
               {institutions.map((i) => (
@@ -185,11 +222,12 @@ export default function CataloguePage() {
             </select>
           </div>
 
-          <div>
+          {/* Course Unit Filter */}
+          <div className="md:col-span-3">
             <select
               value={selectedCourse}
               onChange={(e) => setSelectedCourse(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-800"
+              className="w-full rounded-xl border border-slate-300 bg-slate-50/50 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#0B192C]"
             >
               <option value="all">All Course Units</option>
               {courses.map((c) => (
@@ -200,26 +238,30 @@ export default function CataloguePage() {
             </select>
           </div>
 
-          <div>
+          {/* Category Filter */}
+          <div className="md:col-span-2">
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-800"
+              className="w-full rounded-xl border border-slate-300 bg-slate-50/50 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#0B192C]"
             >
-              <option value="all">All Document Types</option>
+              <option value="all">All Formats</option>
               <option value="lecture_notes">Lecture Notes</option>
               <option value="past_paper_solution">Past Paper Solutions</option>
               <option value="study_guide">Study Guides</option>
               <option value="lab_manual">Lab Manuals</option>
-              <option value="curriculum_summary">Cheat Sheets / Summaries</option>
+              <option value="curriculum_summary">Summaries / Sheets</option>
             </select>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-slate-100">
-          <div className="flex items-center gap-3 text-xs text-slate-700">
-            <Filter className="h-3.5 w-3.5 text-slate-500" />
-            <span className="font-semibold">Max Price: {formatUGX(maxPrice)}</span>
+        {/* Bottom Toolbar Row: Price Slider, Sort & Reset */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-slate-100 text-xs">
+          <div className="flex items-center gap-3">
+            <SlidersHorizontal className="h-3.5 w-3.5 text-slate-500" />
+            <span className="font-semibold text-slate-700">
+              Max Price: <strong>{formatUGX(maxPrice)}</strong>
+            </span>
             <input
               type="range"
               min={1000}
@@ -227,135 +269,148 @@ export default function CataloguePage() {
               step={1000}
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
-              className="w-36 accent-[#0f2027]"
+              className="w-32 sm:w-44 accent-[#0B192C]"
             />
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-xs text-slate-500">
-              Showing <strong>{filteredDocs.length}</strong> verified publications
-            </span>
+            <span className="text-slate-500">Sort by:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-800"
+            >
+              <option value="relevant">Course Relevance</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="sales">Most Popular</option>
+            </select>
+
             <button
               type="button"
               onClick={resetFilters}
-              className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100 transition"
             >
               <RotateCcw className="h-3 w-3" />
-              Reset Filters
+              Reset
             </button>
           </div>
         </div>
       </div>
 
-      {/* Catalogue Grid */}
+      {/* Catalogue Cards Grid */}
       {loading ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {[1, 2, 3].map((n) => (
-            <div
-              key={n}
-              className="h-64 animate-pulse rounded-xl border border-slate-200 bg-white p-5"
-            />
+            <div key={n} className="h-72 animate-pulse rounded-2xl border border-slate-200 bg-white p-6" />
           ))}
         </div>
       ) : filteredDocs.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center space-y-3">
-          <p className="text-sm font-bold text-slate-800">
-            No academic publications match your current filter criteria.
+        <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center space-y-3">
+          <BookOpen className="h-10 w-10 text-slate-400 mx-auto" />
+          <p className="text-base font-extrabold text-slate-900">
+            No academic publications matched your filters
           </p>
-          <p className="text-xs text-slate-500">
-            Try clearing your filters or searching across all Ugandan universities.
+          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            Try resetting your filters or increasing the maximum price to discover materials across all Ugandan institutions.
           </p>
           <button
             type="button"
             onClick={resetFilters}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#0f2027] px-4 py-2 text-xs font-bold text-white"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#0B192C] px-5 py-2.5 text-xs font-bold text-white shadow-sm"
           >
             <RotateCcw className="h-3.5 w-3.5" />
-            Clear All Filters
+            Reset All Filters
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredDocs.map((doc) => (
-            <div
-              key={doc.id}
-              className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-800">
-                    <Building2 className="h-3 w-3 text-slate-500" />
-                    {doc.institutionShortCode} • {doc.courseCode}
-                  </span>
-                  <span className="rounded-full bg-amber-100 px-3 py-0.5 text-xs font-extrabold text-amber-900">
-                    {formatUGX(doc.priceUGX)}
-                  </span>
-                </div>
+          {filteredDocs.map((doc) => {
+            const isMatch = prioritizeAcademicProfile && doc.courseCode === "CSC 2101";
 
-                {prioritizeAcademicProfile && doc.courseCode === "CSC 2101" && (
-                  <div className="inline-flex items-center gap-1 rounded bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
-                    Matches Your Enrolled Course Unit (CSC 2101)
-                  </div>
-                )}
-
-                <Link href={`/catalogue/${doc.id}`} className="block group">
-                  <h2 className="text-base font-bold text-slate-900 group-hover:text-amber-700">
-                    {doc.title}
-                  </h2>
-                </Link>
-
-                <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
-                  {doc.description}
-                </p>
-
-                <div className="flex flex-wrap gap-1.5">
-                  {doc.topics.map((t) => (
-                    <span
-                      key={t}
-                      className="rounded bg-slate-50 border border-slate-200 px-2 py-0.5 text-[11px] text-slate-600"
-                    >
-                      {t}
+            return (
+              <div
+                key={doc.id}
+                className={`flex flex-col justify-between rounded-2xl border bg-white p-6 shadow-sm hover:shadow-md transition-all ${
+                  isMatch ? "border-amber-300 ring-2 ring-amber-400/20" : "border-slate-200/80"
+                }`}
+              >
+                <div className="space-y-3.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-800">
+                      <Building2 className="h-3.5 w-3.5 text-slate-600" />
+                      {doc.institutionShortCode} • {doc.courseCode}
                     </span>
-                  ))}
+                    <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-extrabold text-amber-900">
+                      {formatUGX(doc.priceUGX)}
+                    </span>
+                  </div>
+
+                  {isMatch && (
+                    <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-0.5 text-[11px] font-bold text-amber-900">
+                      <Sparkles className="h-3 w-3 text-amber-600" />
+                      Matched to Enrolled Semester Course
+                    </div>
+                  )}
+
+                  <Link href={`/catalogue/${doc.id}`} className="block group">
+                    <h2 className="text-base font-extrabold text-slate-900 group-hover:text-amber-700 transition line-clamp-2 leading-snug">
+                      {doc.title}
+                    </h2>
+                  </Link>
+
+                  <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
+                    {doc.description}
+                  </p>
+
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    <span className="rounded-md bg-blue-50 border border-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800">
+                      {DOCUMENT_TYPE_LABELS[doc.documentType] || doc.documentType}
+                    </span>
+                    {(doc.topics || []).slice(0, 2).map((t) => (
+                      <span
+                        key={t}
+                        className="rounded-md bg-slate-50 border border-slate-200 px-2 py-0.5 text-[10px] text-slate-600"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-slate-100 space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-1 font-bold text-slate-800 truncate">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                      <span className="truncate">{doc.lecturerName}</span>
+                    </span>
+                    <span className="text-[11px] text-slate-500 font-medium shrink-0">
+                      {doc.pageCount} pages • v{doc.currentVersion}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/catalogue/${doc.id}`}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#0B192C] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#162942] active:scale-[0.99] transition"
+                    >
+                      <FileText className="h-3.5 w-3.5" />
+                      <span>Details &amp; Buy</span>
+                    </Link>
+                    <Link
+                      href={`/student/read/${doc.id}`}
+                      className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition"
+                      title="Open in Study Reader"
+                    >
+                      <BookOpen className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
                 </div>
               </div>
-
-              <div className="mt-5 pt-4 border-t border-slate-100 space-y-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-1 font-semibold text-slate-800">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                    {doc.lecturerName}
-                  </span>
-                  <span className="text-[11px] text-slate-500">
-                    {doc.pageCount} pages •{" "}
-                    {doc.allowedPreviewPages.length > 0
-                      ? `${doc.allowedPreviewPages.length} sample pages`
-                      : "Metadata only (short doc)"}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Link
-                    href={`/catalogue/${doc.id}`}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#0f2027] px-3 py-2 text-xs font-bold text-white hover:bg-slate-800"
-                  >
-                    <FileText className="h-3.5 w-3.5" />
-                    <span>Details &amp; Buy</span>
-                  </Link>
-                  <Link
-                    href={`/student/read/${doc.id}`}
-                    className="inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-                  >
-                    <BookOpen className="h-3.5 w-3.5" />
-                    <span>Open Reader</span>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
-
