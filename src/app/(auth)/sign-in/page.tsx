@@ -17,6 +17,7 @@ import {
   BookOpen,
   Wallet,
   Zap,
+  Building2,
 } from "lucide-react";
 
 export default function SignInPage() {
@@ -156,49 +157,21 @@ export default function SignInPage() {
             </div>
           </div>
 
-          {/* 1-Click Instant Demo Logins */}
-          <div className="relative z-10 pt-6 mt-6 border-t border-white/10 space-y-2.5">
-            <span className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-              <Zap className="h-3.5 w-3.5 text-amber-400" />
-              <span>1-Click Instant Demo Logins:</span>
+          {/* Supported Institutions & Accreditation */}
+          <div className="relative z-10 pt-6 mt-6 border-t border-white/10 space-y-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+              <Building2 className="h-3.5 w-3.5 text-amber-400" />
+              <span>Supported Institutions &amp; Faculties</span>
             </span>
-
-            <div className="grid grid-cols-1 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => handleInstantDemoLogin("namukasa.grace@students.mak.ac.ug", "student")}
-                disabled={Boolean(demoLoading)}
-                className="w-full text-left rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 px-3.5 py-2 transition flex items-center justify-between"
-              >
-                <span>Student (Grace — Makerere)</span>
-                <span className="text-xs text-amber-300 font-bold font-mono">
-                  {demoLoading === "student" ? "Signing In..." : "Instant Login →"}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleInstantDemoLogin("prof.okello@cis.mak.ac.ug", "lecturer")}
-                disabled={Boolean(demoLoading)}
-                className="w-full text-left rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 px-3.5 py-2 transition flex items-center justify-between"
-              >
-                <span>Lecturer (Prof. Okello — MAK)</span>
-                <span className="text-xs text-emerald-300 font-bold font-mono">
-                  {demoLoading === "lecturer" ? "Signing In..." : "Instant Login →"}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleInstantDemoLogin("admin@ugandastudy.ug", "admin")}
-                disabled={Boolean(demoLoading)}
-                className="w-full text-left rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 px-3.5 py-2 transition flex items-center justify-between"
-              >
-                <span>Platform Review (Admin)</span>
-                <span className="text-xs text-blue-300 font-bold font-mono">
-                  {demoLoading === "admin" ? "Signing In..." : "Instant Login →"}
-                </span>
-              </button>
+            <p className="text-xs text-slate-300 leading-relaxed font-normal">
+              Course notes, practical manuals, and solved past papers for universities, technical colleges, and vocational institutes across Uganda.
+            </p>
+            <div className="flex flex-wrap gap-1.5 pt-1 text-xs">
+              <span className="rounded-md bg-white/10 border border-white/10 px-2 py-0.5 text-slate-200">Makerere (MAK)</span>
+              <span className="rounded-md bg-white/10 border border-white/10 px-2 py-0.5 text-slate-200">Kyambogo (KYU)</span>
+              <span className="rounded-md bg-white/10 border border-white/10 px-2 py-0.5 text-slate-200">Buganda Royal (BRIBTE)</span>
+              <span className="rounded-md bg-white/10 border border-white/10 px-2 py-0.5 text-slate-200">UICT Nakawa</span>
+              <span className="rounded-md bg-white/10 border border-white/10 px-2 py-0.5 text-slate-200">Mbarara (MUST)</span>
             </div>
           </div>
         </div>
