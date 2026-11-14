@@ -46,9 +46,9 @@ export const SITE_COPY = {
       linkText: "Explore technical manuals",
     },
     payments: {
-      category: "Payments & WhatsApp",
-      title: "Instant MoMo and WhatsApp access",
-      body: "Top up once with MTN MoMo or Airtel Money. Lecturers share one-tap links and codes in class WhatsApp groups.",
+      category: "Payments & Mobile Money",
+      title: "Instant MoMo access and direct links",
+      body: "Top up once with MTN MoMo or Airtel Money. Lecturers share direct links in class WhatsApp groups to unlock notes immediately.",
       linkText: "How mobile payments work",
     },
   },

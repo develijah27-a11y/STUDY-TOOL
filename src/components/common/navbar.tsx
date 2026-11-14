@@ -78,7 +78,6 @@ export function Navbar() {
       items: [
         { href: "/", label: "Home Overview", icon: Home },
         { href: "/catalogue", label: "Academic Catalogue", icon: Search },
-        { href: "/d", label: "Scan Document QR", icon: QrCode, badge: "Camera" },
       ],
     },
     {
@@ -151,15 +150,6 @@ export function Navbar() {
 
           {/* Right: Quick Actions */}
           <div className="flex items-center gap-2.5">
-            <Link
-              href="/d"
-              className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-800 transition"
-              title="Scan QR Code"
-            >
-              <QrCode className="h-3.5 w-3.5 text-[#147D78]" />
-              <span>Scan QR</span>
-            </Link>
-
             {/* Wallet chip is rendered ONLY for authenticated users with active sessions */}
             {authenticatedUser ? (
               <Link
@@ -324,12 +314,11 @@ export function Navbar() {
               Sign In to Account
             </Link>
             <Link
-              href="/d"
+              href="/catalogue"
               onClick={() => setIsSidebarOpen(false)}
-              className="text-xs font-bold text-[#147D78] hover:underline flex items-center gap-1"
+              className="text-xs font-bold text-[#147D78] hover:underline"
             >
-              <QrCode className="h-3 w-3" />
-              <span>Scan QR Code</span>
+              Browse Catalogue →
             </Link>
           </div>
         </div>

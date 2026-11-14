@@ -489,10 +489,10 @@ export default function StudentDashboardPage() {
                 </div>
                 <div>
                   <h3 className="text-xs font-extrabold text-[#142B45]">
-                    Scan Lecture QR Code
+                    Scan Classroom QR Code
                   </h3>
                   <p className="text-xs text-slate-500">
-                    From lecture slides, handouts, or WhatsApp
+                    From lecture projector slides or printed handouts
                   </p>
                 </div>
               </div>
