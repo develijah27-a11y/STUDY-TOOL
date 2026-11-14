@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 export default function StudentAcademicProfilePage() {
-  const [studentName, setStudentName] = useState("Grace Namukasa");
+  const [studentName, setStudentName] = useState("Student");
   const [institution, setInstitution] = useState("inst-mak");
   const [programme, setProgramme] = useState("prog-bsse");
   const [academicYear, setAcademicYear] = useState(2);

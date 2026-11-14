@@ -62,10 +62,10 @@ function getGreeting(): string {
 export default function StudentDashboardPage() {
   const router = useRouter();
   const [studentId, setStudentId] = useState("user-student-1");
-  const [studentName, setStudentName] = useState("Grace Namukasa");
+  const [studentName, setStudentName] = useState("Student");
   const [institution, setInstitution] = useState("Makerere University (MAK)");
   const [programme, setProgramme] = useState(
-    "Bachelor of Science in Software Engineering (BSSE Year 2)"
+    "Higher Education & Technical Studies"
   );
   const [walletBalance, setWalletBalance] = useState(25000);
   const [reservedBalance, setReservedBalance] = useState(0);

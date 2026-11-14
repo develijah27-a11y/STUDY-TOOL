@@ -1,50 +1,169 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Compass, BookOpen, Wallet, User } from "lucide-react";
+import {
+  Home,
+  Compass,
+  BookOpen,
+  Wallet,
+  User,
+  QrCode,
+  LogIn,
+  UserPlus,
+  UploadCloud,
+  FileText,
+} from "lucide-react";
 
 export function MobileBottomNav() {
   const pathname = usePathname();
+  const [authenticatedUser, setAuthenticatedUser] = useState<{
+    id: string;
+    role?: string;
+  } | null>(null);
 
-  // Hide persistent bottom bar inside the protected document reader to preserve distraction-free reading
+  // Hide persistent bottom bar inside the protected document reader
   if (pathname.startsWith("/student/read/")) {
     return null;
   }
 
-  const navItems = [
-    {
-      label: "Home",
-      href: "/student/dashboard",
-      icon: Home,
-      isActive: pathname === "/student/dashboard" || pathname === "/",
-    },
-    {
-      label: "Explore",
-      href: "/catalogue",
-      icon: Compass,
-      isActive: pathname.startsWith("/catalogue"),
-    },
-    {
-      label: "My Library",
-      href: "/student/library",
-      icon: BookOpen,
-      isActive: pathname.startsWith("/student/library"),
-    },
-    {
-      label: "Wallet",
-      href: "/student/wallet",
-      icon: Wallet,
-      isActive: pathname.startsWith("/student/wallet"),
-    },
-    {
-      label: "Profile",
-      href: "/student/profile",
-      icon: User,
-      isActive: pathname.startsWith("/student/profile"),
-    },
-  ];
+  // Sync auth state
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem("somaug_user_session");
+      if (cached) {
+        setAuthenticatedUser(JSON.parse(cached));
+      }
+    } catch {}
+
+    async function checkSession() {
+      try {
+        const res = await fetch("/api/auth/session");
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.user) {
+            setAuthenticatedUser(data.user);
+            return;
+          }
+        }
+        setAuthenticatedUser(null);
+      } catch {}
+    }
+    checkSession();
+  }, [pathname]);
+
+  // Construct items strictly based on role
+  let navItems: {
+    label: string;
+    href: string;
+    icon: React.ComponentType<{ className?: string }>;
+    isActive: boolean;
+  }[] = [];
+
+  if (!authenticatedUser) {
+    // Guest / Unauthenticated Visitor
+    navItems = [
+      {
+        label: "Home",
+        href: "/",
+        icon: Home,
+        isActive: pathname === "/",
+      },
+      {
+        label: "Explore",
+        href: "/catalogue",
+        icon: Compass,
+        isActive: pathname.startsWith("/catalogue"),
+      },
+      {
+        label: "Scan QR",
+        href: "/d",
+        icon: QrCode,
+        isActive: pathname.startsWith("/d"),
+      },
+      {
+        label: "Sign In",
+        href: "/sign-in",
+        icon: LogIn,
+        isActive: pathname === "/sign-in",
+      },
+      {
+        label: "Join Free",
+        href: "/sign-up",
+        icon: UserPlus,
+        isActive: pathname === "/sign-up",
+      },
+    ];
+  } else if (authenticatedUser.role === "lecturer") {
+    // Authenticated Lecturer
+    navItems = [
+      {
+        label: "Overview",
+        href: "/lecturer/dashboard",
+        icon: Home,
+        isActive: pathname === "/lecturer/dashboard",
+      },
+      {
+        label: "Uploads",
+        href: "/lecturer/dashboard?tab=publications",
+        icon: UploadCloud,
+        isActive: pathname.includes("tab=publications"),
+      },
+      {
+        label: "Earnings",
+        href: "/lecturer/dashboard?tab=earnings",
+        icon: Wallet,
+        isActive: pathname.includes("tab=earnings"),
+      },
+      {
+        label: "Explore",
+        href: "/catalogue",
+        icon: Compass,
+        isActive: pathname.startsWith("/catalogue"),
+      },
+      {
+        label: "Account",
+        href: "/lecturer/apply",
+        icon: User,
+        isActive: pathname === "/lecturer/apply",
+      },
+    ];
+  } else {
+    // Authenticated Student
+    navItems = [
+      {
+        label: "Dashboard",
+        href: "/student/dashboard",
+        icon: Home,
+        isActive: pathname === "/student/dashboard",
+      },
+      {
+        label: "Explore",
+        href: "/catalogue",
+        icon: Compass,
+        isActive: pathname.startsWith("/catalogue"),
+      },
+      {
+        label: "Library",
+        href: "/student/library",
+        icon: BookOpen,
+        isActive: pathname.startsWith("/student/library"),
+      },
+      {
+        label: "Wallet",
+        href: "/student/wallet",
+        icon: Wallet,
+        isActive: pathname.startsWith("/student/wallet"),
+      },
+      {
+        label: "Profile",
+        href: "/student/profile",
+        icon: User,
+        isActive: pathname.startsWith("/student/profile"),
+      },
+    ];
+  }
 
   return (
     <nav
@@ -65,7 +184,7 @@ export function MobileBottomNav() {
               }`}
             >
               <Icon className={`h-5 w-5 ${item.isActive ? "stroke-[2.5]" : "stroke-2"}`} />
-              <span className="text-xs leading-none">{item.label}</span>
+              <span className="text-[11px] leading-none">{item.label}</span>
               {item.isActive && (
                 <span className="w-1.5 h-1.5 rounded-full bg-[#147D78] mt-0.5" />
               )}
@@ -76,4 +195,3 @@ export function MobileBottomNav() {
     </nav>
   );
 }
-

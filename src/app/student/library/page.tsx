@@ -35,6 +35,7 @@ interface CatalogueDoc {
 }
 
 export default function StudentLibraryPage() {
+  const [studentName, setStudentName] = useState("Student");
   const [orders, setOrders] = useState<EntitledOrder[]>([]);
   const [docs, setDocs] = useState<CatalogueDoc[]>([]);
   const [walletBalance, setWalletBalance] = useState(0);
@@ -47,6 +48,7 @@ export default function StudentLibraryPage() {
       if (cached) {
         const u = JSON.parse(cached);
         if (u.id) currentId = u.id;
+        if (u.fullName) setStudentName(u.fullName);
       }
     } catch {}
 
@@ -79,7 +81,7 @@ export default function StudentLibraryPage() {
             <Library className="h-4 w-4" />
             <span>Personal Study Library</span>
           </div>
-          <h1 className="text-2xl font-bold">Grace Namukasa&apos;s Purchased Materials</h1>
+          <h1 className="text-2xl font-bold">{studentName}&apos;s Study Library &amp; Materials</h1>
           <p className="text-xs text-slate-300">
             Access your purchased course compendiums, saved bookmarks, private study notes, and official receipts.
           </p>

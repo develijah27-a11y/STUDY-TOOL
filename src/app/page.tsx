@@ -194,7 +194,7 @@ export default function HomePage() {
             </div>
 
             <Link
-              href="/student/wallet"
+              href="#payments"
               className="inline-flex items-center gap-1.5 text-xs font-bold text-[#147D78] hover:underline pt-3"
             >
               <span>{SITE_COPY.featureCards.payments.linkText}</span>
@@ -205,7 +205,7 @@ export default function HomePage() {
       </section>
 
       {/* Institution Taxonomy Directory with Document Counts & Equal Heights */}
-      <section className="container mx-auto px-4 max-w-6xl space-y-6">
+      <section id="institutions" className="container mx-auto px-4 max-w-6xl space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-[#142B45]">
@@ -379,8 +379,8 @@ export default function HomePage() {
       </section>
 
       {/* Core Guarantees & Features (Factual academic copy) */}
-      <section className="container mx-auto px-4 max-w-6xl">
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
+      <section id="payments" className="container mx-auto px-4 max-w-6xl">
+        <div id="guarantees" className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-2">
             <div className="h-9 w-9 rounded-xl bg-teal-50 text-[#147D78] flex items-center justify-center">
               <CheckCircle2 className="h-5 w-5" />
