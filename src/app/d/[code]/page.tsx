@@ -89,7 +89,7 @@ export default function DocumentQRResolverPage() {
                 Document QR Scanner
               </h1>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Scan the visual QR code projected in lecture halls or shared on WhatsApp to open verified study materials.
+                Scan the document QR code from any screen, laptop, or printed handout to open verified study materials.
               </p>
             </div>
 
@@ -108,7 +108,7 @@ export default function DocumentQRResolverPage() {
                   <Camera className="h-12 w-12 text-white/30" />
                 </div>
                 <p className="text-xs text-slate-300 font-medium pt-4">
-                  Point camera at lecturer&apos;s slide or printed handout
+                  Point camera at any QR code on screen or printed material
                 </p>
               </div>
 

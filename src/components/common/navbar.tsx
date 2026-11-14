@@ -88,37 +88,96 @@ export function Navbar() {
     router.push("/sign-in");
   };
 
-  const navGroups: NavGroup[] = [
-    {
-      label: "Main Navigation",
-      items: [
-        { href: "/", label: "Home Overview", icon: Home },
-        { href: "/catalogue", label: "Academic Catalogue", icon: Search },
-      ],
-    },
-    {
-      label: "Student Portal",
-      items: [
-        { href: "/student/library", label: "Study Library", icon: Library },
-        { href: "/student/wallet", label: "Student Wallet (UGX)", icon: Wallet },
-        { href: "/student/profile", label: "Academic Profile", icon: UserCheck },
-      ],
-    },
-    {
-      label: "Lecturer Hub",
-      items: [
-        { href: "/lecturer/dashboard", label: "Publish & Earnings", icon: UploadCloud, badge: "85% Split" },
-        { href: "/collections/MAK-CSC2101-2026", label: "WhatsApp Course Packs", icon: Share2 },
-        { href: "/lecturer/apply", label: "Staff Verification", icon: CheckCircle2 },
-      ],
-    },
-    {
-      label: "Administration",
-      items: [
-        { href: "/admin/dashboard", label: "Platform & Audit", icon: ShieldCheck, badge: "Live" },
-      ],
-    },
-  ];
+  // Dynamic navigation groups strictly segregated by role and auth state
+  const navGroups: NavGroup[] = [];
+
+  if (!authenticatedUser) {
+    // Unauthenticated Guest / Landing Page / Sign Up visitor
+    navGroups.push(
+      {
+        label: "Academic Catalogue",
+        items: [
+          { href: "/", label: "Home Overview", icon: Home },
+          { href: "/catalogue", label: "Course Notes & Past Papers", icon: Search },
+          { href: "/d", label: "Scan Document QR", icon: QrCode },
+        ],
+      },
+      {
+        label: "Account & Portals",
+        items: [
+          { href: "/sign-in", label: "Sign In to Account", icon: LogIn },
+          { href: "/sign-up", label: "Create Student Account", icon: UserPlus },
+          { href: "/lecturer/apply", label: "Apply as Lecturer", icon: CheckCircle2 },
+        ],
+      },
+      {
+        label: "Information & Policies",
+        items: [
+          { href: "/#institutions", label: "Supported Institutions", icon: Building2 },
+          { href: "/#payments", label: "Mobile Money Security", icon: ShieldCheck },
+          { href: "/#terms", label: "Terms of Use & Privacy", icon: FileText },
+        ],
+      }
+    );
+  } else if (authenticatedUser.role === "lecturer") {
+    // Authenticated Lecturer
+    navGroups.push(
+      {
+        label: "Lecturer Hub",
+        items: [
+          { href: "/lecturer/dashboard", label: "Lecturer Overview", icon: Home },
+          { href: "/lecturer/dashboard?tab=publications", label: "My Publications & Upload", icon: UploadCloud },
+          { href: "/lecturer/dashboard?tab=earnings", label: "Earnings & Payouts", icon: Wallet, badge: "85% Split" },
+          { href: "/collections/MAK-CSC2101-2026", label: "Class WhatsApp Packs", icon: Share2 },
+          { href: "/lecturer/apply", label: "Verification Status", icon: CheckCircle2 },
+        ],
+      },
+      {
+        label: "Discovery",
+        items: [
+          { href: "/catalogue", label: "Academic Catalogue", icon: Search },
+          { href: "/d", label: "Scan Document QR", icon: QrCode },
+        ],
+      }
+    );
+  } else if (authenticatedUser.role === "admin") {
+    // Platform Admin
+    navGroups.push(
+      {
+        label: "Administration",
+        items: [
+          { href: "/admin/dashboard", label: "Platform & Audit", icon: ShieldCheck, badge: "Live" },
+          { href: "/catalogue", label: "Academic Catalogue", icon: Search },
+        ],
+      }
+    );
+  } else {
+    // Authenticated Student (default)
+    navGroups.push(
+      {
+        label: "Student Desk",
+        items: [
+          { href: "/student/dashboard", label: "Student Dashboard", icon: Home },
+          { href: "/student/library", label: "My Study Library", icon: Library },
+          { href: "/student/wallet", label: "UGX Wallet & Top Up", icon: Wallet },
+          { href: "/student/profile", label: "Academic Profile", icon: UserCheck },
+        ],
+      },
+      {
+        label: "Academic Discovery",
+        items: [
+          { href: "/catalogue", label: "Course Notes & Past Papers", icon: Search },
+          { href: "/d", label: "Scan Document QR", icon: QrCode },
+        ],
+      },
+      {
+        label: "Policies",
+        items: [
+          { href: "/#terms", label: "Terms of Use & Guidelines", icon: FileText },
+        ],
+      }
+    );
+  }
 
   return (
     <>
