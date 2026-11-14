@@ -16,6 +16,9 @@ import {
   Search,
   QrCode,
   ShieldCheck,
+  Camera,
+  ArrowRight,
+  Library,
 } from "lucide-react";
 import { formatUGX } from "@/lib/utils";
 
@@ -160,28 +163,79 @@ export default function StudentLayout({
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 px-4 py-2 space-y-1.5 overflow-y-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/student/dashboard" && pathname.startsWith(item.href));
+        <nav className="flex-1 px-4 py-2 space-y-4 overflow-y-auto">
+          <div className="space-y-1.5">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                pathname === item.href ||
+                (item.href !== "/student/dashboard" && pathname.startsWith(item.href));
 
-            return (
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold transition ${
+                    isActive
+                      ? "bg-[#147D78] text-white shadow-sm"
+                      : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <Icon className={`h-4 w-4 ${isActive ? "text-amber-300" : "text-slate-400"}`} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Quick Document Access in Sidebar */}
+          <div className="rounded-xl bg-white/5 border border-white/10 p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-200 flex items-center gap-1.5">
+                <QrCode className="h-3.5 w-3.5 text-teal-300" />
+                Quick Document Access
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-400 leading-tight">
+              Scan or open course documents instantly
+            </p>
+            <Link
+              href="/d"
+              className="flex items-center justify-between rounded-lg bg-teal-800/40 hover:bg-teal-700/50 border border-teal-500/30 px-2.5 py-1.5 text-[11px] font-bold text-white transition group"
+            >
+              <span className="flex items-center gap-1.5">
+                <Camera className="h-3 w-3 text-amber-300" />
+                Scan QR / Enter Code
+              </span>
+              <ArrowRight className="h-3 w-3 text-amber-300 group-hover:translate-x-0.5 transition" />
+            </Link>
+          </div>
+
+          {/* My Academic Library Desk in Sidebar */}
+          <div className="rounded-xl bg-white/5 border border-white/10 p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-200 flex items-center gap-1.5">
+                <Library className="h-3.5 w-3.5 text-amber-300" />
+                My Academic Library
+              </span>
               <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 rounded-xl px-3.5 py-3 text-xs font-bold transition ${
-                  isActive
-                    ? "bg-[#147D78] text-white shadow-sm"
-                    : "text-slate-300 hover:bg-white/10 hover:text-white"
-                }`}
+                href="/student/library"
+                className="text-[10px] font-bold text-teal-300 hover:text-teal-200"
               >
-                <Icon className={`h-4 w-4 ${isActive ? "text-amber-300" : "text-slate-400"}`} />
-                <span>{item.label}</span>
+                Open →
               </Link>
-            );
-          })}
+            </div>
+            <p className="text-[10px] text-slate-400 leading-tight">
+              Access your saved annotations, bookmarks, reading progress, and verified purchase receipts.
+            </p>
+            <Link
+              href="/student/library"
+              className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-white/10 hover:bg-white/15 px-2.5 py-1.5 text-[11px] font-bold text-white transition"
+            >
+              <BookOpen className="h-3 w-3 text-teal-300" />
+              <span>Go to Study Desk</span>
+            </Link>
+          </div>
         </nav>
 
         {/* Bottom User Card & Sign Out */}
@@ -280,29 +334,76 @@ export default function StudentLayout({
               </div>
             </div>
 
-            <nav className="flex-1 space-y-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive =
-                  pathname === item.href ||
-                  (item.href !== "/student/dashboard" && pathname.startsWith(item.href));
+            <nav className="flex-1 space-y-3 overflow-y-auto">
+              <div className="space-y-1">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive =
+                    pathname === item.href ||
+                    (item.href !== "/student/dashboard" && pathname.startsWith(item.href));
 
-                return (
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold transition ${
+                        isActive
+                          ? "bg-[#147D78] text-white"
+                          : "text-slate-300 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+
+              {/* Mobile Quick Document Access */}
+              <div className="rounded-xl bg-white/5 border border-white/10 p-3 space-y-1.5">
+                <span className="text-[11px] font-bold text-slate-200 flex items-center gap-1.5">
+                  <QrCode className="h-3.5 w-3.5 text-teal-300" />
+                  Quick Document Access
+                </span>
+                <p className="text-[10px] text-slate-400">Scan or open course documents instantly</p>
+                <Link
+                  href="/d"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-between rounded-lg bg-teal-800/40 border border-teal-500/30 px-2.5 py-1.5 text-[11px] font-bold text-white"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Camera className="h-3 w-3 text-amber-300" />
+                    Scan QR / Code
+                  </span>
+                  <ArrowRight className="h-3 w-3 text-amber-300" />
+                </Link>
+              </div>
+
+              {/* Mobile My Academic Library Desk */}
+              <div className="rounded-xl bg-white/5 border border-white/10 p-3 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-200 flex items-center gap-1.5">
+                    <Library className="h-3.5 w-3.5 text-amber-300" />
+                    My Academic Library
+                  </span>
                   <Link
-                    key={item.href}
-                    href={item.href}
+                    href="/student/library"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 rounded-xl px-3.5 py-3 text-xs font-bold transition ${
-                      isActive
-                        ? "bg-[#147D78] text-white"
-                        : "text-slate-300 hover:bg-white/10 hover:text-white"
-                    }`}
+                    className="text-[10px] font-bold text-teal-300"
                   >
-                    <Icon className="h-4 w-4" />
-                    <span>{item.label}</span>
+                    Open →
                   </Link>
-                );
-              })}
+                </div>
+                <Link
+                  href="/student/library"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1.5 text-[11px] font-bold text-white"
+                >
+                  <BookOpen className="h-3 w-3 text-teal-300" />
+                  <span>Go to Study Desk</span>
+                </Link>
+              </div>
             </nav>
 
             <div className="pt-3 border-t border-slate-800">

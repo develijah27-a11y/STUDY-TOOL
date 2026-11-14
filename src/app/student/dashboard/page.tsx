@@ -247,353 +247,267 @@ export default function StudentDashboardPage() {
           </button>
         </form>
 
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <span className="text-xs font-bold text-slate-500">Quick Filters:</span>
+        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100 mt-3">
+          <span className="text-xs font-bold text-slate-500">Faculty Directories:</span>
           {[
-            { label: "CSC 2101", query: "CSC 2101" },
-            { label: "Makerere (MAK)", query: "Makerere" },
-            { label: "Buganda Royal (BRIBTE)", query: "BRIBTE" },
-            { label: "Kampala Polytechnic (KPM)", query: "KPM" },
-            { label: "Past Papers", query: "Past Papers" },
-            { label: "Lecture Notes", query: "Notes" },
-          ].map((tag) => (
+            { label: "Makerere (MAK)", q: "MAK" },
+            { label: "Kyambogo (KYU)", q: "KYU" },
+            { label: "Buganda Royal (BRIBTE)", q: "BRIBTE" },
+            { label: "UICT Nakawa", q: "UICT" },
+            { label: "Kampala Poly (KPM)", q: "KPM" },
+          ].map((s) => (
             <Link
-              key={tag.label}
-              href={`/catalogue?q=${encodeURIComponent(tag.query)}`}
-              className="rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 text-xs font-medium transition"
+              key={s.q}
+              href={`/catalogue?q=${s.q}`}
+              className="rounded-lg bg-teal-50 hover:bg-teal-100 text-[#147D78] border border-teal-200/60 px-2.5 py-1 text-xs font-bold transition flex items-center gap-1.5"
             >
-              {tag.label}
+              <span>{s.label}</span>
+              <Search className="h-3 w-3" />
             </Link>
           ))}
         </div>
       </div>
 
-      {/* 3. Main Grid: Continue Reading & Side Tools */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column (8 cols): Continue Reading Desk & Recommendations */}
-        <div className="lg:col-span-8 space-y-8">
-          {/* Continue Reading Section */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="h-9 w-9 rounded-xl bg-[#147D78]/10 text-[#147D78] flex items-center justify-center">
-                  <BookOpen className="h-5 w-5" />
-                </div>
-                <div>
-                  <h2 className="text-base font-extrabold text-[#142B45]">
-                    Continue Reading
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    Resume directly from your saved bookmark position
-                  </p>
-                </div>
+      {/* 3. Main Academic Workspace Desk */}
+      <div className="space-y-8">
+        {/* Continue Reading Section */}
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-[#147D78]/10 text-[#147D78] flex items-center justify-center">
+                <BookOpen className="h-5 w-5" />
               </div>
-
-              <Link
-                href="/student/library"
-                className="text-xs font-bold text-[#147D78] hover:underline"
-              >
-                View All in My Library →
-              </Link>
-            </div>
-
-            {entitlements.length === 0 ? (
-              <div className="py-12 text-center space-y-3">
-                <BookOpen className="h-10 w-10 text-slate-300 mx-auto" />
-                <p className="text-xs text-slate-500">No active reading documents found.</p>
-                <Link
-                  href="/catalogue"
-                  className="inline-block rounded-xl bg-[#142B45] hover:bg-[#147D78] px-4 py-2 text-xs font-bold text-white transition"
-                >
-                  Browse Academic Catalogue
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {entitlements.map((item) => {
-                  const progressPct = Math.round(
-                    (item.lastReadPage / item.pageCount) * 100
-                  );
-
-                  return (
-                    <div
-                      key={item.id}
-                      className="rounded-2xl border border-slate-200 bg-[#F7F8FA] p-5 space-y-4 hover:border-slate-300 transition"
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="rounded-md bg-slate-200 font-mono text-xs font-black px-2 py-0.5 text-slate-800">
-                              {item.courseCode}
-                            </span>
-                            <span className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                              Unlocked Entitlement
-                            </span>
-                          </div>
-                          <h3 className="text-sm font-extrabold text-[#142B45]">
-                            {item.title}
-                          </h3>
-                        </div>
-
-                        <Link
-                          href={`/student/read/${item.documentId}`}
-                          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#142B45] hover:bg-[#147D78] text-white px-4 py-2.5 text-xs font-bold transition shadow-sm shrink-0"
-                        >
-                          <BookOpen className="h-3.5 w-3.5 text-[#E9B949]" />
-                          <span>Resume Reading (p. {item.lastReadPage})</span>
-                        </Link>
-                      </div>
-
-                      {/* Progress Bar */}
-                      <div className="space-y-1.5">
-                        <div className="flex justify-between text-xs text-slate-500 font-medium">
-                          <span>
-                            Progress: Page {item.lastReadPage} of {item.pageCount}
-                          </span>
-                          <span>{progressPct}% Completed</span>
-                        </div>
-                        <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                          <div
-                            className="bg-[#147D78] h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${progressPct}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Recommended Materials Section */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="h-9 w-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
-                  <Sparkles className="h-5 w-5" />
-                </div>
-                <div>
-                  <h2 className="text-base font-extrabold text-[#142B45]">
-                    Recommended For Your Academic Profile
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    Handpicked for {programme}
-                  </p>
-                </div>
-              </div>
-
-              <Link
-                href="/catalogue"
-                className="text-xs font-bold text-[#147D78] hover:underline"
-              >
-                Browse All →
-              </Link>
-            </div>
-
-            {recommendedDocs.length === 0 ? (
-              <div className="py-8 text-center space-y-2 border border-dashed border-slate-200 rounded-2xl bg-[#F7F8FA] p-6">
-                <BookOpen className="h-7 w-7 text-slate-400 mx-auto" />
-                <p className="text-xs font-bold text-slate-700">No verified course notes published yet for {programme}</p>
-                <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
-                  Accredited lecturers publish materials directly. You can request your course unit or browse other university faculties.
-                </p>
-                <Link
-                  href="/catalogue"
-                  className="inline-block mt-2 rounded-xl bg-[#142B45] hover:bg-[#147D78] px-4 py-2 text-xs font-bold text-white transition shadow-sm"
-                >
-                  Browse Full Catalogue
-                </Link>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {recommendedDocs.map((doc) => (
-                  <Link
-                    key={doc.id}
-                    href={`/catalogue/${doc.id}`}
-                    className="rounded-2xl border border-slate-200 bg-[#F7F8FA] p-4 flex flex-col justify-between hover:border-[#147D78] hover:shadow-md transition space-y-3"
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="rounded-md bg-slate-200 px-2 py-0.5 text-xs font-mono font-black text-slate-800">
-                          {doc.courseCode}
-                        </span>
-                        <span className="text-xs font-bold text-[#147D78]">
-                          {formatUGX(doc.priceUGX)}
-                        </span>
-                      </div>
-                      <h4 className="text-xs font-bold text-[#142B45] line-clamp-2 leading-snug">
-                        {doc.title}
-                      </h4>
-                      <p className="text-xs text-slate-500">{doc.lecturerName}</p>
-                    </div>
-
-                    <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500">
-                      <span>{doc.pageCount} Pages</span>
-                      <span className="flex items-center gap-1 text-amber-600 font-bold">
-                        <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-                        {doc.ratingAverage}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Popular Academic Resources Section */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="h-9 w-9 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center">
-                  <TrendingUp className="h-5 w-5" />
-                </div>
-                <div>
-                  <h2 className="text-base font-extrabold text-[#142B45]">
-                    Popular Across Ugandan Institutions
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    Frequently read notes and practical guides
-                  </p>
-                </div>
-              </div>
-
-              <Link
-                href="/catalogue"
-                className="text-xs font-bold text-[#147D78] hover:underline"
-              >
-                See Full Catalogue →
-              </Link>
-            </div>
-
-            {popularDocs.length === 0 ? (
-              <div className="py-8 text-center space-y-2 border border-dashed border-slate-200 rounded-2xl bg-[#F7F8FA] p-6">
-                <TrendingUp className="h-7 w-7 text-slate-400 mx-auto" />
-                <p className="text-xs font-bold text-slate-700">Catalogue is being populated by verified lecturers</p>
-                <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
-                  Only authentic, lecturer-uploaded compendiums and marking schemes are approved across Ugandan institutions.
+              <div>
+                <h2 className="text-base font-extrabold text-[#142B45]">
+                  Continue Reading
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Resume directly from your saved bookmark position
                 </p>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {popularDocs.map((doc) => (
-                  <Link
-                    key={doc.id}
-                    href={`/catalogue/${doc.id}`}
-                    className="rounded-2xl border border-slate-200 bg-[#F7F8FA] p-4 flex flex-col justify-between hover:border-[#147D78] hover:shadow-md transition space-y-3"
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="rounded-md bg-slate-200 px-2 py-0.5 text-xs font-mono font-black text-slate-800">
-                          {doc.courseCode}
-                        </span>
-                        <span className="text-xs font-bold text-[#147D78]">
-                          {formatUGX(doc.priceUGX)}
-                        </span>
-                      </div>
-                      <h4 className="text-xs font-bold text-[#142B45] line-clamp-2 leading-snug">
-                        {doc.title}
-                      </h4>
-                      <p className="text-xs text-slate-500">
-                        {doc.institutionShortCode} • {doc.lecturerName}
-                      </p>
-                    </div>
-
-                    <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500">
-                      <span>{doc.pageCount} Pages</span>
-                      <span className="flex items-center gap-1 text-amber-600 font-bold">
-                        <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-                        {doc.ratingAverage}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right Column (4 cols): Quick Scanner & Shortcuts */}
-        <div className="lg:col-span-4 space-y-6">
-          {/* Quick Document Access Card */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-            <div className="border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-extrabold text-[#142B45] flex items-center gap-2">
-                <QrCode className="h-4 w-4 text-[#147D78]" />
-                <span>Quick Document Access</span>
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Scan or open course documents instantly
-              </p>
             </div>
-
-            <Link
-              href="/d"
-              className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-[#142B45] to-[#1E3E62] p-4 text-white hover:shadow-md transition group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center text-[#E9B949] group-hover:scale-105 transition">
-                  <Camera className="h-5 w-5" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white">Scan Document QR</h4>
-                  <p className="text-xs text-slate-300">Open materials from any screen or printout</p>
-                </div>
-              </div>
-              <ArrowRight className="h-4 w-4 text-[#E9B949] group-hover:translate-x-1 transition" />
-            </Link>
-
-            <div className="space-y-2 pt-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
-                Browse Faculty Portals:
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { label: "Makerere (MAK)", q: "MAK" },
-                  { label: "Kyambogo (KYU)", q: "KYU" },
-                  { label: "Buganda Royal", q: "BRIBTE" },
-                  { label: "UICT Nakawa", q: "UICT" },
-                ].map((s) => (
-                  <Link
-                    key={s.q}
-                    href={`/catalogue?q=${s.q}`}
-                    className="rounded-xl border border-slate-200 bg-slate-50 hover:bg-teal-50 hover:border-[#147D78] py-2 px-2.5 text-xs font-bold text-slate-800 transition text-left flex items-center justify-between"
-                  >
-                    <span className="truncate">{s.label}</span>
-                    <Search className="h-3.5 w-3.5 text-[#147D78] shrink-0 ml-1" />
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Access to My Library Card */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-xs font-extrabold text-[#142B45] flex items-center gap-1.5">
-                <Library className="h-4 w-4 text-[#147D78]" />
-                <span>My Academic Library</span>
-              </h3>
-              <Link
-                href="/student/library"
-                className="text-xs font-bold text-[#147D78] hover:underline"
-              >
-                Open →
-              </Link>
-            </div>
-
-            <p className="text-xs text-slate-500">
-              Access your saved annotations, bookmarks, reading progress, and verified purchase receipts.
-            </p>
 
             <Link
               href="/student/library"
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 py-2.5 text-xs font-bold text-slate-800 transition"
+              className="text-xs font-bold text-[#147D78] hover:underline"
             >
-              <BookOpen className="h-3.5 w-3.5 text-[#147D78]" />
-              <span>Go to Study Desk</span>
+              View All in My Library →
             </Link>
           </div>
+
+          {entitlements.length === 0 ? (
+            <div className="py-12 text-center space-y-3">
+              <BookOpen className="h-10 w-10 text-slate-300 mx-auto" />
+              <p className="text-xs text-slate-500">No active reading documents found.</p>
+              <Link
+                href="/catalogue"
+                className="inline-block rounded-xl bg-[#142B45] hover:bg-[#147D78] px-4 py-2 text-xs font-bold text-white transition"
+              >
+                Browse Academic Catalogue
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {entitlements.map((item) => {
+                const progressPct = Math.round(
+                  (item.lastReadPage / item.pageCount) * 100
+                );
+
+                return (
+                  <div
+                    key={item.id}
+                    className="rounded-2xl border border-slate-200 bg-[#F7F8FA] p-5 space-y-4 hover:border-slate-300 transition"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-md bg-slate-200 font-mono text-xs font-black px-2 py-0.5 text-slate-800">
+                            {item.courseCode}
+                          </span>
+                          <span className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                            Unlocked Entitlement
+                          </span>
+                        </div>
+                        <h3 className="text-sm font-extrabold text-[#142B45]">
+                          {item.title}
+                        </h3>
+                      </div>
+
+                      <Link
+                        href={`/student/read/${item.documentId}`}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#142B45] hover:bg-[#147D78] text-white px-4 py-2.5 text-xs font-bold transition shadow-sm shrink-0"
+                      >
+                        <BookOpen className="h-3.5 w-3.5 text-[#E9B949]" />
+                        <span>Resume Reading (p. {item.lastReadPage})</span>
+                      </Link>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs text-slate-500 font-medium">
+                        <span>
+                          Progress: Page {item.lastReadPage} of {item.pageCount}
+                        </span>
+                        <span>{progressPct}% Completed</span>
+                      </div>
+                      <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                        <div
+                          className="bg-[#147D78] h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${progressPct}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Recommended Materials Section */}
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-extrabold text-[#142B45]">
+                  Recommended For Your Academic Profile
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Handpicked for {programme}
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href="/catalogue"
+              className="text-xs font-bold text-[#147D78] hover:underline"
+            >
+              Browse All →
+            </Link>
+          </div>
+
+          {recommendedDocs.length === 0 ? (
+            <div className="py-8 text-center space-y-2 border border-dashed border-slate-200 rounded-2xl bg-[#F7F8FA] p-6">
+              <BookOpen className="h-7 w-7 text-slate-400 mx-auto" />
+              <p className="text-xs font-bold text-slate-700">No verified course notes published yet for {programme}</p>
+              <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                Accredited lecturers publish materials directly. You can request your course unit or browse other university faculties.
+              </p>
+              <Link
+                href="/catalogue"
+                className="inline-block mt-2 rounded-xl bg-[#142B45] hover:bg-[#147D78] px-4 py-2 text-xs font-bold text-white transition shadow-sm"
+              >
+                Browse Full Catalogue
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {recommendedDocs.map((doc) => (
+                <Link
+                  key={doc.id}
+                  href={`/catalogue/${doc.id}`}
+                  className="rounded-2xl border border-slate-200 bg-[#F7F8FA] p-4 flex flex-col justify-between hover:border-[#147D78] hover:shadow-md transition space-y-3"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="rounded-md bg-slate-200 px-2 py-0.5 text-xs font-mono font-black text-slate-800">
+                        {doc.courseCode}
+                      </span>
+                      <span className="text-xs font-bold text-[#147D78]">
+                        {formatUGX(doc.priceUGX)}
+                      </span>
+                    </div>
+                    <h4 className="text-xs font-bold text-[#142B45] line-clamp-2 leading-snug">
+                      {doc.title}
+                    </h4>
+                    <p className="text-xs text-slate-500">{doc.lecturerName}</p>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500">
+                    <span>{doc.pageCount} Pages</span>
+                    <span className="flex items-center gap-1 text-amber-600 font-bold">
+                      <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                      {doc.ratingAverage}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Popular Academic Resources Section */}
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center">
+                <TrendingUp className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-extrabold text-[#142B45]">
+                  Popular Across Ugandan Institutions
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Frequently read notes and practical guides
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href="/catalogue"
+              className="text-xs font-bold text-[#147D78] hover:underline"
+            >
+              See Full Catalogue →
+            </Link>
+          </div>
+
+          {popularDocs.length === 0 ? (
+            <div className="py-8 text-center space-y-2 border border-dashed border-slate-200 rounded-2xl bg-[#F7F8FA] p-6">
+              <TrendingUp className="h-7 w-7 text-slate-400 mx-auto" />
+              <p className="text-xs font-bold text-slate-700">Catalogue is being populated by verified lecturers</p>
+              <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                Only authentic, lecturer-uploaded compendiums and marking schemes are approved across Ugandan institutions.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {popularDocs.map((doc) => (
+                <Link
+                  key={doc.id}
+                  href={`/catalogue/${doc.id}`}
+                  className="rounded-2xl border border-slate-200 bg-[#F7F8FA] p-4 flex flex-col justify-between hover:border-[#147D78] hover:shadow-md transition space-y-3"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="rounded-md bg-slate-200 px-2 py-0.5 text-xs font-mono font-black text-slate-800">
+                        {doc.courseCode}
+                      </span>
+                      <span className="text-xs font-bold text-[#147D78]">
+                        {formatUGX(doc.priceUGX)}
+                      </span>
+                    </div>
+                    <h4 className="text-xs font-bold text-[#142B45] line-clamp-2 leading-snug">
+                      {doc.title}
+                    </h4>
+                    <p className="text-xs text-slate-500">
+                      {doc.institutionShortCode} • {doc.lecturerName}
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500">
+                    <span>{doc.pageCount} Pages</span>
+                    <span className="flex items-center gap-1 text-amber-600 font-bold">
+                      <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                      {doc.ratingAverage}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
