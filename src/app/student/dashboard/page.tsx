@@ -76,13 +76,31 @@ export default function StudentDashboardPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Initialize active student session
   useEffect(() => {
+    let currentId = "user-student-1";
+    try {
+      const cached = localStorage.getItem("somaug_user_session");
+      if (cached) {
+        const u = JSON.parse(cached);
+        if (u.id) {
+          currentId = u.id;
+          setStudentId(u.id);
+        }
+        if (u.fullName) setStudentName(u.fullName);
+        if (u.institutionId === "inst-bribte") setInstitution("Buganda Royal Institute (BRIBTE)");
+        else if (u.institutionId === "inst-kyu") setInstitution("Kyambogo University (KYU)");
+        else if (u.institutionId === "inst-uict") setInstitution("UICT Nakawa");
+        else if (u.institutionId === "inst-kpm") setInstitution("Kampala Polytechnic Mengo");
+      }
+    } catch {}
+
     async function loadDashboard() {
       setLoading(true);
       try {
         const [walletRes, catRes] = await Promise.all([
           fetch(
-            `/api/wallet?userId=${studentId}&targetUserId=${studentId}&walletType=student`
+            `/api/wallet?userId=${currentId}&targetUserId=${currentId}&walletType=student`
           ),
           fetch("/api/catalogue"),
         ]);
@@ -90,9 +108,9 @@ export default function StudentDashboardPage() {
         const walletData = await walletRes.json();
         const catData = await catRes.json();
 
-        if (walletRes.ok) {
-          setWalletBalance(walletData.wallet?.spendableBalanceUGX ?? 25000);
-          setReservedBalance(walletData.wallet?.reservedBalanceUGX ?? 0);
+        if (walletRes.ok && walletData.wallet) {
+          setWalletBalance(walletData.wallet.spendableBalanceUGX ?? 0);
+          setReservedBalance(walletData.wallet.reservedBalanceUGX ?? 0);
         }
 
         const docs: CatalogueDocument[] = catData.documents || [];

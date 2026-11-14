@@ -255,7 +255,7 @@ export default function AdminDashboardPage() {
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/20 border border-amber-400/30 px-3.5 py-1 text-xs font-bold text-amber-300">
               <Scale className="h-3.5 w-3.5" />
-              <span>SomaUG Comptroller &amp; Double-Entry Reconciliation Suite</span>
+              <span>SomaUG Platform Financial &amp; Transaction Audit</span>
             </div>
 
             <div className="flex items-center gap-3">
@@ -351,9 +351,9 @@ export default function AdminDashboardPage() {
         {[
           { id: "ledger", label: "Chart of Accounts", icon: FileSpreadsheet },
           { id: "verification", label: `Lecturer Approvals (${lecturers.filter(l => l.verificationStatus === "pending").length})`, icon: UserCheck },
-          { id: "refunds", label: `Atomic Refunds (${orders.length})`, icon: RotateCcw },
+          { id: "refunds", label: `Student Refunds (${orders.length})`, icon: RotateCcw },
           { id: "moderation", label: `Content Reports (${reports.filter(r => r.status === "open").length})`, icon: Flag },
-          { id: "audit", label: `Immutable Audit Trail (${auditLogs.length})`, icon: ShieldCheck },
+          { id: "audit", label: `Audit & Access Logs (${auditLogs.length})`, icon: ShieldCheck },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;

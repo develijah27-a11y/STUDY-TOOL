@@ -9,7 +9,12 @@ export async function GET(req: NextRequest) {
   const targetUserId = searchParams.get("targetUserId") || callerId;
   const walletType = (searchParams.get("walletType") || "student") as "student" | "lecturer";
 
-  const callerRoles = dbStore.userRoles.get(callerId) || ["student"];
+  // Auto-register role in dbStore for dynamic users
+  if (!dbStore.userRoles.has(callerId)) {
+    dbStore.userRoles.set(callerId, [walletType]);
+  }
+
+  const callerRoles = dbStore.userRoles.get(callerId) || [walletType];
   const callerContext: UserAuthContext = {
     userId: callerId,
     email: dbStore.profiles.find((p) => p.id === callerId)?.email || "",
@@ -24,9 +29,28 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const wallet = dbStore.walletAccounts.find(
+  let wallet = dbStore.walletAccounts.find(
     (w) => w.userId === targetUserId && w.walletType === walletType
   );
+
+  // Auto-provision wallet account if not yet created
+  if (!wallet) {
+    wallet = {
+      id: `wal-${targetUserId}`,
+      userId: targetUserId,
+      walletType,
+      currency: "UGX",
+      ledgerAccountId: walletType === "lecturer" ? "acc-2020-lecturer-payables" : "acc-2010-student-wallets",
+      spendableBalanceUGX: 0,
+      reservedBalanceUGX: 0,
+      pinHash: "pin_hashed_1234",
+      pinAttempts: 0,
+      isLocked: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    dbStore.walletAccounts.push(wallet);
+  }
   const orders = dbStore.orders.filter((o) => o.studentId === targetUserId);
   const entitlements = dbStore.entitlements.filter(
     (e) => e.studentId === targetUserId && e.isActive

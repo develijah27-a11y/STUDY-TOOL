@@ -93,6 +93,17 @@ export default function DocumentDetailPage() {
   const [copiedReceipt, setCopiedReceipt] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
 
+  // Initialize student session ID
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem("somaug_user_session");
+      if (cached) {
+        const u = JSON.parse(cached);
+        if (u.id) setSelectedStudentId(u.id);
+      }
+    } catch {}
+  }, []);
+
   useEffect(() => {
     async function loadDetails() {
       try {
@@ -111,6 +122,8 @@ export default function DocumentDetailPage() {
     }
     loadDetails();
   }, [docId]);
+
+
 
   useEffect(() => {
     async function loadStudentWallet() {
@@ -133,6 +146,8 @@ export default function DocumentDetailPage() {
     }
     loadStudentWallet();
   }, [selectedStudentId, docId]);
+
+
 
   useEffect(() => {
     async function loadPreviewPage() {
@@ -703,10 +718,10 @@ export default function DocumentDetailPage() {
               </div>
             )}
 
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-              <span className="flex items-center gap-1">
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span className="flex items-center gap-1 font-medium text-emerald-800">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                Atomic Double-Entry Guarantee
+                Instant Secure Access Guarantee
               </span>
               <Link href="/student/wallet" className="font-bold text-slate-800 hover:underline">
                 Deposit UGX

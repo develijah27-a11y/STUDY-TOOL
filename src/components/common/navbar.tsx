@@ -15,6 +15,7 @@ import {
   Share2,
   UserCheck,
   LogIn,
+  LogOut,
   QrCode,
   ArrowRight,
   FileText,
@@ -45,15 +46,22 @@ export function Navbar() {
   const router = useRouter();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [authenticatedUser, setAuthenticatedUser] = useState<{ id: string; email?: string; role?: string } | null>(null);
+  const [authenticatedUser, setAuthenticatedUser] = useState<{ id: string; email?: string; fullName?: string; role?: string } | null>(null);
 
   // Close sidebar drawer on route change
   useEffect(() => {
     setIsSidebarOpen(false);
   }, [pathname]);
 
-  // Check authentication session
+  // Check authentication session (instant localStorage cache + background server check)
   useEffect(() => {
+    try {
+      const cached = localStorage.getItem("somaug_user_session");
+      if (cached) {
+        setAuthenticatedUser(JSON.parse(cached));
+      }
+    } catch {}
+
     async function checkSession() {
       try {
         const res = await fetch("/api/auth/session");
@@ -61,16 +69,24 @@ export function Navbar() {
           const data = await res.json();
           if (data?.user) {
             setAuthenticatedUser(data.user);
-          } else {
-            setAuthenticatedUser(null);
+            localStorage.setItem("somaug_user_session", JSON.stringify(data.user));
+            return;
           }
         }
-      } catch {
-        setAuthenticatedUser(null);
-      }
+      } catch {}
     }
     checkSession();
   }, [pathname]);
+
+  const handleSignOut = async () => {
+    try {
+      await fetch("/api/auth/sign-out", { method: "POST" });
+    } catch {}
+    localStorage.removeItem("somaug_user_session");
+    setAuthenticatedUser(null);
+    setIsSidebarOpen(false);
+    router.push("/sign-in");
+  };
 
   const navGroups: NavGroup[] = [
     {
@@ -97,9 +113,9 @@ export function Navbar() {
       ],
     },
     {
-      label: "Comptroller & Audit",
+      label: "Administration",
       items: [
-        { href: "/admin/dashboard", label: "Double-Entry Ledger", icon: ShieldCheck, badge: "Reconciled" },
+        { href: "/admin/dashboard", label: "Platform & Audit", icon: ShieldCheck, badge: "Live" },
       ],
     },
   ];
@@ -137,8 +153,8 @@ export function Navbar() {
             </Link>
           </div>
 
-          {/* Center: Browse Catalogue Shortcut */}
-          <div className="hidden md:flex items-center">
+          {/* Center: Browse Catalogue Shortcut & SSL Trust */}
+          <div className="hidden md:flex items-center gap-2.5">
             <Link
               href="/catalogue"
               className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-slate-50 hover:bg-slate-100 px-4 py-1.5 text-xs font-semibold text-slate-700 transition shadow-inner"
@@ -146,6 +162,10 @@ export function Navbar() {
               <Search className="h-3.5 w-3.5 text-[#147D78]" />
               <span>Explore Course Materials &amp; Notes</span>
             </Link>
+            <div className="hidden lg:inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 px-3 py-1 text-xs font-bold text-emerald-800 shadow-xs">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+              <span>SSL Encrypted</span>
+            </div>
           </div>
 
           {/* Right: Quick Actions */}
@@ -296,27 +316,50 @@ export function Navbar() {
         </div>
 
         {/* Sidebar Footer */}
-        <div className="p-4 border-t border-slate-100 bg-slate-50 space-y-2">
-          <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
-            <Building2 className="h-4 w-4 text-emerald-600 shrink-0" />
-            <span>Covering Makerere, Kyambogo, Buganda Royal, UICT &amp; 12+ more</span>
-          </div>
+        <div className="p-4 border-t border-slate-100 bg-slate-50 space-y-2.5">
+          {authenticatedUser ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <div className="truncate">
+                  <span className="block font-bold text-slate-900 truncate">
+                    {authenticatedUser.fullName || authenticatedUser.email}
+                  </span>
+                  <span className="block text-xs text-slate-500 capitalize">
+                    {authenticatedUser.role || "Student"} Account
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700 transition flex items-center gap-1"
+                >
+                  <LogOut className="h-3 w-3" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between text-xs pt-1">
+              <Link
+                href="/sign-in"
+                onClick={() => setIsSidebarOpen(false)}
+                className="text-xs font-bold text-slate-900 hover:underline"
+              >
+                Sign In to Account
+              </Link>
+              <Link
+                href="/sign-up"
+                onClick={() => setIsSidebarOpen(false)}
+                className="text-xs font-bold text-[#147D78] hover:underline"
+              >
+                Create Account →
+              </Link>
+            </div>
+          )}
 
-          <div className="flex items-center justify-between text-xs pt-1">
-            <Link
-              href="/sign-in"
-              onClick={() => setIsSidebarOpen(false)}
-              className="text-xs font-bold text-slate-900 hover:underline"
-            >
-              Sign In to Account
-            </Link>
-            <Link
-              href="/catalogue"
-              onClick={() => setIsSidebarOpen(false)}
-              className="text-xs font-bold text-[#147D78] hover:underline"
-            >
-              Browse Catalogue →
-            </Link>
+          <div className="flex items-center gap-2 text-xs text-slate-600 font-medium pt-1 border-t border-slate-200/60">
+            <Building2 className="h-4 w-4 text-emerald-600 shrink-0" />
+            <span>Makerere, Kyambogo, Buganda Royal, UICT &amp; 12+ more</span>
           </div>
         </div>
       </aside>

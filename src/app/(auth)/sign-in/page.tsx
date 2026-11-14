@@ -57,6 +57,10 @@ export default function SignInPage() {
         return;
       }
 
+      if (typeof window !== "undefined" && data.user) {
+        localStorage.setItem("somaug_user_session", JSON.stringify(data.user));
+      }
+
       routeByRole(data.user?.roles || []);
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : "Authentication request failed.");
@@ -80,6 +84,10 @@ export default function SignInPage() {
       if (!res.ok || !data.success) {
         setErrorMsg(data.error || "Instant login failed.");
         return;
+      }
+
+      if (typeof window !== "undefined" && data.user) {
+        localStorage.setItem("somaug_user_session", JSON.stringify(data.user));
       }
 
       routeByRole(data.user?.roles || []);
@@ -119,7 +127,7 @@ export default function SignInPage() {
 
             <div className="space-y-2 pt-2">
               <h1 className="text-2xl font-extrabold leading-snug">
-                Welcome back to verified university resources.
+                Welcome back to verified academic &amp; vocational study materials.
               </h1>
               <p className="text-xs text-slate-300 leading-relaxed font-normal">
                 Log in to access your study library, view your student wallet, or manage publications on your role dashboard.
@@ -134,18 +142,18 @@ export default function SignInPage() {
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                <span>Double-entry internal wallet in exact UGX</span>
+                <span>Secure study wallet in Ugandan Shillings (UGX)</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                <span>Dynamic QR codes for classroom &amp; WhatsApp sharing</span>
+                <span>One-tap links &amp; scannable QR codes for class handouts</span>
               </div>
             </div>
           </div>
 
           {/* 1-Click Instant Demo Logins */}
           <div className="relative z-10 pt-6 mt-6 border-t border-white/10 space-y-2.5">
-            <span className="text-[11px] font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+            <span className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
               <Zap className="h-3.5 w-3.5 text-amber-400" />
               <span>1-Click Instant Demo Logins:</span>
             </span>
@@ -158,7 +166,7 @@ export default function SignInPage() {
                 className="w-full text-left rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 px-3.5 py-2 transition flex items-center justify-between"
               >
                 <span>Student (Grace — Makerere)</span>
-                <span className="text-[10px] text-amber-300 font-bold font-mono">
+                <span className="text-xs text-amber-300 font-bold font-mono">
                   {demoLoading === "student" ? "Signing In..." : "Instant Login →"}
                 </span>
               </button>
@@ -170,7 +178,7 @@ export default function SignInPage() {
                 className="w-full text-left rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 px-3.5 py-2 transition flex items-center justify-between"
               >
                 <span>Lecturer (Prof. Okello — MAK)</span>
-                <span className="text-[10px] text-emerald-300 font-bold font-mono">
+                <span className="text-xs text-emerald-300 font-bold font-mono">
                   {demoLoading === "lecturer" ? "Signing In..." : "Instant Login →"}
                 </span>
               </button>
@@ -181,8 +189,8 @@ export default function SignInPage() {
                 disabled={Boolean(demoLoading)}
                 className="w-full text-left rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 px-3.5 py-2 transition flex items-center justify-between"
               >
-                <span>Comptroller (Admin Audit)</span>
-                <span className="text-[10px] text-blue-300 font-bold font-mono">
+                <span>Platform Review (Admin)</span>
+                <span className="text-xs text-blue-300 font-bold font-mono">
                   {demoLoading === "admin" ? "Signing In..." : "Instant Login →"}
                 </span>
               </button>

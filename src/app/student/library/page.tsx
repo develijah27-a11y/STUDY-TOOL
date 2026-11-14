@@ -41,11 +41,20 @@ export default function StudentLibraryPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let currentId = "user-student-1";
+    try {
+      const cached = localStorage.getItem("somaug_user_session");
+      if (cached) {
+        const u = JSON.parse(cached);
+        if (u.id) currentId = u.id;
+      }
+    } catch {}
+
     async function loadLibrary() {
       setLoading(true);
       try {
         const [walRes, catRes] = await Promise.all([
-          fetch("/api/wallet?userId=user-student-1&targetUserId=user-student-1&walletType=student"),
+          fetch(`/api/wallet?userId=${currentId}&targetUserId=${currentId}&walletType=student`),
           fetch("/api/catalogue"),
         ]);
         const walData = await walRes.json();
@@ -101,24 +110,16 @@ export default function StudentLibraryPage() {
           <BookOpen className="h-10 w-10 text-slate-400 mx-auto" />
           <div className="space-y-1">
             <h2 className="text-base font-bold text-slate-900">
-              No Purchased Publications Yet — Try Buying One Now
+              No Unlocked Publications Yet
             </h2>
             <p className="text-xs text-slate-600 max-w-md mx-auto">
-              Your student wallet is pre-funded with <strong>UGX 25,000</strong>. Open any
-              publication in the catalogue and complete an atomic wallet purchase to see it appear
-              in your permanent library.
+              Explore course materials, past papers, and lecture notes in the catalogue. When you unlock materials with your UGX balance or Mobile Money, they will appear here in your permanent study library.
             </p>
           </div>
           <div className="flex justify-center gap-3 pt-2">
             <Link
-              href="/catalogue/doc-csc2101-notes"
-              className="rounded-lg bg-[#0f2027] px-5 py-2.5 text-xs font-bold text-white hover:bg-slate-800"
-            >
-              Inspect &amp; Buy CSC 2101 Notes (UGX 5,000)
-            </Link>
-            <Link
               href="/catalogue"
-              className="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
+              className="rounded-xl bg-[#142B45] px-5 py-2.5 text-xs font-bold text-white hover:bg-slate-800 transition shadow-sm"
             >
               Browse Full Catalogue
             </Link>

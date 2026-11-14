@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   GraduationCap,
@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 export default function StudentAcademicProfilePage() {
+  const [studentName, setStudentName] = useState("Grace Namukasa");
   const [institution, setInstitution] = useState("inst-mak");
   const [programme, setProgramme] = useState("prog-bsse");
   const [academicYear, setAcademicYear] = useState(2);
@@ -21,6 +22,18 @@ export default function StudentAcademicProfilePage() {
     "BSSE 3102",
   ]);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem("somaug_user_session");
+      if (cached) {
+        const u = JSON.parse(cached);
+        if (u.fullName) setStudentName(u.fullName);
+        if (u.institutionId) setInstitution(u.institutionId);
+        if (u.programmeId) setProgramme(u.programmeId);
+      }
+    } catch {}
+  }, []);
 
   const toggleCourse = (code: string) => {
     setSelectedCourses((prev) =>
@@ -43,14 +56,14 @@ export default function StudentAcademicProfilePage() {
           <div className="space-y-1.5">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 border border-amber-400/40 px-3 py-1 text-xs font-bold text-amber-300">
               <GraduationCap className="h-3.5 w-3.5" />
-              <span>Progressive Student Academic Profile</span>
+              <span>Student Academic Profile</span>
             </span>
             <h1 className="text-2xl md:text-3xl font-extrabold">
-              Grace Namukasa — Academic Preferences
+              {studentName} — Academic Profile
             </h1>
             <p className="text-xs text-slate-300">
-              Customize your university, programme, and active course units to surface relevant
-              lecture compendiums automatically. All fields are optional and can be updated each semester.
+              Customize your institution, programme, and active course units to prioritize relevant
+              course notes and past papers. You can update your preferences anytime.
             </p>
           </div>
           <Link
@@ -81,11 +94,21 @@ export default function StudentAcademicProfilePage() {
                   onChange={(e) => setInstitution(e.target.value)}
                   className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 font-medium"
                 >
-                  <option value="inst-mak">MAK — Makerere University</option>
-                  <option value="inst-kyu">KYU — Kyambogo University</option>
-                  <option value="inst-must">MUST — Mbarara University of Science &amp; Tech</option>
-                  <option value="inst-ucu">UCU — Uganda Christian University</option>
-                  <option value="inst-mubs">MUBS — Makerere University Business School</option>
+                  <optgroup label="Universities">
+                    <option value="inst-mak">Makerere University (MAK)</option>
+                    <option value="inst-kyu">Kyambogo University (KYU)</option>
+                    <option value="inst-must">Mbarara University of Science &amp; Tech (MUST)</option>
+                    <option value="inst-ucu">Uganda Christian University (UCU)</option>
+                    <option value="inst-mubs">Makerere University Business School (MUBS)</option>
+                    <option value="inst-kiu">Kampala International University (KIU)</option>
+                  </optgroup>
+                  <optgroup label="Vocational &amp; Technical Institutes">
+                    <option value="inst-bribte">Buganda Royal Institute (BRIBTE)</option>
+                    <option value="inst-uict">UICT Nakawa</option>
+                    <option value="inst-kpm">Kampala Polytechnic Mengo (KPM)</option>
+                    <option value="inst-htti">Hotel &amp; Tourism Training Institute (HTTI Jinja)</option>
+                    <option value="inst-ymca">YMCA Comprehensive Institute Kampala</option>
+                  </optgroup>
                 </select>
               </div>
 

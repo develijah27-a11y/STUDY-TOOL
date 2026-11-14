@@ -73,14 +73,18 @@ export default function SignUpPage() {
         return;
       }
 
+      if (typeof window !== "undefined" && data.user) {
+        localStorage.setItem("somaug_user_session", JSON.stringify(data.user));
+      }
+
       setSuccessMsg(data.message);
       setTimeout(() => {
         if (role === "lecturer") {
-          router.push("/lecturer/apply");
+          router.push("/lecturer/dashboard");
         } else {
-          router.push("/catalogue");
+          router.push("/student/dashboard");
         }
-      }, 1500);
+      }, 1200);
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : "Registration request failed.");
     } finally {

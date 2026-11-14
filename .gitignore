@@ -17,6 +17,7 @@
 
 # Private Local Document Storage
 /.private_storage/
+.users_db.json
 
 # Logs & Debug
 npm-debug.log*
