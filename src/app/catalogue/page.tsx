@@ -20,6 +20,7 @@ import {
 
 interface EnrichedDoc {
   id: string;
+  accessCode?: string;
   title: string;
   description: string;
   institutionId: string;
@@ -151,7 +152,7 @@ export default function CataloguePage() {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
-      
+
       {/* Hero Header & Course Unit Match Banner */}
       <div className="rounded-3xl bg-gradient-to-r from-[#0B192C] via-[#162942] to-[#1E3E62] text-white p-6 md:p-10 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="space-y-2 max-w-2xl">
@@ -344,9 +345,8 @@ export default function CataloguePage() {
             return (
               <div
                 key={doc.id}
-                className={`flex flex-col justify-between rounded-2xl border bg-white p-5 shadow-sm hover:shadow-md transition-all space-y-4 ${
-                  isMatch ? "border-[#E9B949] ring-2 ring-[#E9B949]/20" : "border-slate-200"
-                }`}
+                className={`flex flex-col justify-between rounded-2xl border bg-white p-5 shadow-sm hover:shadow-md transition-all space-y-4 ${isMatch ? "border-[#E9B949] ring-2 ring-[#E9B949]/20" : "border-slate-200"
+                  }`}
               >
                 <div className="space-y-3">
                   {/* Top Row: Course Code Badge & Prominent Price */}
@@ -418,29 +418,14 @@ export default function CataloguePage() {
                 </div>
 
                 {/* Card Action Row */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <div className="pt-3 border-t border-slate-100">
                   <Link
                     href={`/catalogue/${doc.id}`}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#142B45] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#1A3859] active:scale-[0.99] transition"
+                    className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#142B45] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#1A3859] active:scale-[0.99] transition"
                   >
                     <FileText className="h-3.5 w-3.5 text-[#E9B949]" />
                     <span>View &amp; Buy</span>
                   </Link>
-
-                  <Link
-                    href={`/d/${doc.accessCode || doc.id}`}
-                    className="inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition"
-                    aria-label="Enter unlock code"
-                    title="Enter unlock code"
-                  >
-                    <BookOpen className="h-3.5 w-3.5 text-slate-600" />
-                    <span className="text-xs font-bold text-slate-700">Code</span>
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
-        </div>
                 </div>
               </div>
             );

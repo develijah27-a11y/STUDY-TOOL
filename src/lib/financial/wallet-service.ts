@@ -2,7 +2,8 @@ import crypto from "crypto";
 import { dbStore } from "@/lib/db/in-memory-store";
 import { calculateCommissionSplit } from "./commission-service";
 import { DoubleEntryLedgerEngine } from "./ledger-service";
-import { validateUgandaPhoneNumber, UgandaMoMoProvider } from "@/lib/payments/momo-adapter";
+import { validateUgandaPhoneNumber } from "@/lib/payments/momo-adapter";
+import { getPaymentProvider } from "@/lib/payments/payment-factory";
 import {
   Order,
   Entitlement,
@@ -113,7 +114,7 @@ export class WalletAndLedgerService {
       };
     }
 
-    const provider = new UgandaMoMoProvider(phoneValidation.network, "sandbox");
+    const provider = getPaymentProvider(phoneValidation.network);
     const providerRes = await provider.initiateDeposit({
       studentId,
       phoneNumber: phoneValidation.formatted,

@@ -16,12 +16,10 @@ export const SITE_COPY = {
   actions: {
     createAccount: "Create free account",
     browseVisitor: "Browse as visitor",
-    enterCode: "Enter code",
-    haveCodePrompt: "Have a Document Code from WhatsApp?",
+    scanQr: "Scan QR",
     searchPlaceholder: "Search by course code (e.g. CSC 2101, BRIBTE EE 1101) or topic...",
     searchButton: "Search materials",
     viewAndBuy: "View & Buy",
-    enterUnlockCodeAria: "Enter unlock code",
   },
 
   hero: {

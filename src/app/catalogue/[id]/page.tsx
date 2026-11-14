@@ -221,7 +221,7 @@ export default function DocumentDetailPage() {
     if (!doc || typeof window === "undefined") return;
     const directUrl = `${window.location.origin}/d/${doc.accessCode || doc.id}`;
     const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=8&data=${encodeURIComponent(directUrl)}`;
-    const msg = `📚 *${doc.courseCode} Academic Document • SomaUG*\n\n*Title:* ${doc.title}\n*Price:* ${formatUGX(doc.priceUGX)}\n\n👉 *Open directly on SomaUG Academic:*\n${directUrl}\n\n📱 *Scannable Document QR Code:*\n${qrImageUrl}\n\n💡 *Scan the QR Code or enter Document Code:* *${doc.accessCode || doc.id}* on the platform to read.`;
+    const msg = `📚 *${doc.courseCode} Academic Document • SomaUG*\n\n*Title:* ${doc.title}\n*Price:* ${formatUGX(doc.priceUGX)}\n\n👉 *Open directly on SomaUG Academic:*\n${directUrl}\n\n📱 *Scannable Document QR Code:*\n${qrImageUrl}\n\n📱 *Scan the QR Code or tap the link above to read directly on SomaUG Academic.*`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
@@ -861,18 +861,8 @@ export default function DocumentDetailPage() {
                   alt={`QR code for ${doc.title}`}
                   className="w-full h-auto aspect-square rounded-lg"
                 />
-                <span className="text-[10px] font-bold text-slate-800 uppercase tracking-wider block">
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
                   Scan With Phone Camera
-                </span>
-              </div>
-
-              {/* Document Code */}
-              <div className="bg-black/50 border border-amber-400/50 rounded-xl p-2.5 max-w-xs mx-auto">
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">
-                  Document Access Code
-                </span>
-                <span className="text-lg font-mono font-black text-amber-400">
-                  {doc.accessCode || doc.id}
                 </span>
               </div>
             </div>
