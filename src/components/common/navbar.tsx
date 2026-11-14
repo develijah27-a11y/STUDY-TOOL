@@ -109,7 +109,7 @@ export function Navbar() {
       {/* Top Header */}
       <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          
+
           {/* Left: Sidebar Toggle & Brand Logo */}
           <div className="flex items-center gap-3">
             <button
@@ -192,9 +192,8 @@ export function Navbar() {
       )}
 
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-80 bg-white border-r border-slate-200 shadow-2xl transition-transform duration-300 ease-in-out flex flex-col ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed top-0 left-0 z-50 h-full w-80 bg-white border-r border-slate-200 shadow-2xl transition-transform duration-300 ease-in-out flex flex-col ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Drawer Header */}
         <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
@@ -268,11 +267,10 @@ export function Navbar() {
                       key={item.href}
                       href={item.href}
                       onClick={() => setIsSidebarOpen(false)}
-                      className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${
-                        isActive
+                      className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${isActive
                           ? "bg-[#0B192C] text-white shadow-sm"
                           : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-2.5">
                         <Icon className={`h-4 w-4 ${isActive ? "text-amber-400" : "text-slate-500"}`} />
@@ -281,11 +279,10 @@ export function Navbar() {
 
                       {item.badge && (
                         <span
-                          className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
-                            isActive
+                          className={`rounded-md px-1.5 py-0.5 text-xs font-bold ${isActive
                               ? "bg-amber-400 text-slate-950"
                               : "bg-slate-100 text-slate-600"
-                          }`}
+                            }`}
                         >
                           {item.badge}
                         </span>
@@ -300,7 +297,7 @@ export function Navbar() {
 
         {/* Sidebar Footer */}
         <div className="p-4 border-t border-slate-100 bg-slate-50 space-y-2">
-          <div className="flex items-center gap-2 text-[11px] text-slate-600 font-medium">
+          <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
             <Building2 className="h-4 w-4 text-emerald-600 shrink-0" />
             <span>Covering Makerere, Kyambogo, Buganda Royal, UICT &amp; 12+ more</span>
           </div>
