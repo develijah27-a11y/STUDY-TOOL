@@ -17,20 +17,11 @@ import {
 } from "lucide-react";
 
 export function MobileBottomNav() {
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
   const [authenticatedUser, setAuthenticatedUser] = useState<{
     id: string;
     role?: string;
   } | null>(null);
-
-  // Hide persistent bottom bar inside protected student/lecturer/admin routes (they render their own role-tailored layout nav)
-  if (
-    pathname.startsWith("/student") ||
-    pathname.startsWith("/lecturer") ||
-    pathname.startsWith("/admin")
-  ) {
-    return null;
-  }
 
   // Sync auth state
   useEffect(() => {
@@ -56,6 +47,18 @@ export function MobileBottomNav() {
     }
     checkSession();
   }, [pathname]);
+
+  // Hide persistent bottom bar inside protected student/lecturer/admin routes (they render their own role-tailored layout nav)
+  const isDashboardRoute =
+    Boolean(
+      pathname.startsWith("/student") ||
+      pathname.startsWith("/lecturer") ||
+      pathname.startsWith("/admin")
+    );
+
+  if (isDashboardRoute) {
+    return null;
+  }
 
   // Construct items strictly based on role
   let navItems: {

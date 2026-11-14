@@ -43,7 +43,7 @@ interface NavGroup {
 }
 
 export function Navbar() {
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
   const router = useRouter();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -56,9 +56,11 @@ export function Navbar() {
 
   // Isolate dashboard shells completely: student, lecturer, and admin have dedicated layouts
   const isDashboardRoute =
-    pathname.startsWith("/student") ||
-    pathname.startsWith("/lecturer") ||
-    pathname.startsWith("/admin");
+    Boolean(
+      pathname.startsWith("/student") ||
+      pathname.startsWith("/lecturer") ||
+      pathname.startsWith("/admin")
+    );
 
   // Close sidebar drawer on route change
   useEffect(() => {
@@ -238,11 +240,11 @@ export function Navbar() {
             </button>
 
             <Link href="/" className="flex items-center gap-2.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B192C] text-amber-400 shadow-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#142B45] text-[#E9B949] shadow-sm">
                 <GraduationCap className="h-6 w-6" />
               </div>
               <div className="hidden sm:block">
-                <span className="block text-base font-extrabold tracking-tight text-slate-900 leading-none">
+                <span className="block text-base font-extrabold tracking-tight text-[#142B45] leading-none">
                   Soma<span className="text-amber-600">UG</span> Academic
                 </span>
                 <span className="block text-[10px] font-semibold text-slate-500 mt-1">
@@ -252,23 +254,46 @@ export function Navbar() {
             </Link>
           </div>
 
-          {/* Center: Browse Catalogue Shortcut & SSL Trust */}
-          <div className="hidden md:flex items-center gap-2.5">
+          {/* Center: Clean Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-1 text-xs font-bold text-slate-700">
             <Link
               href="/catalogue"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-slate-50 hover:bg-slate-100 px-4 py-1.5 text-xs font-semibold text-slate-700 transition shadow-inner"
+              className="px-3 py-2 rounded-xl hover:bg-slate-100 hover:text-[#147D78] transition"
             >
-              <Search className="h-3.5 w-3.5 text-[#147D78]" />
-              <span>Explore Course Materials &amp; Notes</span>
+              Explore Catalogue
             </Link>
-            <div className="hidden lg:inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 px-3 py-1 text-xs font-bold text-emerald-800 shadow-xs">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-              <span>SSL Encrypted</span>
-            </div>
-          </div>
+            <Link
+              href="/#institutions"
+              className="px-3 py-2 rounded-xl hover:bg-slate-100 hover:text-[#147D78] transition"
+            >
+              Institutions
+            </Link>
+            <Link
+              href="/#guarantees"
+              className="px-3 py-2 rounded-xl hover:bg-slate-100 hover:text-[#147D78] transition"
+            >
+              How It Works
+            </Link>
+            <Link
+              href="/lecturer/apply"
+              className="px-3 py-2 rounded-xl hover:bg-teal-50 text-[#147D78] transition flex items-center gap-1.5"
+            >
+              <span>For Lecturers</span>
+              <span className="rounded-md bg-teal-100 text-[#147D78] px-1.5 py-0.5 text-[10px]">
+                85%
+              </span>
+            </Link>
+            <Link
+              href="/d"
+              className="px-3 py-2 rounded-xl hover:bg-slate-100 hover:text-[#147D78] transition flex items-center gap-1 text-slate-500"
+            >
+              <QrCode className="h-3.5 w-3.5 text-[#147D78]" />
+              <span>Scan QR</span>
+            </Link>
+          </nav>
 
           {/* Right: Quick Actions */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             {authenticatedUser ? (
               // Authenticated User Header Actions
               <div className="flex items-center gap-2">
@@ -293,7 +318,7 @@ export function Navbar() {
                       ? "/lecturer/dashboard"
                       : "/student/dashboard"
                   }
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#0B192C] px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition shadow-sm"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#142B45] hover:bg-[#1A3859] px-3.5 py-2 text-xs font-bold text-white transition shadow-sm"
                 >
                   <UserCheck className="h-3.5 w-3.5 text-amber-400" />
                   <span className="hidden sm:inline">Dashboard</span>
@@ -312,10 +337,10 @@ export function Navbar() {
 
                 <Link
                   href="/sign-up"
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#0B192C] hover:bg-slate-800 px-4 py-2 text-xs font-bold text-white transition shadow-sm"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#147D78] hover:bg-[#116965] px-4 py-2 text-xs font-bold text-white transition shadow-sm"
                 >
-                  <UserPlus className="h-3.5 w-3.5 text-amber-400" />
-                  <span>Create Account</span>
+                  <UserPlus className="h-3.5 w-3.5 text-[#E9B949]" />
+                  <span>Join Free</span>
                 </Link>
               </div>
             )}

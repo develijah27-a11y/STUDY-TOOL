@@ -80,10 +80,21 @@ export default function CataloguePage() {
       setLoading(true);
       try {
         const res = await fetch("/api/catalogue");
-        const data = await res.json();
-        setDocuments(data.documents || []);
-        setInstitutions(data.institutions || []);
-        setCourses(data.courses || []);
+        if (res.ok) {
+          const data = await res.json();
+          setDocuments(Array.isArray(data?.documents) ? data.documents : []);
+          setInstitutions(Array.isArray(data?.institutions) ? data.institutions : []);
+          setCourses(Array.isArray(data?.courses) ? data.courses : []);
+        } else {
+          setDocuments([]);
+          setInstitutions([]);
+          setCourses([]);
+        }
+      } catch (err) {
+        console.error("Failed to load catalogue:", err);
+        setDocuments([]);
+        setInstitutions([]);
+        setCourses([]);
       } finally {
         setLoading(false);
       }
@@ -103,12 +114,19 @@ export default function CataloguePage() {
     if (selectedType !== "all") {
       list = list.filter((d) => d.documentType === selectedType);
     }
-    list = list.filter((d) => d.priceUGX <= maxPrice);
+    list = list.filter((d) => (d.priceUGX ?? 0) <= maxPrice);
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter((d) =>
-        [d.title, d.description, d.courseCode, d.courseName, d.lecturerName, ...(d.topics || [])]
+        [
+          d.title || "",
+          d.description || "",
+          d.courseCode || "",
+          d.courseName || "",
+          d.lecturerName || "",
+          ...(Array.isArray(d.topics) ? d.topics : []),
+        ]
           .join(" ")
           .toLowerCase()
           .includes(q)
@@ -116,11 +134,11 @@ export default function CataloguePage() {
     }
 
     if (sortBy === "price_asc") {
-      list.sort((a, b) => a.priceUGX - b.priceUGX);
+      list.sort((a, b) => (a.priceUGX ?? 0) - (b.priceUGX ?? 0));
     } else if (sortBy === "price_desc") {
-      list.sort((a, b) => b.priceUGX - a.priceUGX);
+      list.sort((a, b) => (b.priceUGX ?? 0) - (a.priceUGX ?? 0));
     } else if (sortBy === "sales") {
-      list.sort((a, b) => b.salesCount - a.salesCount);
+      list.sort((a, b) => (b.salesCount ?? 0) - (a.salesCount ?? 0));
     } else if (prioritizeAcademicProfile) {
       list.sort((a, b) => {
         const aMatch = a.courseCode === "CSC 2101" ? 2 : a.institutionShortCode === "MAK" ? 1 : 0;
@@ -216,7 +234,7 @@ export default function CataloguePage() {
             >
               <option value="all">All Institutions (Univ &amp; Vocational)</option>
               <optgroup label="Universities">
-                {institutions
+                {(institutions || [])
                   .filter((i: any) => !i.category || i.category === "university")
                   .map((i) => (
                     <option key={i.id} value={i.id}>
@@ -225,7 +243,7 @@ export default function CataloguePage() {
                   ))}
               </optgroup>
               <optgroup label="Vocational, Technical &amp; Colleges">
-                {institutions
+                {(institutions || [])
                   .filter((i: any) => i.category && i.category !== "university")
                   .map((i) => (
                     <option key={i.id} value={i.id}>
@@ -244,7 +262,7 @@ export default function CataloguePage() {
               className="w-full rounded-xl border border-slate-300 bg-slate-50/50 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#0B192C]"
             >
               <option value="all">All Course Units</option>
-              {courses.map((c) => (
+              {(courses || []).map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.code}: {c.name}
                 </option>
@@ -416,7 +434,7 @@ export default function CataloguePage() {
                     <span className="font-semibold text-slate-700">{doc.institutionShortCode}</span>
                     <span>•</span>
                     <span>{doc.pageCount} pages</span>
-                    {doc.allowedPreviewPages?.length > 0 && (
+                    {Array.isArray(doc.allowedPreviewPages) && doc.allowedPreviewPages.length > 0 && (
                       <>
                         <span>•</span>
                         <Link

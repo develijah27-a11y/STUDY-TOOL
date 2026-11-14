@@ -9,6 +9,8 @@ import {
   CheckCircle2,
   ArrowRight,
   History,
+  Plus,
+  X,
 } from "lucide-react";
 
 export default function StudentAcademicProfilePage() {
@@ -21,6 +23,7 @@ export default function StudentAcademicProfilePage() {
     "CSC 2101",
     "BSSE 3102",
   ]);
+  const [customCourseInput, setCustomCourseInput] = useState("");
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,9 +34,24 @@ export default function StudentAcademicProfilePage() {
         if (u.fullName) setStudentName(u.fullName);
         if (u.institutionId) setInstitution(u.institutionId);
         if (u.programmeId) setProgramme(u.programmeId);
+        if (Array.isArray(u.selectedCourses) && u.selectedCourses.length > 0) {
+          setSelectedCourses(u.selectedCourses);
+        }
       }
     } catch { }
   }, []);
+
+  const handleAddCourseUnit = () => {
+    const trimmed = customCourseInput.trim().toUpperCase();
+    if (trimmed && !selectedCourses.includes(trimmed)) {
+      setSelectedCourses([...selectedCourses, trimmed]);
+      setCustomCourseInput("");
+    }
+  };
+
+  const removeCourse = (code: string) => {
+    setSelectedCourses(selectedCourses.filter((c) => c !== code));
+  };
 
   const toggleCourse = (code: string) => {
     setSelectedCourses((prev) =>
@@ -43,8 +61,23 @@ export default function StudentAcademicProfilePage() {
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      const cached = localStorage.getItem("somaug_user_session");
+      const current = cached ? JSON.parse(cached) : {};
+      const updated = {
+        ...current,
+        fullName: studentName,
+        institutionId: institution,
+        programmeId: programme,
+        academicYear,
+        semester,
+        selectedCourses,
+      };
+      localStorage.setItem("somaug_user_session", JSON.stringify(updated));
+    } catch {}
+
     setSavedMessage(
-      "Academic profile updated! Catalogue rankings now prioritize your enrolled courses while keeping all universities accessible."
+      "Academic profile updated! Catalogue rankings and recommendations now prioritize your active course units."
     );
     setTimeout(() => setSavedMessage(null), 4000);
   };
@@ -164,35 +197,109 @@ export default function StudentAcademicProfilePage() {
               </div>
             </div>
 
-            <div>
-              <label className="block font-bold text-slate-700 mb-2">
-                Active Course Units (Click to toggle priority matching):
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  "CSC 2101",
-                  "BSSE 3102",
-                  "LAW 2105",
-                  "ACC 1102",
-                  "CIV 2201",
-                  "MED 2104",
-                ].map((code) => {
-                  const active = selectedCourses.includes(code);
-                  return (
-                    <button
-                      key={code}
-                      type="button"
-                      onClick={() => toggleCourse(code)}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-bold border transition ${active
-                        ? "bg-[#0B192C] text-white border-[#0B192C]"
-                        : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+            <div className="space-y-3">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Active Course Units (Enrolled Semester Units)
+                </label>
+                <p className="text-[11px] text-slate-500 mb-2">
+                  Type your current course unit codes to prioritize matching notes, past papers, and compendiums.
+                </p>
+
+                {/* Course Unit Input Form */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customCourseInput}
+                    onChange={(e) => setCustomCourseInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddCourseUnit();
+                      }
+                    }}
+                    placeholder="Type course unit (e.g. CSC 2101, LAW 2105, BRIBTE EE 1101)..."
+                    className="flex-1 rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-900 font-semibold focus:border-[#147D78] focus:ring-2 focus:ring-[#147D78]/20 outline-none uppercase placeholder:normal-case"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCourseUnit}
+                    disabled={!customCourseInput.trim()}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#142B45] hover:bg-[#147D78] disabled:opacity-40 text-white px-4 py-2.5 text-xs font-bold transition shadow-sm shrink-0"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Add Unit</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Active Enrolled Course Unit Badges */}
+              <div className="space-y-1.5 pt-1">
+                <span className="text-[11px] font-bold text-slate-600 block">
+                  Your Enrolled Course Units ({selectedCourses.length}):
+                </span>
+                {selectedCourses.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic">
+                    No course units enrolled yet. Type a course unit above or click suggestions below.
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedCourses.map((code) => (
+                      <span
+                        key={code}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-[#142B45] text-white px-3 py-1.5 text-xs font-mono font-bold shadow-xs"
+                      >
+                        <span>{code}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeCourse(code)}
+                          className="p-0.5 rounded-full hover:bg-white/20 text-slate-300 hover:text-white transition"
+                          title={`Remove ${code}`}
+                          aria-label={`Remove ${code}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Quick Faculty Suggestions */}
+              <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                <span className="text-[11px] font-bold text-slate-500 block">
+                  Popular Course Suggestions (Click to Add):
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    "CSC 2101",
+                    "BSSE 3102",
+                    "LAW 2105",
+                    "ACC 1102",
+                    "CIV 2201",
+                    "MED 2104",
+                    "EE 1101",
+                    "TLC 1204",
+                    "AUT 2102",
+                  ].map((code) => {
+                    const active = selectedCourses.includes(code);
+                    return (
+                      <button
+                        key={code}
+                        type="button"
+                        onClick={() => toggleCourse(code)}
+                        className={`rounded-lg px-2.5 py-1 text-xs font-mono font-bold border transition ${
+                          active
+                            ? "bg-teal-50 text-[#147D78] border-[#147D78]"
+                            : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
                         }`}
-                    >
-                      {active ? "✓ " : "+ "}
-                      {code}
-                    </button>
-                  );
-                })}
+                      >
+                        {active ? "✓ " : "+ "}
+                        {code}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 

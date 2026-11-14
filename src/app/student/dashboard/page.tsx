@@ -176,7 +176,7 @@ export default function StudentDashboardPage() {
       {/* 1. Welcoming Personalized Greeting & Profile Header */}
       <div className="rounded-3xl bg-[#142B45] text-white p-6 sm:p-10 shadow-xl border border-slate-800">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-3">
+          <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-[#147D78]/30 border border-[#147D78]/50 px-3.5 py-1 text-xs font-bold text-teal-200">
               <GraduationCap className="h-4 w-4 text-[#E9B949]" />
               <span>Student Academic Workspace</span>
@@ -196,33 +196,10 @@ export default function StudentDashboardPage() {
                 <BookOpen className="h-3.5 w-3.5 text-[#E9B949]" />
                 <span>{entitlements.length} Active Study Materials</span>
               </div>
-            </div>
-          </div>
-
-          {/* Quick Wallet Card */}
-          <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-5 min-w-[280px] space-y-3">
-            <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
-              Available Spendable Balance
-            </span>
-            <div className="text-3xl font-black text-[#E9B949]">
-              {formatUGX(walletBalance)}
-            </div>
-            <p className="text-xs text-slate-300">
-              Pay with MTN MoMo or Airtel Money • Instant document unlock
-            </p>
-            <div className="flex gap-2 pt-1">
-              <Link
-                href="/student/wallet"
-                className="flex-1 text-center rounded-xl bg-[#147D78] hover:bg-[#0f635f] py-2.5 text-xs font-black text-white transition shadow-md"
-              >
-                Top Up UGX
-              </Link>
-              <Link
-                href="/student/library"
-                className="flex-1 text-center rounded-xl border border-white/20 bg-white/10 hover:bg-white/20 py-2.5 text-xs font-bold text-white transition"
-              >
-                My Library
-              </Link>
+              <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15">
+                <CheckCircle2 className="h-3.5 w-3.5 text-teal-300" />
+                <span>Semester I (2026/2027)</span>
+              </div>
             </div>
           </div>
         </div>
