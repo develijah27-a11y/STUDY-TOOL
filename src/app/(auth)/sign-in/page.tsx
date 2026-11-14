@@ -30,12 +30,17 @@ export default function SignInPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const routeByRole = (roles: string[]) => {
+    let dest = "/student/dashboard";
     if (roles.includes("admin") || roles.includes("co_admin")) {
-      router.push("/admin/dashboard");
+      dest = "/admin/dashboard";
     } else if (roles.includes("lecturer")) {
-      router.push("/lecturer/dashboard");
+      dest = "/lecturer/dashboard";
+    }
+
+    if (typeof window !== "undefined") {
+      window.location.href = dest;
     } else {
-      router.push("/student/dashboard");
+      router.push(dest);
     }
   };
 

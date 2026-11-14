@@ -18,7 +18,9 @@ export interface RegisteredUser {
 }
 
 const SESSION_SECRET = process.env.MARZPAY_WEBHOOK_SECRET || "somaug-academic-secure-key-2026";
-const DATA_FILE = path.join(process.cwd(), ".users_db.json");
+const DATA_FILE = process.env.VERCEL || process.env.NODE_ENV === "production"
+  ? path.join("/tmp", ".users_db.json")
+  : path.join(process.cwd(), ".users_db.json");
 
 // Default initial demo accounts
 const DEFAULT_USERS: RegisteredUser[] = [

@@ -79,12 +79,13 @@ export default function SignUpPage() {
 
       setSuccessMsg(data.message);
       setTimeout(() => {
-        if (role === "lecturer") {
-          router.push("/lecturer/dashboard");
+        const dest = role === "lecturer" ? "/lecturer/dashboard" : "/student/dashboard";
+        if (typeof window !== "undefined") {
+          window.location.href = dest;
         } else {
-          router.push("/student/dashboard");
+          router.push(dest);
         }
-      }, 1200);
+      }, 800);
     } catch (err: unknown) {
       setErrorMsg(err instanceof Error ? err.message : "Registration request failed.");
     } finally {

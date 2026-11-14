@@ -53,27 +53,40 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // getUser() validates the JWT on the Supabase Auth server securely (tamper-proof)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // 1. Validate Supabase Auth session if present
+  let supabaseUser = null;
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    supabaseUser = user;
+  } catch { }
 
-  const pathname = request.nextUrl.pathname;
+  // 2. Validate primary SomaUG session cookie
+  const sessionCookie = request.cookies.get("somaug_session")?.value;
+  let hasValidSession = false;
 
-  // 1. Redirect already logged-in users away from /sign-in and /sign-up
-  if (user && (pathname === "/sign-in" || pathname === "/sign-up")) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/catalogue";
-    return NextResponse.redirect(redirectUrl);
+  if (sessionCookie && sessionCookie.includes(".")) {
+    try {
+      const [payloadB64] = sessionCookie.split(".");
+      const json = atob(payloadB64.replace(/-/g, "+").replace(/_/g, "/"));
+      const payload = JSON.parse(json);
+      if (payload && payload.exp && payload.exp > Date.now()) {
+        hasValidSession = true;
+      }
+    } catch { }
   }
 
-  // 2. Strict Protection for Authenticated Routes
+  const isAuthenticated = Boolean(supabaseUser) || hasValidSession;
+  const pathname = request.nextUrl.pathname;
+
+  // 3. Strict Protection for Authenticated Routes
   const isStudentRoute = pathname.startsWith("/student");
   const isLecturerDashboard = pathname.startsWith("/lecturer/dashboard") || pathname.startsWith("/lecturer/publish");
   const isAdminRoute = pathname.startsWith("/admin");
 
   if (isStudentRoute || isLecturerDashboard || isAdminRoute) {
-    if (!user) {
+    if (!isAuthenticated) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/sign-in";
       redirectUrl.searchParams.set("redirect", pathname);
