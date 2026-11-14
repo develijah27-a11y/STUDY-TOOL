@@ -197,7 +197,7 @@ export default function StudentLayout({
               </span>
             </div>
             <p className="text-[10px] text-slate-400 leading-tight">
-              Scan or open course documents instantly
+              Scan QR or enter 6-character access code to open materials instantly.
             </p>
             <Link
               href="/d"
@@ -208,32 +208,6 @@ export default function StudentLayout({
                 Scan QR / Enter Code
               </span>
               <ArrowRight className="h-3 w-3 text-amber-300 group-hover:translate-x-0.5 transition" />
-            </Link>
-          </div>
-
-          {/* My Academic Library Desk in Sidebar */}
-          <div className="rounded-xl bg-white/5 border border-white/10 p-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-200 flex items-center gap-1.5">
-                <Library className="h-3.5 w-3.5 text-amber-300" />
-                My Academic Library
-              </span>
-              <Link
-                href="/student/library"
-                className="text-[10px] font-bold text-teal-300 hover:text-teal-200"
-              >
-                Open →
-              </Link>
-            </div>
-            <p className="text-[10px] text-slate-400 leading-tight">
-              Access your saved annotations, bookmarks, reading progress, and verified purchase receipts.
-            </p>
-            <Link
-              href="/student/library"
-              className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-white/10 hover:bg-white/15 px-2.5 py-1.5 text-[11px] font-bold text-white transition"
-            >
-              <BookOpen className="h-3 w-3 text-teal-300" />
-              <span>Go to Study Desk</span>
             </Link>
           </div>
         </nav>
@@ -366,7 +340,7 @@ export default function StudentLayout({
                   <QrCode className="h-3.5 w-3.5 text-teal-300" />
                   Quick Document Access
                 </span>
-                <p className="text-[10px] text-slate-400">Scan or open course documents instantly</p>
+                <p className="text-[10px] text-slate-400">Scan QR or enter 6-character code</p>
                 <Link
                   href="/d"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -377,31 +351,6 @@ export default function StudentLayout({
                     Scan QR / Code
                   </span>
                   <ArrowRight className="h-3 w-3 text-amber-300" />
-                </Link>
-              </div>
-
-              {/* Mobile My Academic Library Desk */}
-              <div className="rounded-xl bg-white/5 border border-white/10 p-3 space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-slate-200 flex items-center gap-1.5">
-                    <Library className="h-3.5 w-3.5 text-amber-300" />
-                    My Academic Library
-                  </span>
-                  <Link
-                    href="/student/library"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-[10px] font-bold text-teal-300"
-                  >
-                    Open →
-                  </Link>
-                </div>
-                <Link
-                  href="/student/library"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1.5 text-[11px] font-bold text-white"
-                >
-                  <BookOpen className="h-3 w-3 text-teal-300" />
-                  <span>Go to Study Desk</span>
                 </Link>
               </div>
             </nav>
