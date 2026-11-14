@@ -197,7 +197,7 @@ export default function StudentLayout({
               </span>
             </div>
             <p className="text-[10px] text-slate-400 leading-tight">
-              Scan QR or enter 6-character access code to open materials instantly.
+              Scan QR or enter document code to open study materials instantly.
             </p>
             <Link
               href="/d"
@@ -340,7 +340,7 @@ export default function StudentLayout({
                   <QrCode className="h-3.5 w-3.5 text-teal-300" />
                   Quick Document Access
                 </span>
-                <p className="text-[10px] text-slate-400">Scan QR or enter 6-character code</p>
+                <p className="text-[10px] text-slate-400">Scan QR or enter document code</p>
                 <Link
                   href="/d"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -348,7 +348,7 @@ export default function StudentLayout({
                 >
                   <span className="flex items-center gap-1.5">
                     <Camera className="h-3 w-3 text-amber-300" />
-                    Scan QR / Code
+                    Scan QR / Enter Code
                   </span>
                   <ArrowRight className="h-3 w-3 text-amber-300" />
                 </Link>

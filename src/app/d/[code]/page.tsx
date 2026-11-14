@@ -15,6 +15,7 @@ export default function DocumentQRResolverPage() {
   const router = useRouter();
   const rawCode = String(params?.code || "").trim();
 
+  const [inputCode, setInputCode] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -99,6 +100,37 @@ export default function DocumentQRResolverPage() {
                 <span>{error}</span>
               </div>
             )}
+
+            {/* Manual Document Code Input Form */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (inputCode.trim()) {
+                  router.push(`/d/${encodeURIComponent(inputCode.trim())}`);
+                }
+              }}
+              className="space-y-2 text-left bg-slate-50 border border-slate-200 p-3.5 rounded-2xl"
+            >
+              <label className="text-xs font-bold text-slate-700 block">
+                Enter Document Code or Course Unit
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={inputCode}
+                  onChange={(e) => setInputCode(e.target.value)}
+                  placeholder="e.g. CSC 2101 or document code"
+                  className="flex-1 rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-900 font-medium focus:border-[#147D78] focus:ring-2 focus:ring-[#147D78]/20 outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={!inputCode.trim()}
+                  className="rounded-xl bg-[#142B45] hover:bg-[#147D78] disabled:opacity-50 text-white px-4 py-2.5 text-xs font-bold transition shadow-sm shrink-0"
+                >
+                  Open
+                </button>
+              </div>
+            </form>
 
             {/* Camera Viewfinder */}
             <div className="space-y-4">
