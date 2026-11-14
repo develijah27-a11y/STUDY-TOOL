@@ -780,8 +780,13 @@ class MarketplaceStore {
       { id: "le-7", transactionId: "tx-seed-hist-sales", accountId: "acc-commission-rev", debitUGX: 0, creditUGX: 4500, entrySequence: 3, createdAt: now },
     ];
 
-    // 8. Published Academic Documents
-    this.documents = [
+    // 8. Published Academic Documents (Retained in automated test suite; empty in production until authorized uploads)
+    const isTestEnvironment =
+      typeof process !== "undefined" &&
+      (process.env.NODE_ENV === "test" || process.env.VITEST === "true");
+
+    if (isTestEnvironment) {
+      this.documents = [
       {
         id: "doc-csc2101-notes",
         accessCode: "CSC2101-NOTES",
@@ -1051,6 +1056,13 @@ class MarketplaceStore {
         updatedAt: now,
       },
     ];
+    } else {
+      // In production and live environments, do not present dummy mock documents as genuine.
+      // Real publications must originate from authorized lecturer uploads.
+      this.documents = [];
+      this.documentVersions = [];
+      this.collections = [];
+    }
 
     // 10. Sample Moderation & Copyright Report
     this.reports = [

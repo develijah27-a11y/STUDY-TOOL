@@ -115,29 +115,24 @@ export default function StudentDashboardPage() {
 
         const docs: CatalogueDocument[] = catData.documents || [];
 
-        // Student's active unlocked reading desk
-        const unlocked: EntitlementItem[] = [
-          {
-            id: "ent-1",
-            documentId: "doc-csc2101-notes",
-            title: "CSC 2101: Data Structures and Algorithms Notes",
-            courseCode: "CSC 2101",
-            institutionShortCode: "MAK",
-            pageCount: 48,
-            lastReadPage: 12,
-            unlockedAt: "2026-11-01",
-          },
-          {
-            id: "ent-2",
-            documentId: "doc-csc2101-pastpapers",
-            title: "CSC 2101: Solved Past Papers and Guide",
-            courseCode: "CSC 2101",
-            institutionShortCode: "MAK",
-            pageCount: 28,
-            lastReadPage: 5,
-            unlockedAt: "2026-11-04",
-          },
-        ];
+        // Map actual student entitlements from completed verified orders
+        const orders = walletData.orders || [];
+        const completedOrders = orders.filter((o: { status: string }) => o.status === "completed");
+        const unlocked: EntitlementItem[] = completedOrders.map(
+          (o: { id: string; documentId: string; orderNumber: string; createdAt: string }) => {
+            const doc = docs.find((d) => d.id === o.documentId);
+            return {
+              id: o.id,
+              documentId: o.documentId,
+              title: doc ? doc.title : `Document Order #${o.orderNumber}`,
+              courseCode: doc ? doc.courseCode : "COURSE",
+              institutionShortCode: doc ? doc.institutionShortCode : "UG",
+              pageCount: doc ? doc.pageCount : 1,
+              lastReadPage: 1,
+              unlockedAt: o.createdAt || new Date().toISOString(),
+            };
+          }
+        );
         setEntitlements(unlocked);
 
         // Recommended based on BSSE Year 2 / Makerere profile
@@ -396,38 +391,54 @@ export default function StudentDashboardPage() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recommendedDocs.map((doc) => (
+            {recommendedDocs.length === 0 ? (
+              <div className="py-8 text-center space-y-2 border border-dashed border-slate-200 rounded-2xl bg-[#F7F8FA] p-6">
+                <BookOpen className="h-7 w-7 text-slate-400 mx-auto" />
+                <p className="text-xs font-bold text-slate-700">No verified course notes published yet for {programme}</p>
+                <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                  Accredited lecturers publish materials directly. You can request your course unit or browse other university faculties.
+                </p>
                 <Link
-                  key={doc.id}
-                  href={`/catalogue/${doc.id}`}
-                  className="rounded-2xl border border-slate-200 bg-[#F7F8FA] p-4 flex flex-col justify-between hover:border-[#147D78] hover:shadow-md transition space-y-3"
+                  href="/catalogue"
+                  className="inline-block mt-2 rounded-xl bg-[#142B45] hover:bg-[#147D78] px-4 py-2 text-xs font-bold text-white transition shadow-sm"
                 >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="rounded-md bg-slate-200 px-2 py-0.5 text-xs font-mono font-black text-slate-800">
-                        {doc.courseCode}
-                      </span>
-                      <span className="text-xs font-bold text-[#147D78]">
-                        {formatUGX(doc.priceUGX)}
+                  Browse Full Catalogue
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {recommendedDocs.map((doc) => (
+                  <Link
+                    key={doc.id}
+                    href={`/catalogue/${doc.id}`}
+                    className="rounded-2xl border border-slate-200 bg-[#F7F8FA] p-4 flex flex-col justify-between hover:border-[#147D78] hover:shadow-md transition space-y-3"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="rounded-md bg-slate-200 px-2 py-0.5 text-xs font-mono font-black text-slate-800">
+                          {doc.courseCode}
+                        </span>
+                        <span className="text-xs font-bold text-[#147D78]">
+                          {formatUGX(doc.priceUGX)}
+                        </span>
+                      </div>
+                      <h4 className="text-xs font-bold text-[#142B45] line-clamp-2 leading-snug">
+                        {doc.title}
+                      </h4>
+                      <p className="text-xs text-slate-500">{doc.lecturerName}</p>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500">
+                      <span>{doc.pageCount} Pages</span>
+                      <span className="flex items-center gap-1 text-amber-600 font-bold">
+                        <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                        {doc.ratingAverage}
                       </span>
                     </div>
-                    <h4 className="text-xs font-bold text-[#142B45] line-clamp-2 leading-snug">
-                      {doc.title}
-                    </h4>
-                    <p className="text-xs text-slate-500">{doc.lecturerName}</p>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500">
-                    <span>{doc.pageCount} Pages</span>
-                    <span className="flex items-center gap-1 text-amber-600 font-bold">
-                      <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-                      {doc.ratingAverage}
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Popular Academic Resources Section */}
@@ -455,40 +466,50 @@ export default function StudentDashboardPage() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {popularDocs.map((doc) => (
-                <Link
-                  key={doc.id}
-                  href={`/catalogue/${doc.id}`}
-                  className="rounded-2xl border border-slate-200 bg-[#F7F8FA] p-4 flex flex-col justify-between hover:border-[#147D78] hover:shadow-md transition space-y-3"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="rounded-md bg-slate-200 px-2 py-0.5 text-xs font-mono font-black text-slate-800">
-                        {doc.courseCode}
-                      </span>
-                      <span className="text-xs font-bold text-[#147D78]">
-                        {formatUGX(doc.priceUGX)}
+            {popularDocs.length === 0 ? (
+              <div className="py-8 text-center space-y-2 border border-dashed border-slate-200 rounded-2xl bg-[#F7F8FA] p-6">
+                <TrendingUp className="h-7 w-7 text-slate-400 mx-auto" />
+                <p className="text-xs font-bold text-slate-700">Catalogue is being populated by verified lecturers</p>
+                <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                  Only authentic, lecturer-uploaded compendiums and marking schemes are approved across Ugandan institutions.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {popularDocs.map((doc) => (
+                  <Link
+                    key={doc.id}
+                    href={`/catalogue/${doc.id}`}
+                    className="rounded-2xl border border-slate-200 bg-[#F7F8FA] p-4 flex flex-col justify-between hover:border-[#147D78] hover:shadow-md transition space-y-3"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="rounded-md bg-slate-200 px-2 py-0.5 text-xs font-mono font-black text-slate-800">
+                          {doc.courseCode}
+                        </span>
+                        <span className="text-xs font-bold text-[#147D78]">
+                          {formatUGX(doc.priceUGX)}
+                        </span>
+                      </div>
+                      <h4 className="text-xs font-bold text-[#142B45] line-clamp-2 leading-snug">
+                        {doc.title}
+                      </h4>
+                      <p className="text-xs text-slate-500">
+                        {doc.institutionShortCode} • {doc.lecturerName}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500">
+                      <span>{doc.pageCount} Pages</span>
+                      <span className="flex items-center gap-1 text-amber-600 font-bold">
+                        <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                        {doc.ratingAverage}
                       </span>
                     </div>
-                    <h4 className="text-xs font-bold text-[#142B45] line-clamp-2 leading-snug">
-                      {doc.title}
-                    </h4>
-                    <p className="text-xs text-slate-500">
-                      {doc.institutionShortCode} • {doc.lecturerName}
-                    </p>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500">
-                    <span>{doc.pageCount} Pages</span>
-                    <span className="flex items-center gap-1 text-amber-600 font-bold">
-                      <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-                      {doc.ratingAverage}
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -524,22 +545,22 @@ export default function StudentDashboardPage() {
 
             <div className="space-y-2 pt-1">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
-                Quick Course Shortcuts:
+                Browse Faculty Portals:
               </span>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { label: "CSC 2101 Notes", code: "CSC2101-NOTES" },
-                  { label: "BRIBTE Electrical", code: "BRIBTE-EE1101" },
-                  { label: "KPM Automotive", code: "KPM-AUT2102" },
-                  { label: "UICT Telecomm", code: "UICT-TLC1204" },
+                  { label: "Makerere (MAK)", q: "MAK" },
+                  { label: "Kyambogo (KYU)", q: "KYU" },
+                  { label: "Buganda Royal", q: "BRIBTE" },
+                  { label: "UICT Nakawa", q: "UICT" },
                 ].map((s) => (
                   <Link
-                    key={s.code}
-                    href={`/d/${s.code}`}
+                    key={s.q}
+                    href={`/catalogue?q=${s.q}`}
                     className="rounded-xl border border-slate-200 bg-slate-50 hover:bg-teal-50 hover:border-[#147D78] py-2 px-2.5 text-xs font-bold text-slate-800 transition text-left flex items-center justify-between"
                   >
                     <span className="truncate">{s.label}</span>
-                    <QrCode className="h-3.5 w-3.5 text-[#147D78] shrink-0 ml-1" />
+                    <Search className="h-3.5 w-3.5 text-[#147D78] shrink-0 ml-1" />
                   </Link>
                 ))}
               </div>

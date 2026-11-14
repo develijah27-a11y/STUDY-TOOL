@@ -23,8 +23,12 @@ export function MobileBottomNav() {
     role?: string;
   } | null>(null);
 
-  // Hide persistent bottom bar inside the protected document reader
-  if (pathname.startsWith("/student/read/")) {
+  // Hide persistent bottom bar inside protected student/lecturer/admin routes (they render their own role-tailored layout nav)
+  if (
+    pathname.startsWith("/student") ||
+    pathname.startsWith("/lecturer") ||
+    pathname.startsWith("/admin")
+  ) {
     return null;
   }
 

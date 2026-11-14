@@ -320,22 +320,35 @@ export default function CataloguePage() {
           ))}
         </div>
       ) : filteredDocs.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center space-y-3">
-          <BookOpen className="h-10 w-10 text-slate-400 mx-auto" />
-          <p className="text-base font-extrabold text-slate-900">
-            No academic publications matched your filters
-          </p>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Try resetting your filters or increasing the maximum price to discover materials across all Ugandan institutions.
-          </p>
-          <button
-            type="button"
-            onClick={resetFilters}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#0B192C] px-5 py-2.5 text-xs font-bold text-white shadow-sm"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            Reset All Filters
-          </button>
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 md:p-12 text-center space-y-4 max-w-xl mx-auto shadow-sm">
+          <div className="h-12 w-12 rounded-2xl bg-teal-50 text-[#147D78] flex items-center justify-center mx-auto">
+            <BookOpen className="h-6 w-6" />
+          </div>
+          <div className="space-y-1.5">
+            <h3 className="text-base font-extrabold text-[#142B45]">
+              No verified publications found
+            </h3>
+            <p className="text-xs text-slate-600 leading-relaxed font-normal">
+              Materials on SomaUG originate exclusively from authorized uploads by accredited lecturers from Makerere, Kyambogo, MUST, and verified Ugandan institutes. No synthetic or unverified papers are published.
+            </p>
+          </div>
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href="/lecturer/apply"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#147D78] hover:bg-[#116965] px-5 py-2.5 text-xs font-bold text-white transition shadow-sm"
+            >
+              <CheckCircle2 className="h-4 w-4 text-[#E9B949]" />
+              <span>Apply to Publish as Lecturer</span>
+            </Link>
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 hover:bg-slate-50 px-5 py-2.5 text-xs font-bold text-slate-800 transition"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>Reset Filters</span>
+            </button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">

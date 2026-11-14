@@ -54,6 +54,12 @@ export function Navbar() {
     role?: string;
   } | null>(null);
 
+  // Isolate dashboard shells completely: student, lecturer, and admin have dedicated layouts
+  const isDashboardRoute =
+    pathname.startsWith("/student") ||
+    pathname.startsWith("/lecturer") ||
+    pathname.startsWith("/admin");
+
   // Close sidebar drawer on route change
   useEffect(() => {
     setIsSidebarOpen(false);
@@ -207,6 +213,10 @@ export function Navbar() {
         ],
       }
     );
+  }
+
+  if (isDashboardRoute) {
+    return null;
   }
 
   return (
@@ -518,6 +528,15 @@ export function Navbar() {
 }
 
 export function Footer() {
+  const pathname = usePathname();
+  if (
+    pathname?.startsWith("/student") ||
+    pathname?.startsWith("/lecturer") ||
+    pathname?.startsWith("/admin")
+  ) {
+    return null;
+  }
+
   return (
     <footer className="border-t border-slate-800 bg-[#0B192C] text-slate-200 mt-16">
       <div className="container mx-auto px-4 py-12">

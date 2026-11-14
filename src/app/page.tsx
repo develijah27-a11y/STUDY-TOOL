@@ -315,67 +315,98 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {publishedDocs.slice(0, 6).map((doc) => {
-            const inst = institutions.find((i) => i.id === doc.institutionId);
-            const course = dbStore.courses.find((c) => c.id === doc.courseUnitId);
-            const lecturer = dbStore.lecturerProfiles.find((l) => l.id === doc.lecturerId);
-
-            return (
-              <div
-                key={doc.id}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition space-y-4"
+        {publishedDocs.length === 0 ? (
+          <div className="rounded-3xl border border-slate-200 bg-white p-8 md:p-12 text-center space-y-4 max-w-2xl mx-auto shadow-sm">
+            <div className="h-12 w-12 rounded-2xl bg-teal-50 text-[#147D78] flex items-center justify-center mx-auto">
+              <BookOpen className="h-6 w-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-[#142B45]">
+                Verified Publications Catalog Launching
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
+                Academic publications are authored and uploaded directly by accredited lecturers from Makerere, Kyambogo, MUST, and verified Ugandan institutes. No unverified or synthetic materials are published.
+              </p>
+            </div>
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link
+                href="/lecturer/apply"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#147D78] hover:bg-[#116965] px-5 py-2.5 text-xs font-bold text-white transition shadow-sm"
               >
-                <div className="space-y-3">
-                  {/* Top Row: Course Code Badge & Prominent Price */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-mono font-bold text-slate-800">
-                      {course?.code || doc.courseUnitId}
-                    </span>
-                    <span className="text-base font-bold text-[#142B45]">
-                      {formatUGX(doc.priceUGX)}
-                    </span>
+                <CheckCircle2 className="h-4 w-4 text-[#E9B949]" />
+                <span>Join as Verified Lecturer</span>
+              </Link>
+              <Link
+                href="/catalogue"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-300 hover:bg-slate-50 px-5 py-2.5 text-xs font-bold text-slate-800 transition"
+              >
+                <span>Browse Syllabus Directory</span>
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {publishedDocs.slice(0, 6).map((doc) => {
+              const inst = institutions.find((i) => i.id === doc.institutionId);
+              const course = dbStore.courses.find((c) => c.id === doc.courseUnitId);
+              const lecturer = dbStore.lecturerProfiles.find((l) => l.id === doc.lecturerId);
+
+              return (
+                <div
+                  key={doc.id}
+                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition space-y-4"
+                >
+                  <div className="space-y-3">
+                    {/* Top Row: Course Code Badge & Prominent Price */}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-mono font-bold text-slate-800">
+                        {course?.code || doc.courseUnitId}
+                      </span>
+                      <span className="text-base font-bold text-[#142B45]">
+                        {formatUGX(doc.priceUGX)}
+                      </span>
+                    </div>
+
+                    {/* Title limited to 2 lines */}
+                    <Link href={`/catalogue/${doc.id}`} className="block group">
+                      <h3 className="text-base font-bold text-[#142B45] group-hover:text-[#147D78] transition line-clamp-2 leading-snug">
+                        {doc.title}
+                      </h3>
+                    </Link>
+
+                    {/* Lecturer Name directly under Title */}
+                    <div className="text-xs text-slate-600 font-medium truncate">
+                      By {lecturer?.fullName || "Course Lecturer"}
+                    </div>
+
+                    {/* Description snippet */}
+                    <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed font-normal">
+                      {doc.description}
+                    </p>
+
+                    {/* Metadata Row: Page count and Institution tag (>= 12px) */}
+                    <div className="flex items-center gap-2 pt-1 text-xs text-slate-500 font-normal">
+                      <span className="font-semibold text-slate-700">{inst?.shortCode || "UG"}</span>
+                      <span>•</span>
+                      <span>{doc.pageCount} pages</span>
+                    </div>
                   </div>
 
-                  {/* Title limited to 2 lines */}
-                  <Link href={`/catalogue/${doc.id}`} className="block group">
-                    <h3 className="text-base font-bold text-[#142B45] group-hover:text-[#147D78] transition line-clamp-2 leading-snug">
-                      {doc.title}
-                    </h3>
-                  </Link>
-
-                  {/* Lecturer Name directly under Title */}
-                  <div className="text-xs text-slate-600 font-medium truncate">
-                    By {lecturer?.fullName || "Course Lecturer"}
-                  </div>
-
-                  {/* Description snippet */}
-                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed font-normal">
-                    {doc.description}
-                  </p>
-
-                  {/* Metadata Row: Page count and Institution tag (>= 12px) */}
-                  <div className="flex items-center gap-2 pt-1 text-xs text-slate-500 font-normal">
-                    <span className="font-semibold text-slate-700">{inst?.shortCode || "UG"}</span>
-                    <span>•</span>
-                    <span>{doc.pageCount} pages</span>
+                  {/* Action: View Publication & Sample */}
+                  <div className="pt-3 border-t border-slate-100">
+                    <Link
+                      href={`/catalogue/${doc.id}`}
+                      className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#142B45] px-3.5 py-2.5 text-xs font-bold text-white hover:bg-[#1A3859] active:scale-[0.99] transition"
+                    >
+                      <BookOpen className="h-3.5 w-3.5 text-[#E9B949]" />
+                      <span>{SITE_COPY.actions.viewAndBuy}</span>
+                    </Link>
                   </div>
                 </div>
-
-                {/* Action: View Publication & Sample */}
-                <div className="pt-3 border-t border-slate-100">
-                  <Link
-                    href={`/catalogue/${doc.id}`}
-                    className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#142B45] px-3.5 py-2.5 text-xs font-bold text-white hover:bg-[#1A3859] active:scale-[0.99] transition"
-                  >
-                    <BookOpen className="h-3.5 w-3.5 text-[#E9B949]" />
-                    <span>{SITE_COPY.actions.viewAndBuy}</span>
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* Core Guarantees & Features (Factual academic copy) */}

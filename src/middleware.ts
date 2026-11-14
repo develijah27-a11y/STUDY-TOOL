@@ -62,9 +62,14 @@ export async function middleware(request: NextRequest) {
     supabaseUser = user;
   } catch { }
 
-  // 2. Validate primary SomaUG session cookie
+  // 2. Validate primary SomaUG session cookie & extract role
   const sessionCookie = request.cookies.get("somaug_session")?.value;
   let hasValidSession = false;
+  let userRole: string | null = null;
+
+  if (supabaseUser) {
+    userRole = supabaseUser.user_metadata?.role || "student";
+  }
 
   if (sessionCookie && sessionCookie.includes(".")) {
     try {
@@ -73,6 +78,9 @@ export async function middleware(request: NextRequest) {
       const payload = JSON.parse(json);
       if (payload && payload.exp && payload.exp > Date.now()) {
         hasValidSession = true;
+        if (!userRole && payload.role) {
+          userRole = payload.role;
+        }
       }
     } catch { }
   }
@@ -80,7 +88,7 @@ export async function middleware(request: NextRequest) {
   const isAuthenticated = Boolean(supabaseUser) || hasValidSession;
   const pathname = request.nextUrl.pathname;
 
-  // 3. Strict Protection for Authenticated Routes
+  // 3. Strict Protection & Role Enforcement for Authenticated Routes
   const isStudentRoute = pathname.startsWith("/student");
   const isLecturerDashboard = pathname.startsWith("/lecturer/dashboard") || pathname.startsWith("/lecturer/publish");
   const isAdminRoute = pathname.startsWith("/admin");
@@ -90,6 +98,25 @@ export async function middleware(request: NextRequest) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/sign-in";
       redirectUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    // Server-side Edge Role Authorization Guard
+    if (isLecturerDashboard && userRole !== "lecturer" && userRole !== "admin") {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/student/dashboard";
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    if (isStudentRoute && userRole === "lecturer") {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/lecturer/dashboard";
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    if (isAdminRoute && userRole !== "admin" && userRole !== "co_admin") {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = userRole === "lecturer" ? "/lecturer/dashboard" : "/student/dashboard";
       return NextResponse.redirect(redirectUrl);
     }
   }

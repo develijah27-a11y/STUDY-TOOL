@@ -32,7 +32,7 @@ export default function StudentAcademicProfilePage() {
         if (u.institutionId) setInstitution(u.institutionId);
         if (u.programmeId) setProgramme(u.programmeId);
       }
-    } catch {}
+    } catch { }
   }, []);
 
   const toggleCourse = (code: string) => {
@@ -183,11 +183,10 @@ export default function StudentAcademicProfilePage() {
                       key={code}
                       type="button"
                       onClick={() => toggleCourse(code)}
-                      className={`rounded-lg px-3 py-1.5 text-xs font-bold border transition ${
-                        active
-                          ? "bg-[#0B192C] text-white border-[#0B192C]"
-                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                      }`}
+                      className={`rounded-lg px-3 py-1.5 text-xs font-bold border transition ${active
+                        ? "bg-[#0B192C] text-white border-[#0B192C]"
+                        : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                        }`}
                     >
                       {active ? "✓ " : "+ "}
                       {code}
