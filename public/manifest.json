@@ -1,0 +1,19 @@
+{
+  "name": "SomaUG Academic — Ugandan Study Materials",
+  "short_name": "SomaUG",
+  "description": "Ugandan Universities & Vocational Notes, Past Papers, and Practical Manuals with Secure Offline Reading.",
+  "start_url": "/student/dashboard",
+  "display": "standalone",
+  "background_color": "#142B45",
+  "theme_color": "#142B45",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["education", "books", "productivity"],
+  "lang": "en-UG"
+}

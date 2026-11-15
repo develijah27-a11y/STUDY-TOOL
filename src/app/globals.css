@@ -93,3 +93,26 @@
   min-width: 44px;
 }
 
+/* Data Saver & Accessibility Motion Reductions */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.data-saver-active * {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Protected Reading Surface Deterrents */
+.protected-reading-surface {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+

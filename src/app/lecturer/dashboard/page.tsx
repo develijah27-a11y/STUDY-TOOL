@@ -836,10 +836,19 @@ export default function LecturerDashboardPage() {
                     {doc.title}
                   </h3>
 
-                  <div className="text-xs text-slate-500 space-y-1">
-                    <div>{doc.pageCount} Pages • {doc.salesCount} Student Purchases</div>
-                    <div className="flex items-center gap-1 font-mono text-xs font-bold text-slate-700">
-                      <span>Code:</span>
+                  <div className="text-xs text-slate-500 space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span>{doc.pageCount} Pages • 2.4 MB</span>
+                      <span className="font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px]">
+                        {doc.status === "published" ? "Live • Published" : doc.status}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-600 flex items-center justify-between">
+                      <span>{doc.salesCount} Student Purchases</span>
+                      <span className="text-[#147D78] font-bold">30d Offline Allowed</span>
+                    </div>
+                    <div className="flex items-center gap-1 font-mono text-xs font-bold text-slate-700 pt-0.5">
+                      <span>Access Code:</span>
                       <strong className="text-[#147D78]">{doc.accessCode}</strong>
                     </div>
                   </div>

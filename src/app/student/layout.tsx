@@ -19,6 +19,7 @@ import {
   Camera,
   ArrowRight,
   Library,
+  HardDrive,
 } from "lucide-react";
 import { formatUGX } from "@/lib/utils";
 
@@ -118,6 +119,7 @@ export default function StudentLayout({
     { href: "/student/dashboard", label: "Home", icon: Home },
     { href: "/catalogue", label: "Explore", icon: Compass },
     { href: "/student/library", label: "My Library", icon: BookOpen },
+    { href: "/student/offline", label: "Offline Library", icon: HardDrive },
     { href: "/student/wallet", label: "Wallet", icon: Wallet },
     { href: "/student/profile", label: "Profile", icon: User },
   ];
