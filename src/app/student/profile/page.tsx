@@ -43,9 +43,9 @@ export default function StudentAcademicProfilePage() {
   useEffect(() => {
     try {
       setMode(getDataSaverMode());
-      offlineStorage.getStorageEstimate().then(setStorageInfo).catch(() => {});
+      offlineStorage.getStorageEstimate().then(setStorageInfo).catch(() => { });
       setPerfSnapshot(performanceMonitor.getSnapshot());
-    } catch {}
+    } catch { }
   }, []);
 
   const handleModeChange = (mode: DataSaverMode) => {
@@ -99,9 +99,10 @@ export default function StudentAcademicProfilePage() {
         academicYear,
         semester,
         selectedCourses,
+        activeCourseUnits: selectedCourses,
       };
       localStorage.setItem("somaug_user_session", JSON.stringify(updated));
-    } catch {}
+    } catch { }
 
     setSavedMessage(
       "Academic profile updated! Catalogue rankings and recommendations now prioritize your active course units."
@@ -140,7 +141,7 @@ export default function StudentAcademicProfilePage() {
         <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
           <h2 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
             <Building2 className="h-5 w-5 text-amber-600" />
-            <span>Current Semester Enrolment (Optional)</span>
+            <span>Verified Academic Enrolment &amp; Active Course Units</span>
           </h2>
 
           <form onSubmit={handleSaveProfile} className="space-y-4 text-xs">
@@ -315,11 +316,10 @@ export default function StudentAcademicProfilePage() {
                         key={code}
                         type="button"
                         onClick={() => toggleCourse(code)}
-                        className={`rounded-lg px-2.5 py-1 text-xs font-mono font-bold border transition ${
-                          active
-                            ? "bg-teal-50 text-[#147D78] border-[#147D78]"
-                            : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
-                        }`}
+                        className={`rounded-lg px-2.5 py-1 text-xs font-mono font-bold border transition ${active
+                          ? "bg-teal-50 text-[#147D78] border-[#147D78]"
+                          : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                          }`}
                       >
                         {active ? "✓ " : "+ "}
                         {code}
@@ -433,11 +433,10 @@ export default function StudentAcademicProfilePage() {
                 key={opt.id}
                 type="button"
                 onClick={() => handleModeChange(opt.id)}
-                className={`text-left rounded-xl p-3.5 border transition ${
-                  dataSaverMode === opt.id
-                    ? "border-[#147D78] bg-teal-50/50 ring-1 ring-[#147D78]"
-                    : "border-slate-200 bg-white hover:bg-slate-50"
-                }`}
+                className={`text-left rounded-xl p-3.5 border transition ${dataSaverMode === opt.id
+                  ? "border-[#147D78] bg-teal-50/50 ring-1 ring-[#147D78]"
+                  : "border-slate-200 bg-white hover:bg-slate-50"
+                  }`}
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-bold text-slate-900">{opt.title}</span>

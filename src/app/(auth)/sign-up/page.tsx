@@ -27,7 +27,11 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [institutionId, setInstitutionId] = useState("11111111-1111-1111-1111-111111111111"); // MAK default
+  const [institutionId, setInstitutionId] = useState("inst-mak");
+  const [programmeId, setProgrammeId] = useState("prog-bsse");
+  const [academicYear, setAcademicYear] = useState<number>(2);
+  const [semester, setSemester] = useState<number>(1);
+  const [activeCourseUnits, setActiveCourseUnits] = useState("CSC 2101, BIT 1202");
   const [department, setDepartment] = useState("");
   const [teachingRole, setTeachingRole] = useState("Lecturer");
 
@@ -53,6 +57,11 @@ export default function SignUpPage() {
     }
 
     try {
+      const parsedUnits = activeCourseUnits
+        .split(",")
+        .map((u) => u.trim().toUpperCase())
+        .filter(Boolean);
+
       const res = await fetch("/api/auth/sign-up", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -62,6 +71,10 @@ export default function SignUpPage() {
           fullName,
           role,
           institutionId,
+          programmeId: role === "student" ? programmeId : undefined,
+          academicYear: role === "student" ? Number(academicYear) : undefined,
+          semester: role === "student" ? Number(semester) : undefined,
+          activeCourseUnits: role === "student" ? parsedUnits : undefined,
           department: role === "lecturer" ? department : undefined,
           teachingRole: role === "lecturer" ? teachingRole : undefined,
         }),
@@ -74,7 +87,16 @@ export default function SignUpPage() {
       }
 
       if (typeof window !== "undefined" && data.user) {
-        localStorage.setItem("somaug_user_session", JSON.stringify(data.user));
+        const fullUser = {
+          ...data.user,
+          institutionId,
+          programmeId,
+          academicYear,
+          semester,
+          selectedCourses: parsedUnits,
+          activeCourseUnits: parsedUnits,
+        };
+        localStorage.setItem("somaug_user_session", JSON.stringify(fullUser));
       }
 
       setSuccessMsg(data.message);
@@ -235,7 +257,9 @@ export default function SignUpPage() {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1.5">Primary University</label>
+                  <label className="block font-bold text-slate-700 mb-1.5">
+                    {role === "lecturer" ? "Academic Institution" : "University / Vocational Institute"}
+                  </label>
                   <div className="relative">
                     <Building2 className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
                     <select
@@ -243,15 +267,114 @@ export default function SignUpPage() {
                       onChange={(e) => setInstitutionId(e.target.value)}
                       className="w-full rounded-xl border border-slate-300 bg-slate-50/50 pl-10 pr-4 py-2.5 text-xs text-slate-900 focus:bg-white focus:border-[#0B192C] outline-none transition font-medium"
                     >
-                      <option value="11111111-1111-1111-1111-111111111111">Makerere University (MAK)</option>
-                      <option value="22222222-2222-2222-2222-222222222222">Kyambogo University (KYU)</option>
-                      <option value="33333333-3333-3333-3333-333333333333">Mbarara University (MUST)</option>
-                      <option value="44444444-4444-4444-4444-444444444444">Uganda Christian Univ (UCU)</option>
-                      <option value="55555555-5555-5555-5555-555555555555">Makerere Business School (MUBS)</option>
+                      <optgroup label="Universities">
+                        <option value="inst-mak">Makerere University (MAK)</option>
+                        <option value="inst-kyu">Kyambogo University (KYU)</option>
+                        <option value="inst-must">Mbarara University of Science &amp; Tech (MUST)</option>
+                        <option value="inst-ucu">Uganda Christian University (UCU)</option>
+                        <option value="inst-mubs">Makerere University Business School (MUBS)</option>
+                      </optgroup>
+                      <optgroup label="Technical &amp; Vocational Institutes">
+                        <option value="inst-uict">Uganda Institute of ICT (UICT Nakawa)</option>
+                        <option value="inst-bribte">Buganda Royal Institute (BRIBTE)</option>
+                        <option value="inst-kpm">Kampala Polytechnic Mengo (KPM)</option>
+                      </optgroup>
                     </select>
                   </div>
                 </div>
               </div>
+
+              {/* Student Academic Verification Profile (Institution, Programme, Year, Semester, Active Course Units) */}
+              {role === "student" && (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
+                    <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                      <GraduationCap className="h-4 w-4 text-[#147D78]" />
+                      <span>Academic Enrolment &amp; Active Course Units:</span>
+                    </span>
+                    <span className="text-[10px] font-black uppercase text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                      Verified Matching
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="sm:col-span-1">
+                      <label className="block font-bold text-slate-700 mb-1">Programme of Study</label>
+                      <select
+                        value={programmeId}
+                        onChange={(e) => setProgrammeId(e.target.value)}
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium outline-none"
+                      >
+                        <option value="prog-bsse">B.Sc. Software Engineering</option>
+                        <option value="prog-bcs">B.Sc. Computer Science</option>
+                        <option value="prog-bit">Bachelor of Information Technology</option>
+                        <option value="prog-bba">Bachelor of Business Admin (BBA)</option>
+                        <option value="prog-bee">B.Sc. Electrical Engineering</option>
+                        <option value="prog-bce">B.Sc. Civil Engineering</option>
+                        <option value="prog-llb">Bachelor of Laws (LLB)</option>
+                        <option value="prog-voc-elec">National Cert. Electrical Installation</option>
+                        <option value="prog-voc-auto">Automotive &amp; Power Mechanics</option>
+                        <option value="prog-other">Other Academic / Vocational Course</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Year of Study</label>
+                      <select
+                        value={academicYear}
+                        onChange={(e) => setAcademicYear(Number(e.target.value))}
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium outline-none"
+                      >
+                        <option value={1}>Year 1</option>
+                        <option value={2}>Year 2</option>
+                        <option value={3}>Year 3</option>
+                        <option value={4}>Year 4</option>
+                        <option value={5}>Year 5</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Semester</label>
+                      <select
+                        value={semester}
+                        onChange={(e) => setSemester(Number(e.target.value))}
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium outline-none"
+                      >
+                        <option value={1}>Semester I</option>
+                        <option value={2}>Semester II</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">
+                      Active Course Units (Current Semester)
+                    </label>
+                    <input
+                      type="text"
+                      value={activeCourseUnits}
+                      onChange={(e) => setActiveCourseUnits(e.target.value)}
+                      placeholder="e.g. CSC 2101, BIT 1202, SE 2103 (comma separated)"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono font-bold text-slate-900 outline-none focus:border-[#147D78]"
+                    />
+                    <div className="flex flex-wrap items-center gap-1.5 pt-2">
+                      <span className="text-[11px] text-slate-500">Active Tags:</span>
+                      {activeCourseUnits
+                        .split(",")
+                        .map((u) => u.trim().toUpperCase())
+                        .filter(Boolean)
+                        .map((unit) => (
+                          <span
+                            key={unit}
+                            className="inline-flex items-center rounded bg-teal-100 text-[#147D78] px-2 py-0.5 text-[11px] font-mono font-bold border border-teal-200"
+                          >
+                            {unit}
+                          </span>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block font-bold text-slate-700 mb-1.5">Password</label>

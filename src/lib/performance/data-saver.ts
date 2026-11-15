@@ -83,7 +83,7 @@ export function getDataSaverConfig(): DataSaverConfig {
  * Listen for data saver mode changes
  */
 export function subscribeDataSaver(callback: (config: DataSaverConfig) => void): () => void {
-  if (typeof window === "undefined") return () => {};
+  if (typeof window === "undefined") return () => { };
 
   const handler = () => {
     callback(getDataSaverConfig());

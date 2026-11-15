@@ -33,9 +33,19 @@ export async function POST(req: NextRequest) {
       programmeId,
       academicYear,
       semester,
+      activeCourseUnits,
       department,
       teachingRole,
     } = body;
+
+    const parsedUnits = Array.isArray(activeCourseUnits)
+      ? activeCourseUnits.map((u: string) => String(u).trim().toUpperCase()).filter(Boolean)
+      : typeof activeCourseUnits === "string"
+      ? activeCourseUnits
+          .split(",")
+          .map((u) => u.trim().toUpperCase())
+          .filter(Boolean)
+      : undefined;
 
     if (!email || !password || !fullName) {
       return NextResponse.json(
@@ -69,6 +79,7 @@ export async function POST(req: NextRequest) {
       programmeId,
       academicYear: academicYear ? Number(academicYear) : undefined,
       semester: semester ? Number(semester) : undefined,
+      activeCourseUnits: parsedUnits,
       department: department?.trim(),
       teachingRole: teachingRole?.trim(),
     });
@@ -152,6 +163,10 @@ export async function POST(req: NextRequest) {
         roles: [localUser.role],
         institutionId: localUser.institutionId,
         programmeId: localUser.programmeId,
+        academicYear: localUser.academicYear,
+        semester: localUser.semester,
+        activeCourseUnits: localUser.activeCourseUnits || [],
+        selectedCourses: localUser.activeCourseUnits || [],
       },
       token: sessionToken,
       message:

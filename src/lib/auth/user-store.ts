@@ -12,6 +12,7 @@ export interface RegisteredUser {
   programmeId?: string;
   academicYear?: number;
   semester?: number;
+  activeCourseUnits?: string[];
   department?: string;
   teachingRole?: string;
   createdAt: string;
@@ -121,6 +122,7 @@ export function registerUser(data: {
   programmeId?: string;
   academicYear?: number;
   semester?: number;
+  activeCourseUnits?: string[];
   department?: string;
   teachingRole?: string;
 }): RegisteredUser {
@@ -133,6 +135,11 @@ export function registerUser(data: {
     existing.passwordHash = hashPassword(data.password);
     existing.fullName = data.fullName;
     existing.role = data.role;
+    if (data.activeCourseUnits) existing.activeCourseUnits = data.activeCourseUnits;
+    if (data.academicYear) existing.academicYear = data.academicYear;
+    if (data.semester) existing.semester = data.semester;
+    if (data.institutionId) existing.institutionId = data.institutionId;
+    if (data.programmeId) existing.programmeId = data.programmeId;
     saveUsers();
     return existing;
   }
@@ -148,6 +155,7 @@ export function registerUser(data: {
     programmeId: data.programmeId,
     academicYear: data.academicYear,
     semester: data.semester,
+    activeCourseUnits: data.activeCourseUnits,
     department: data.department,
     teachingRole: data.teachingRole,
     createdAt: new Date().toISOString(),
@@ -183,6 +191,11 @@ export function createSessionToken(user: RegisteredUser): string {
     email: user.email,
     fullName: user.fullName,
     role: user.role,
+    institutionId: user.institutionId,
+    programmeId: user.programmeId,
+    academicYear: user.academicYear,
+    semester: user.semester,
+    activeCourseUnits: user.activeCourseUnits,
     exp: Date.now() + 1000 * 60 * 60 * 24 * 30, // 30 days
   };
 

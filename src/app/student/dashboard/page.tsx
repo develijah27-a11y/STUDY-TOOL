@@ -25,7 +25,18 @@ import {
   Compass,
   Library,
   Star,
+  HardDrive,
+  Highlighter,
+  StickyNote,
+  Download,
+  ArrowUpRight,
+  Check,
 } from "lucide-react";
+import {
+  offlineStorage,
+  OfflineMaterialMeta,
+  StudyAnnotation,
+} from "@/lib/offline/offline-storage";
 
 interface EntitlementItem {
   id: string;
@@ -72,6 +83,8 @@ export default function StudentDashboardPage() {
   const [entitlements, setEntitlements] = useState<EntitlementItem[]>([]);
   const [recommendedDocs, setRecommendedDocs] = useState<CatalogueDocument[]>([]);
   const [popularDocs, setPopularDocs] = useState<CatalogueDocument[]>([]);
+  const [offlineMaterials, setOfflineMaterials] = useState<OfflineMaterialMeta[]>([]);
+  const [savedAnnotations, setSavedAnnotations] = useState<StudyAnnotation[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -98,12 +111,17 @@ export default function StudentDashboardPage() {
     async function loadDashboard() {
       setLoading(true);
       try {
-        const [walletRes, catRes] = await Promise.all([
+        const [walletRes, catRes, offlineDocs, allNotes] = await Promise.all([
           fetch(
             `/api/wallet?userId=${currentId}&targetUserId=${currentId}&walletType=student`
           ),
           fetch("/api/catalogue"),
+          offlineStorage.getAllOfflineMaterials().catch(() => []),
+          offlineStorage.getAllAnnotations().catch(() => []),
         ]);
+
+        setOfflineMaterials(offlineDocs);
+        setSavedAnnotations(allNotes);
 
         const walletData = await walletRes.json();
         const catData = await catRes.json();
@@ -333,6 +351,177 @@ export default function StudentDashboardPage() {
                           style={{ width: `${progressPct}%` }}
                         />
                       </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Offline Reading Desk (Downloaded Notes) */}
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-teal-50 text-[#147D78] flex items-center justify-center font-bold">
+                <HardDrive className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-extrabold text-[#142B45]">
+                    Offline Reading Desk (Downloaded Notes)
+                  </h2>
+                  <span className="text-[10px] font-black uppercase text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                    100% Offline
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Read these publications anytime without data, wifi, or mobile network coverage
+                </p>
+              </div>
+            </div>
+
+            <div className="text-xs font-bold text-slate-500">
+              {offlineMaterials.length} Downloaded Pack{offlineMaterials.length === 1 ? "" : "s"}
+            </div>
+          </div>
+
+          {offlineMaterials.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-[#F7F8FA] p-6 text-center space-y-2">
+              <HardDrive className="h-8 w-8 text-slate-300 mx-auto" />
+              <p className="text-xs font-bold text-slate-700">No offline downloads stored on this device yet</p>
+              <p className="text-[11px] text-slate-500 max-w-md mx-auto">
+                Open any unlocked document in your library and click &ldquo;Download Offline&rdquo; to store AES-GCM encrypted notes inside your browser for zero-data reading.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {offlineMaterials.map((mat) => (
+                <div
+                  key={mat.documentId}
+                  className="rounded-2xl border border-teal-200 bg-teal-50/40 p-4 space-y-3 flex flex-col justify-between"
+                >
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-xs font-black bg-teal-100 text-[#147D78] px-2 py-0.5 rounded">
+                        {mat.courseCode}
+                      </span>
+                      <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded-full">
+                        Encrypted • {Math.round(mat.fileSizeBytes / 1024)} KB
+                      </span>
+                    </div>
+                    <h3 className="font-extrabold text-[#142B45] text-xs line-clamp-2">
+                      {mat.title}
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      {mat.institutionName} • {mat.lecturerName} • {mat.pageCount} Pages
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-teal-100 flex items-center justify-between">
+                    <span className="text-[10px] text-slate-500">
+                      Downloaded {new Date(mat.downloadedAt).toLocaleDateString()}
+                    </span>
+                    <Link
+                      href={`/student/read/${mat.documentId}`}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-[#147D78] hover:bg-teal-700 text-white px-3.5 py-1.5 text-xs font-bold transition shadow-sm"
+                    >
+                      <BookOpen className="h-3.5 w-3.5 text-amber-300" />
+                      <span>Open Offline Reader →</span>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Personal Study & Revision Desk (Personal Notes & Highlighting) */}
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold">
+                <Highlighter className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-extrabold text-[#142B45]">
+                    Personal Study &amp; Revision Desk
+                  </h2>
+                  <span className="text-[10px] font-black uppercase text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">
+                    Revision Notes &amp; Highlights
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Key concepts, definitions, exam formulas, and margin notes captured while studying
+                </p>
+              </div>
+            </div>
+
+            <div className="text-xs font-bold text-slate-500">
+              {savedAnnotations.length} Study Item{savedAnnotations.length === 1 ? "" : "s"}
+            </div>
+          </div>
+
+          {savedAnnotations.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-[#F7F8FA] p-6 text-center space-y-2">
+              <StickyNote className="h-8 w-8 text-slate-300 mx-auto" />
+              <p className="text-xs font-bold text-slate-700">No revision notes or highlights taken yet</p>
+              <p className="text-[11px] text-slate-500 max-w-md mx-auto">
+                While reading any lecture publication, use the Highlighter tool or add margin notes to build your personal revision compendium for semester examinations.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {savedAnnotations.slice(0, 6).map((item) => {
+                const isHighlight = item.type === "highlight";
+                const badgeColor =
+                  item.color === "green"
+                    ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                    : item.color === "teal"
+                    ? "bg-teal-100 text-teal-800 border-teal-300"
+                    : "bg-amber-100 text-amber-900 border-amber-300";
+
+                const badgeText = isHighlight
+                  ? item.color === "green"
+                    ? "Definition / Rule"
+                    : item.color === "teal"
+                    ? "Exam Formula"
+                    : "Core Concept"
+                  : "Margin Note";
+
+                return (
+                  <div
+                    key={item.id}
+                    className="rounded-2xl border border-slate-200 bg-[#F7F8FA] p-4 flex flex-col justify-between space-y-3 hover:border-slate-300 transition"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span
+                          className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${badgeColor}`}
+                        >
+                          {badgeText}
+                        </span>
+                        <span className="text-[11px] font-mono font-bold text-slate-400">
+                          Page {item.pageNumber}
+                        </span>
+                      </div>
+                      <p className="text-xs font-medium text-slate-800 leading-relaxed line-clamp-3">
+                        {isHighlight ? `"${item.content}"` : item.content}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
+                      <span className="text-[10px] text-slate-400">
+                        {new Date(item.createdAt).toLocaleDateString()}
+                      </span>
+                      <Link
+                        href={`/student/read/${item.documentId}`}
+                        className="text-xs font-bold text-[#147D78] hover:underline flex items-center gap-1"
+                      >
+                        <span>Jump to Page {item.pageNumber}</span>
+                        <ArrowUpRight className="h-3 w-3" />
+                      </Link>
                     </div>
                   </div>
                 );

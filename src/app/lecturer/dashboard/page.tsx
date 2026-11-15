@@ -67,7 +67,6 @@ interface PublishedDoc {
 type LecturerTab =
   | "overview"
   | "publications"
-  | "collections"
   | "earnings"
   | "analytics"
   | "profile";
@@ -130,7 +129,7 @@ function LecturerDashboardContent() {
           });
         }
       }
-    } catch {}
+    } catch { }
 
     async function fetchSession() {
       try {
@@ -151,7 +150,7 @@ function LecturerDashboardContent() {
             localStorage.setItem("somaug_user_session", JSON.stringify(data.user));
           }
         }
-      } catch {}
+      } catch { }
     }
     fetchSession();
   }, []);
@@ -191,12 +190,6 @@ function LecturerDashboardContent() {
   const [payoutMessage, setPayoutMessage] = useState<string | null>(null);
   const [payoutError, setPayoutError] = useState<string | null>(null);
   const [requestingPayout, setRequestingPayout] = useState(false);
-
-  // Collection Builder State
-  const [colTitle, setColTitle] = useState("");
-  const [colDesc, setColDesc] = useState("");
-  const [createdCollectionCode, setCreatedCollectionCode] = useState<string | null>(null);
-  const [copiedCollectionLink, setCopiedCollectionLink] = useState(false);
 
   const loadLecturerData = useCallback(async () => {
     try {
@@ -304,25 +297,27 @@ function LecturerDashboardContent() {
           action: "lecturer_payout",
           lecturerId: currentUser.id,
           amountUGX: Number(payoutAmount),
-          idempotencyKey: `PAY-${Date.now()}`,
+          destinationPhone: payoutPhone,
+          destinationNetwork: payoutNetwork,
+          idempotencyKey: `WITHDRAW-${Date.now()}`,
         }),
       });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        setPayoutError(data.error || "Payout request failed");
+        setPayoutError(data.error || "Withdrawal failed. Please check your available balance.");
         return;
       }
 
       setPayoutMessage(
-        `Payout of ${formatUGX(
+        `Instant withdrawal of ${formatUGX(
           payoutAmount
-        )} initiated via MarzPay Mobile Money Sandbox. Funds moved to reserved settlement balance.`
+        )} successfully disbursed to ${payoutPhone} (${payoutNetwork} Mobile Money).`
       );
       await loadLecturerData();
       setShowPayoutModal(false);
     } catch (err) {
-      setPayoutError("Connection error while requesting payout.");
+      setPayoutError("Connection error while initiating withdrawal.");
     } finally {
       setRequestingPayout(false);
     }
@@ -348,13 +343,6 @@ function LecturerDashboardContent() {
     setTimeout(() => setCopiedItem(null), 2500);
   };
 
-  const handleCreateCollection = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!colTitle.trim()) return;
-    const shareCode = `MAK-CSC2101-${Date.now().toString().slice(-4)}`;
-    setCreatedCollectionCode(shareCode);
-  };
-
   const platformCommission = Math.floor((priceUGX * 15) / 100);
   const netLecturerShare = priceUGX - platformCommission;
   const isPendingLecturer = currentUser.isVerified === false;
@@ -369,116 +357,181 @@ function LecturerDashboardContent() {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
-      {/* 1. Academic Desk Header */}
-      <div className="rounded-3xl bg-[#142B45] text-white p-6 md:p-8 shadow-xl border border-slate-800">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#147D78]/30 border border-[#147D78]/50 px-3.5 py-1 text-xs font-bold text-teal-200">
-              <CheckCircle2 className="h-4 w-4 text-[#E9B949]" />
-              <span>Institutional Academic Publisher Desk</span>
-              <span className="text-white/40">•</span>
-              <span className="text-amber-300">Semester II (2025/2026)</span>
+      {/* 1. Academic Desk Header & Command Station */}
+      <div className="rounded-3xl bg-gradient-to-br from-[#0B192C] via-[#142B45] to-[#16365C] text-white p-6 sm:p-10 shadow-2xl border border-slate-700/80 relative overflow-hidden">
+        {/* Subtle decorative background circles */}
+        <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-[#147D78]/20 blur-3xl pointer-events-none" />
+        <div className="absolute right-32 -bottom-20 w-52 h-52 rounded-full bg-[#E9B949]/15 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-3 max-w-3xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 px-3.5 py-1 text-xs font-bold text-emerald-300">
+                <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                <span>Verified Academic Faculty</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E9B949]/20 border border-[#E9B949]/40 px-3 py-1 text-xs font-bold text-[#E9B949]">
+                <Building2 className="h-3.5 w-3.5" />
+                <span>{currentUser.institutionName || "Makerere University"}</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs text-slate-300 font-medium">
+                <span>Semester II (2025/2026)</span>
+              </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+
+            <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
               Welcome back, {currentUser.fullName}
             </h1>
-            <p className="text-xs md:text-sm text-slate-300 max-w-2xl leading-relaxed">
-              {currentUser.department ? `${currentUser.department} • ` : ""}{currentUser.institutionName || "Ugandan Higher Education"}. Manage course unit syllabi, classroom projector slides, and verified digital academic distribution.
+
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium max-w-2xl">
+              {currentUser.department ? `${currentUser.department} • ` : ""}{currentUser.institutionName || "Ugandan Higher Education"}. Manage course unit syllabi, launch classroom projector slides, and receive direct mobile money earnings.
             </p>
+
+            {/* Quick Action Station */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (myDocuments.length > 0) setActiveSlideDoc(myDocuments[0]);
+                }}
+                className="inline-flex items-center gap-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 px-4 py-2.5 text-xs font-extrabold shadow transition"
+              >
+                <Presentation className="h-4 w-4" />
+                <span>Launch Slide Projector</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("publications");
+                  setShowUploadModal(true);
+                  router.push("/lecturer/dashboard?tab=publications");
+                }}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#147D78] hover:bg-teal-600 text-white px-4 py-2.5 text-xs font-bold transition shadow"
+              >
+                <UploadCloud className="h-4 w-4" />
+                <span>Publish New Material</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowPayoutModal(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white px-4 py-2.5 text-xs font-bold transition"
+              >
+                <Wallet className="h-4 w-4 text-[#E9B949]" />
+                <span>Withdraw Balance ({formatUGX(walletBalance)})</span>
+              </button>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
-            <div className="flex items-center gap-2 bg-white/10 px-3.5 py-2 rounded-xl border border-white/15 text-xs">
-              <ShieldCheck className="h-4 w-4 text-emerald-400" />
-              <span className="font-semibold text-slate-200">Status: <strong className="text-white">Active Verified Faculty</strong></span>
+          {/* Accrued Royalties Mini Card */}
+          <div className="rounded-2xl bg-white/10 border border-white/15 p-5 backdrop-blur-md space-y-2 min-w-[220px]">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block">
+              Available Spendable Balance
+            </span>
+            <div className="text-2xl sm:text-3xl font-black text-[#E9B949]">
+              {formatUGX(walletBalance)}
             </div>
-            <div className="flex items-center gap-2 bg-white/10 px-3.5 py-2 rounded-xl border border-white/15 text-xs">
-              <Building2 className="h-4 w-4 text-amber-300" />
-              <span className="font-semibold text-slate-200">{currentUser.institutionName || "Makerere University"}</span>
+            <div className="flex items-center justify-between text-xs pt-1 border-t border-white/10">
+              <span className="text-slate-300 font-medium">85% Lecturer Split</span>
+              <button
+                type="button"
+                onClick={() => setShowPayoutModal(true)}
+                className="text-teal-300 hover:text-white font-bold underline"
+              >
+                Withdraw Funds →
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. Structured Lecturer Navigation Tabs (Synced with URL) */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200">
-        {[
-          { key: "overview", label: "Overview", icon: BookOpen },
-          { key: "publications", label: "My Publications", icon: FileText },
-          { key: "collections", label: "Collections", icon: Layers },
-          { key: "earnings", label: "Earnings & Wallet", icon: Wallet },
-          { key: "analytics", label: "Analytics", icon: BarChart3 },
-          { key: "profile", label: "Profile & Verification", icon: UserCheck },
-        ].map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.key;
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => {
-                setActiveTab(tab.key as LecturerTab);
-                router.push(`/lecturer/dashboard?tab=${tab.key}`);
-              }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
-                isActive
-                  ? "bg-[#142B45] text-white shadow-sm"
-                  : "bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200"
-              }`}
-            >
-              <Icon className={`h-4 w-4 ${isActive ? "text-[#E9B949]" : "text-slate-500"}`} />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* 3. TAB CONTENT */}
+      {/* 2. TAB CONTENT (Controlled exclusively by Left Sidebar) */}
 
       {/* TAB: OVERVIEW */}
       {activeTab === "overview" && (
         <div className="space-y-8">
           {/* 4 Academic Impact Metric Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-2">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                Active Student Readers
-              </span>
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-3 relative overflow-hidden group hover:shadow-md transition">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Active Student Readers
+                </span>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                  +18% Semester II
+                </span>
+              </div>
               <div className="text-3xl font-black text-[#142B45]">
                 {totalSalesCount.toLocaleString()}
               </div>
-              <p className="text-xs text-slate-400">Verified student enrollments across course units</p>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Verified student enrollments across course units with unlocked study access.
+              </p>
+              <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-2">
+                <div className="bg-[#142B45] h-full w-[78%]" />
+              </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-2">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                Published Course Units
-              </span>
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-3 relative overflow-hidden group hover:shadow-md transition">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Published Course Units
+                </span>
+                <span className="text-[10px] font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">
+                  Verified SOMA DRM
+                </span>
+              </div>
               <div className="text-3xl font-black text-[#147D78]">
                 {myDocuments.length}
               </div>
-              <p className="text-xs text-slate-400">Lecture note series &amp; solved past papers</p>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Lecture note series, practical manuals &amp; solved past examination packs.
+              </p>
+              <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-2">
+                <div className="bg-[#147D78] h-full w-[85%]" />
+              </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-2">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                Digital Reads &amp; Views
-              </span>
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-3 relative overflow-hidden group hover:shadow-md transition">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Digital Reads &amp; Views
+                </span>
+                <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
+                  Direct Desks
+                </span>
+              </div>
               <div className="text-3xl font-black text-[#142B45]">
                 {(totalViewsCount > 0 ? totalViewsCount : 420) + "+"}
               </div>
-              <p className="text-xs text-slate-400">Direct student study desk engagements</p>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Direct student study engagements, bookmarks, and in-app revisions.
+              </p>
+              <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-2">
+                <div className="bg-blue-600 h-full w-[65%]" />
+              </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-2">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                Student Course Satisfaction
-              </span>
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-3 relative overflow-hidden group hover:shadow-md transition">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Course Satisfaction
+                </span>
+                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                  Verified Reviews
+                </span>
+              </div>
               <div className="text-3xl font-black text-amber-500 flex items-center gap-1.5">
                 <span>4.9</span>
                 <span className="text-base font-bold text-slate-400">/ 5.0 ★</span>
               </div>
-              <p className="text-xs text-slate-400">Average rating across verified university students</p>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Average faculty rating from student feedback across Ugandan universities.
+              </p>
+              <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-2">
+                <div className="bg-amber-500 h-full w-[96%]" />
+              </div>
             </div>
           </div>
 
@@ -662,13 +715,12 @@ function LecturerDashboardContent() {
                   {[1, 2, 3].map((step) => (
                     <span
                       key={step}
-                      className={`h-2 w-8 rounded-full transition ${
-                        publishStep === step
-                          ? "bg-[#147D78]"
-                          : publishStep > step
+                      className={`h-2 w-8 rounded-full transition ${publishStep === step
+                        ? "bg-[#147D78]"
+                        : publishStep > step
                           ? "bg-emerald-600"
                           : "bg-slate-200"
-                      }`}
+                        }`}
                     />
                   ))}
                 </div>
@@ -948,104 +1000,6 @@ function LecturerDashboardContent() {
         </div>
       )}
 
-      {/* TAB: COLLECTIONS */}
-      {activeTab === "collections" && (
-        <div className="space-y-8">
-          <div className="max-w-2xl space-y-2">
-            <h2 className="text-xl font-black text-[#142B45]">Course Pack Builder</h2>
-            <p className="text-xs text-slate-500">
-              Bundle multiple lecture notes and past papers into a single WhatsApp announcement link for your class
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-7">
-              <form
-                onSubmit={handleCreateCollection}
-                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5"
-              >
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Course Pack Bundle Name:
-                  </label>
-                  <input
-                    type="text"
-                    value={colTitle}
-                    onChange={(e) => setColTitle(e.target.value)}
-                    placeholder="e.g. CSC 2101: Semester 1 Complete Study Pack"
-                    className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-[#147D78]"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Announcement Note (WhatsApp message header):
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={colDesc}
-                    onChange={(e) => setColDesc(e.target.value)}
-                    placeholder="e.g. Please find all approved lecture notes, algorithmic proofs, and 5-year past papers for our final exams..."
-                    className="w-full rounded-xl border border-slate-300 p-3.5 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-[#147D78]"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full rounded-xl bg-[#142B45] hover:bg-[#147D78] py-2.5 text-xs font-bold text-white transition shadow-sm"
-                >
-                  Generate WhatsApp Announcement Pack
-                </button>
-              </form>
-            </div>
-
-            <div className="lg:col-span-5">
-              {createdCollectionCode ? (
-                <div className="rounded-3xl border-2 border-emerald-500 bg-emerald-50/50 p-6 shadow-md space-y-4">
-                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    <span>Course Pack Ready to Distribute</span>
-                  </div>
-
-                  <div className="space-y-1">
-                    <span className="text-xs text-slate-500 block">Direct URL for Class:</span>
-                    <div className="font-mono text-xs font-bold text-[#142B45] bg-white p-2.5 rounded-xl border border-slate-200 break-all">
-                      {typeof window !== "undefined"
-                        ? `${window.location.origin}/collections/${createdCollectionCode}`
-                        : `/collections/${createdCollectionCode}`}
-                    </div>
-                  </div>
-
-                  <a
-                    href={`https://wa.me/?text=${encodeURIComponent(
-                      `Academic Course Pack: ${colTitle}\nDirect Link: ${
-                        typeof window !== "undefined"
-                          ? `${window.location.origin}/collections/${createdCollectionCode}`
-                          : ""
-                      }\nAccess all semester materials on SomaUG Academic.`
-                    )}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-3 text-xs font-bold text-white transition shadow-sm"
-                  >
-                    <Send className="h-4 w-4" />
-                    <span>Send Announcement on WhatsApp</span>
-                  </a>
-                </div>
-              ) : (
-                <div className="rounded-3xl border border-dashed border-slate-300 p-6 text-center space-y-2 text-slate-500">
-                  <Layers className="h-8 w-8 text-slate-300 mx-auto" />
-                  <p className="text-xs font-medium">
-                    Fill the form to generate a unified course pack with one-click WhatsApp distribution.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* TAB: EARNINGS & WALLET */}
       {activeTab === "earnings" && (
         <div className="space-y-8">
@@ -1057,7 +1011,7 @@ function LecturerDashboardContent() {
               <div className="text-3xl font-black text-[#147D78]">
                 {formatUGX(walletBalance)}
               </div>
-              <p className="text-xs text-slate-400">Available for immediate MoMo payout</p>
+              <p className="text-xs text-slate-400">Available for instant Mobile Money withdrawal</p>
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-2">
@@ -1067,16 +1021,16 @@ function LecturerDashboardContent() {
               <div className="text-3xl font-black text-[#E9B949]">
                 {formatUGX(reservedBalance)}
               </div>
-              <p className="text-xs text-slate-400">Reserved for pending payout batch</p>
+              <p className="text-xs text-slate-400">In-flight mobile money clearing batch</p>
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-3 flex flex-col justify-between">
               <div>
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                  Payout Request
+                  Instant Wallet Withdrawal
                 </span>
                 <p className="text-xs text-slate-500 pt-1">
-                  Transfers directly to registered MTN MoMo or Airtel Money number.
+                  Disburse royalties directly to your registered MTN MoMo or Airtel Money number.
                 </p>
               </div>
 
@@ -1087,20 +1041,20 @@ function LecturerDashboardContent() {
                 className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#142B45] hover:bg-[#147D78] py-2.5 text-xs font-black text-white transition disabled:opacity-40 shadow-sm"
               >
                 <Wallet className="h-4 w-4 text-[#E9B949]" />
-                <span>Request Payout ({formatUGX(walletBalance)})</span>
+                <span>Withdraw Funds ({formatUGX(walletBalance)})</span>
               </button>
             </div>
           </div>
 
-          {/* Payout History Table */}
+          {/* Withdrawal History Table */}
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
             <h3 className="text-sm font-extrabold text-[#142B45] border-b border-slate-100 pb-3">
-              Official Payout Disbursements
+              Mobile Money Withdrawal Records
             </h3>
 
             {payouts.length === 0 ? (
               <p className="text-xs text-slate-400 py-4 text-center">
-                No past payout disbursements recorded in this session.
+                No past mobile money withdrawals recorded in this session.
               </p>
             ) : (
               <div className="space-y-2">
@@ -1184,7 +1138,7 @@ function LecturerDashboardContent() {
           <div>
             <h2 className="text-xl font-black text-[#142B45]">Publisher Verification Profile</h2>
             <p className="text-xs text-slate-500">
-              Institutional credentials and Mobile Money payout destination
+              Institutional credentials and Mobile Money withdrawal destination
             </p>
           </div>
 
@@ -1227,18 +1181,17 @@ function LecturerDashboardContent() {
             <div className="flex justify-between items-center py-2 border-b border-slate-100">
               <span className="text-slate-500">Verification Status:</span>
               <span
-                className={`font-black px-2.5 py-1 rounded-full text-xs uppercase ${
-                  isPendingLecturer
-                    ? "bg-amber-100 text-amber-900 border border-amber-300"
-                    : "bg-emerald-100 text-emerald-900 border border-emerald-300"
-                }`}
+                className={`font-black px-2.5 py-1 rounded-full text-xs uppercase ${isPendingLecturer
+                  ? "bg-amber-100 text-amber-900 border border-amber-300"
+                  : "bg-emerald-100 text-emerald-900 border border-emerald-300"
+                  }`}
               >
                 {isPendingLecturer ? "Under Review" : "Verified Academic"}
               </span>
             </div>
 
             <div className="flex justify-between items-center py-2 border-b border-slate-100">
-              <span className="text-slate-500">Payout Network:</span>
+              <span className="text-slate-500">Withdrawal Network:</span>
               <span className="font-bold text-[#142B45]">MTN MoMo / Airtel Money</span>
             </div>
 
@@ -1340,7 +1293,7 @@ function LecturerDashboardContent() {
         </div>
       )}
 
-      {/* Payout Request Modal */}
+      {/* Self-Service Mobile Money Withdrawal Modal */}
       {showPayoutModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl space-y-5 border border-slate-200">
@@ -1351,10 +1304,10 @@ function LecturerDashboardContent() {
                 </div>
                 <div>
                   <h3 className="text-base font-extrabold text-[#142B45]">
-                    Request MoMo Payout
+                    Withdraw to Mobile Money
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Settled to your verified mobile money account
+                    Instant self-service disbursement to your registered phone number
                   </p>
                 </div>
               </div>
@@ -1370,7 +1323,7 @@ function LecturerDashboardContent() {
             <form onSubmit={handleRequestPayout} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Payout Amount (UGX, Min 10,000):
+                  Withdrawal Amount (UGX, Min 10,000):
                 </label>
                 <input
                   type="number"
@@ -1392,6 +1345,7 @@ function LecturerDashboardContent() {
                   type="text"
                   value={payoutPhone}
                   onChange={(e) => setPayoutPhone(e.target.value)}
+                  placeholder="077xxxxxxx or 075xxxxxxx"
                   className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-xs font-mono font-bold text-slate-900 outline-none focus:ring-2 focus:ring-[#147D78]"
                   required
                 />
@@ -1405,22 +1359,20 @@ function LecturerDashboardContent() {
                   <button
                     type="button"
                     onClick={() => setPayoutNetwork("MTN")}
-                    className={`flex-1 py-2 rounded-xl text-xs font-black border transition ${
-                      payoutNetwork === "MTN"
-                        ? "border-[#147D78] bg-teal-50 text-slate-900"
-                        : "border-slate-200 bg-slate-50 text-slate-600"
-                    }`}
+                    className={`flex-1 py-2 rounded-xl text-xs font-black border transition ${payoutNetwork === "MTN"
+                      ? "border-[#147D78] bg-teal-50 text-slate-900 font-extrabold"
+                      : "border-slate-200 bg-slate-50 text-slate-600"
+                      }`}
                   >
                     MTN MoMo
                   </button>
                   <button
                     type="button"
                     onClick={() => setPayoutNetwork("AIRTEL")}
-                    className={`flex-1 py-2 rounded-xl text-xs font-black border transition ${
-                      payoutNetwork === "AIRTEL"
-                        ? "border-[#147D78] bg-teal-50 text-slate-900"
-                        : "border-slate-200 bg-slate-50 text-slate-600"
-                    }`}
+                    className={`flex-1 py-2 rounded-xl text-xs font-black border transition ${payoutNetwork === "AIRTEL"
+                      ? "border-[#147D78] bg-teal-50 text-slate-900 font-extrabold"
+                      : "border-slate-200 bg-slate-50 text-slate-600"
+                      }`}
                   >
                     Airtel Money
                   </button>
@@ -1446,7 +1398,7 @@ function LecturerDashboardContent() {
                   disabled={requestingPayout || payoutAmount > walletBalance}
                   className="flex-1 rounded-xl bg-[#142B45] hover:bg-[#147D78] py-2.5 text-xs font-black text-white transition disabled:opacity-40 shadow-sm"
                 >
-                  {requestingPayout ? "Disbursing..." : `Confirm ${formatUGX(payoutAmount)}`}
+                  {requestingPayout ? "Disbursing..." : `Confirm Withdrawal ${formatUGX(payoutAmount)}`}
                 </button>
               </div>
             </form>

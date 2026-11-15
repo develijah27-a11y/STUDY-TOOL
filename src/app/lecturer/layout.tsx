@@ -134,12 +134,6 @@ function LecturerLayoutContent({
       isActive: pathname === "/lecturer/dashboard" && currentTab === "publications",
     },
     {
-      href: "/lecturer/dashboard?tab=collections",
-      label: "Collections",
-      icon: FolderGit2,
-      isActive: pathname === "/lecturer/dashboard" && currentTab === "collections",
-    },
-    {
       href: "/lecturer/dashboard?tab=earnings",
       label: "Earnings & Wallet",
       icon: Wallet,
@@ -198,7 +192,7 @@ function LecturerLayoutContent({
             href="/lecturer/dashboard?tab=earnings"
             className="block text-[11px] text-teal-300 hover:text-teal-200 font-bold pt-0.5"
           >
-            Weekly MoMo Payouts →
+            Withdraw Funds →
           </Link>
         </div>
 

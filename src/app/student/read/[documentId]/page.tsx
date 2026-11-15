@@ -25,6 +25,9 @@ import {
   RefreshCw,
   X,
   BookOpen,
+  Highlighter,
+  Check,
+  Sparkles,
 } from "lucide-react";
 import { offlineStorage, StudyAnnotation } from "@/lib/offline/offline-storage";
 import { OfflineLicenseService } from "@/lib/offline/offline-license";
@@ -45,8 +48,11 @@ export default function ProtectedReaderPage() {
   const [totalPages, setTotalPages] = useState(48);
   const [zoomPercent, setZoomPercent] = useState(100);
   const [theme, setTheme] = useState<ReaderTheme>("light");
-  const [sidebarTab, setSidebarTab] = useState<"notes" | "bookmarks">("notes");
+  const [sidebarTab, setSidebarTab] = useState<"notes" | "bookmarks" | "highlights">("notes");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showHighlighterBar, setShowHighlighterBar] = useState(false);
+  const [activeHighlightColor, setActiveHighlightColor] = useState<"yellow" | "green" | "teal">("yellow");
+  const [highlightInput, setHighlightInput] = useState("");
 
   const [authorized, setAuthorized] = useState<boolean>(true);
   const [accessMode, setAccessMode] = useState<string>("permitted_preview");
@@ -71,7 +77,7 @@ export default function ProtectedReaderPage() {
     try {
       const items = await offlineStorage.getAnnotations(documentId);
       setAnnotations(items);
-    } catch {}
+    } catch { }
   }, [documentId]);
 
   useEffect(() => {
@@ -298,6 +304,23 @@ export default function ProtectedReaderPage() {
     await loadAnnotations();
   };
 
+  const handleAddHighlight = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!highlightInput.trim()) return;
+
+    await offlineStorage.saveAnnotation({
+      id: `hl-${Date.now()}`,
+      documentId,
+      pageNumber,
+      type: "highlight",
+      content: highlightInput.trim(),
+      color: activeHighlightColor,
+      createdAt: new Date().toISOString(),
+    });
+    setHighlightInput("");
+    await loadAnnotations();
+  };
+
   const handleDeleteAnnotation = async (id: string) => {
     await offlineStorage.deleteAnnotation(id, documentId);
     await loadAnnotations();
@@ -305,8 +328,28 @@ export default function ProtectedReaderPage() {
 
   const completionPercent = Math.round((pageNumber / Math.max(1, totalPages)) * 100);
   const currentPageNotes = annotations.filter((a) => a.pageNumber === pageNumber && a.type === "note");
+  const currentPageHighlights = annotations.filter((a) => a.pageNumber === pageNumber && a.type === "highlight");
   const allBookmarks = annotations.filter((a) => a.type === "bookmark");
   const allNotes = annotations.filter((a) => a.type === "note");
+  const allHighlights = annotations.filter((a) => a.type === "highlight");
+
+  const highlightColorStyles = {
+    yellow: {
+      bg: "bg-amber-100 border-amber-300 text-amber-950",
+      badge: "bg-amber-200 text-amber-900 border-amber-400",
+      label: "Core Concept",
+    },
+    green: {
+      bg: "bg-emerald-100 border-emerald-300 text-emerald-950",
+      badge: "bg-emerald-200 text-emerald-900 border-emerald-400",
+      label: "Definition / Rule",
+    },
+    teal: {
+      bg: "bg-teal-100 border-teal-300 text-teal-950",
+      badge: "bg-teal-200 text-teal-900 border-teal-400",
+      label: "Exam Formula",
+    },
+  };
 
   const themeClasses = {
     light: "bg-white text-[#142B45] border-slate-200",
@@ -470,14 +513,25 @@ export default function ProtectedReaderPage() {
               <button
                 type="button"
                 onClick={handleToggleBookmark}
-                className={`p-1.5 rounded-xl border transition ${
-                  isCurrentPageBookmarked
-                    ? "bg-[#E9B949] text-slate-950 border-[#E9B949] shadow-sm font-bold"
-                    : "bg-white/10 text-white hover:bg-white/20 border-white/10"
-                }`}
+                className={`p-1.5 rounded-xl border transition ${isCurrentPageBookmarked
+                  ? "bg-[#E9B949] text-slate-950 border-[#E9B949] shadow-sm font-bold"
+                  : "bg-white/10 text-white hover:bg-white/20 border-white/10"
+                  }`}
                 title={isCurrentPageBookmarked ? "Remove Bookmark" : "Bookmark this Page"}
               >
                 <BookmarkIcon className={`h-4 w-4 ${isCurrentPageBookmarked ? "fill-current" : ""}`} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowHighlighterBar(!showHighlighterBar)}
+                className={`p-1.5 rounded-xl border transition ${showHighlighterBar
+                  ? "bg-teal-500 text-white border-teal-400 shadow-sm"
+                  : "bg-white/10 text-white hover:bg-white/20 border-white/10"
+                  }`}
+                title="Toggle Highlighter Tool"
+              >
+                <Highlighter className="h-4 w-4 text-amber-300" />
               </button>
 
               <button
@@ -497,6 +551,69 @@ export default function ProtectedReaderPage() {
             </div>
           </div>
         </div>
+
+        {/* Quick Highlighter Action Bar */}
+        {showHighlighterBar && (
+          <div className="bg-[#0f1f33] border-t border-white/10 px-4 py-2.5 animate-in fade-in duration-150">
+            <div className="container mx-auto max-w-4xl flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1">
+                  <Highlighter className="h-3.5 w-3.5 text-amber-300" />
+                  <span>Highlight Tool (Page {pageNumber}):</span>
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setActiveHighlightColor("yellow")}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border transition ${activeHighlightColor === "yellow"
+                      ? "bg-amber-300 text-slate-950 border-white shadow font-extrabold"
+                      : "bg-amber-400/20 text-amber-300 border-amber-400/40"
+                      }`}
+                  >
+                    <span>🟡 Core Concept</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveHighlightColor("green")}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border transition ${activeHighlightColor === "green"
+                      ? "bg-emerald-300 text-slate-950 border-white shadow font-extrabold"
+                      : "bg-emerald-400/20 text-emerald-300 border-emerald-400/40"
+                      }`}
+                  >
+                    <span>🟢 Definition</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveHighlightColor("teal")}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border transition ${activeHighlightColor === "teal"
+                      ? "bg-teal-300 text-slate-950 border-white shadow font-extrabold"
+                      : "bg-teal-400/20 text-teal-300 border-teal-400/40"
+                      }`}
+                  >
+                    <span>🔵 Exam Formula</span>
+                  </button>
+                </div>
+              </div>
+
+              <form onSubmit={handleAddHighlight} className="flex-1 flex items-center gap-2 min-w-[260px]">
+                <input
+                  type="text"
+                  value={highlightInput}
+                  onChange={(e) => setHighlightInput(e.target.value)}
+                  placeholder="Type or paste key passage to highlight..."
+                  className="flex-1 rounded-lg bg-white/10 border border-white/20 px-3 py-1.5 text-xs text-white placeholder-slate-400 outline-none focus:ring-1 focus:ring-amber-300"
+                />
+                <button
+                  type="submit"
+                  disabled={!highlightInput.trim()}
+                  className="rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 px-3 py-1.5 text-xs font-bold transition disabled:opacity-40"
+                >
+                  Highlight
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Reading Progress Line */}
         <div className="w-full bg-slate-800 h-1">
@@ -577,6 +694,49 @@ export default function ProtectedReaderPage() {
                 </span>
               )}
             </div>
+
+            {/* Color-Coded Highlighted Concepts for this Page */}
+            {currentPageHighlights.length > 0 && (
+              <div className="relative z-20 mb-6 space-y-2.5">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                  <Highlighter className="h-3.5 w-3.5 text-amber-500" />
+                  <span>Highlighted Study Concepts (Page {pageNumber})</span>
+                </span>
+                <div className="grid grid-cols-1 gap-2">
+                  {currentPageHighlights.map((hl) => {
+                    const style =
+                      highlightColorStyles[
+                      (hl.color as "yellow" | "green" | "teal") || "yellow"
+                      ];
+                    return (
+                      <div
+                        key={hl.id}
+                        className={`rounded-2xl border p-3.5 text-xs flex items-start justify-between gap-3 shadow-sm ${style.bg}`}
+                      >
+                        <div className="space-y-1">
+                          <span
+                            className={`inline-block text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${style.badge}`}
+                          >
+                            {style.label}
+                          </span>
+                          <p className="font-semibold leading-relaxed">
+                            &ldquo;{hl.content}&rdquo;
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteAnnotation(hl.id)}
+                          className="text-slate-400 hover:text-red-600 font-bold text-xs p-1"
+                          title="Remove Highlight"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Pinned Margin Study Notes for this Page */}
             {currentPageNotes.length > 0 && (
@@ -688,22 +848,30 @@ export default function ProtectedReaderPage() {
               <button
                 type="button"
                 onClick={() => setSidebarTab("notes")}
-                className={`flex-1 py-2 rounded-xl transition ${
-                  sidebarTab === "notes"
-                    ? "bg-[#142B45] text-white shadow-sm"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
-                }`}
+                className={`flex-1 py-2 rounded-xl transition ${sidebarTab === "notes"
+                  ? "bg-[#142B45] text-white shadow-sm"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                  }`}
               >
-                Margin Notes ({allNotes.length})
+                Notes ({allNotes.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setSidebarTab("highlights")}
+                className={`flex-1 py-2 rounded-xl transition ${sidebarTab === "highlights"
+                  ? "bg-[#142B45] text-white shadow-sm"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                  }`}
+              >
+                Highlights ({allHighlights.length})
               </button>
               <button
                 type="button"
                 onClick={() => setSidebarTab("bookmarks")}
-                className={`flex-1 py-2 rounded-xl transition ${
-                  sidebarTab === "bookmarks"
-                    ? "bg-[#142B45] text-white shadow-sm"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
-                }`}
+                className={`flex-1 py-2 rounded-xl transition ${sidebarTab === "bookmarks"
+                  ? "bg-[#142B45] text-white shadow-sm"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                  }`}
               >
                 Bookmarks ({allBookmarks.length})
               </button>
@@ -788,11 +956,10 @@ export default function ProtectedReaderPage() {
                   <button
                     type="button"
                     onClick={handleToggleBookmark}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
-                      isCurrentPageBookmarked
-                        ? "bg-amber-100 text-amber-900 border-amber-300"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700"
-                    }`}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition ${isCurrentPageBookmarked
+                      ? "bg-amber-100 text-amber-900 border-amber-300"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+                      }`}
                   >
                     {isCurrentPageBookmarked ? "★ Bookmarked" : "☆ Bookmark Current Page"}
                   </button>
@@ -833,6 +1000,114 @@ export default function ProtectedReaderPage() {
                         </button>
                       </div>
                     ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Tab: Highlights */}
+            {sidebarTab === "highlights" && (
+              <div className="flex-1 flex flex-col space-y-4 overflow-y-auto">
+                <form onSubmit={handleAddHighlight} className="space-y-2">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Add Highlighted Passage (Page {pageNumber}):
+                  </label>
+                  <div className="flex gap-1.5 pb-1">
+                    <button
+                      type="button"
+                      onClick={() => setActiveHighlightColor("yellow")}
+                      className={`flex-1 py-1 px-2 rounded-lg text-[11px] font-bold border transition ${activeHighlightColor === "yellow"
+                        ? "bg-amber-300 text-slate-950 border-amber-400 font-extrabold shadow"
+                        : "bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200"
+                        }`}
+                    >
+                      🟡 Core Concept
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveHighlightColor("green")}
+                      className={`flex-1 py-1 px-2 rounded-lg text-[11px] font-bold border transition ${activeHighlightColor === "green"
+                        ? "bg-emerald-300 text-slate-950 border-emerald-400 font-extrabold shadow"
+                        : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200"
+                        }`}
+                    >
+                      🟢 Definition
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveHighlightColor("teal")}
+                      className={`flex-1 py-1 px-2 rounded-lg text-[11px] font-bold border transition ${activeHighlightColor === "teal"
+                        ? "bg-teal-300 text-slate-950 border-teal-400 font-extrabold shadow"
+                        : "bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 border-teal-200"
+                        }`}
+                    >
+                      🔵 Formula
+                    </button>
+                  </div>
+                  <textarea
+                    value={highlightInput}
+                    onChange={(e) => setHighlightInput(e.target.value)}
+                    placeholder="Enter or paste key phrase/formula to highlight..."
+                    rows={2}
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-[#F7F8FA] dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#147D78]"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!highlightInput.trim()}
+                    className="w-full py-2.5 rounded-xl bg-[#147D78] hover:bg-teal-700 text-white text-xs font-bold transition disabled:opacity-40 shadow-sm"
+                  >
+                    Save Highlight to Page {pageNumber}
+                  </button>
+                </form>
+
+                <div className="space-y-2 pt-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                    All Highlights ({allHighlights.length})
+                  </span>
+                  {allHighlights.length === 0 ? (
+                    <p className="text-xs text-slate-400 py-6 text-center">
+                      No highlights added yet. Select a color above and highlight key phrases.
+                    </p>
+                  ) : (
+                    allHighlights.map((hl) => {
+                      const style =
+                        highlightColorStyles[
+                        (hl.color as "yellow" | "green" | "teal") || "yellow"
+                        ];
+                      return (
+                        <div
+                          key={hl.id}
+                          className={`rounded-2xl border p-3.5 space-y-1.5 text-xs ${style.bg}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPageNumber(hl.pageNumber);
+                                setIsSidebarOpen(false);
+                              }}
+                              className="font-bold text-[#147D78] hover:underline flex items-center gap-1.5"
+                            >
+                              <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${style.badge}`}>
+                                {style.label}
+                              </span>
+                              <span>Page {hl.pageNumber} →</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteAnnotation(hl.id)}
+                              className="text-slate-400 hover:text-red-500 font-bold"
+                              title="Delete Highlight"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                          <p className="font-semibold leading-relaxed">
+                            &ldquo;{hl.content}&rdquo;
+                          </p>
+                        </div>
+                      );
+                    })
                   )}
                 </div>
               </div>

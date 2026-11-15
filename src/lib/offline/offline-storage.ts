@@ -373,6 +373,29 @@ class OfflineStorageManager {
       localStorage.setItem(`somaug_annotations_${documentId}`, JSON.stringify(filtered));
     } catch {}
   }
+
+  public async getAllAnnotations(): Promise<StudyAnnotation[]> {
+    if (typeof window === "undefined") return [];
+    try {
+      const results: StudyAnnotation[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("somaug_annotations_")) {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+              results.push(...parsed);
+            }
+          }
+        }
+      }
+      return results.sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    } catch {}
+    return [];
+  }
 }
 
 export interface StudyAnnotation {
