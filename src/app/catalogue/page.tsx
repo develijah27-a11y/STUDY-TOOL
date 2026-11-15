@@ -59,6 +59,14 @@ export default function CataloguePage() {
   const [courses, setCourses] = useState<Array<{ id: string; code: string; name: string; institutionId: string }>>([]);
   const [loading, setLoading] = useState(true);
 
+  const [studentSession, setStudentSession] = useState<{
+    institutionId?: string;
+    institutionName?: string;
+    courseUnits?: string[];
+    department?: string;
+  } | null>(null);
+  const [viewMode, setViewMode] = useState<"cards" | "directory">("cards");
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedInstitution, setSelectedInstitution] = useState("all");
   const [selectedCourse, setSelectedCourse] = useState("all");
@@ -68,6 +76,19 @@ export default function CataloguePage() {
   const [sortBy, setSortBy] = useState<"relevant" | "price_asc" | "price_desc" | "sales">("relevant");
 
   useEffect(() => {
+    try {
+      const cached = localStorage.getItem("somaug_user_session");
+      if (cached) {
+        const u = JSON.parse(cached);
+        setStudentSession({
+          institutionId: u.institutionId,
+          institutionName: u.institutionName || "Makerere University",
+          courseUnits: u.activeCourseUnits || ["CSC 2101"],
+          department: u.department,
+        });
+      }
+    } catch {}
+
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const qParam = params.get("q");
@@ -125,6 +146,7 @@ export default function CataloguePage() {
           d.courseCode || "",
           d.courseName || "",
           d.lecturerName || "",
+          d.institutionShortCode || "",
           ...(Array.isArray(d.topics) ? d.topics : []),
         ]
           .join(" ")
@@ -140,10 +162,15 @@ export default function CataloguePage() {
     } else if (sortBy === "sales") {
       list.sort((a, b) => (b.salesCount ?? 0) - (a.salesCount ?? 0));
     } else if (prioritizeAcademicProfile) {
+      const studentUnits = studentSession?.courseUnits || ["CSC 2101"];
+      const studentInst = studentSession?.institutionId || "inst-mak";
+
       list.sort((a, b) => {
-        const aMatch = a.courseCode === "CSC 2101" ? 2 : a.institutionShortCode === "MAK" ? 1 : 0;
-        const bMatch = b.courseCode === "CSC 2101" ? 2 : b.institutionShortCode === "MAK" ? 1 : 0;
-        return bMatch - aMatch;
+        const aUnitMatch = studentUnits.some((u) => a.courseCode.toLowerCase().includes(u.toLowerCase())) ? 3 : 0;
+        const bUnitMatch = studentUnits.some((u) => b.courseCode.toLowerCase().includes(u.toLowerCase())) ? 3 : 0;
+        const aInstMatch = a.institutionId === studentInst ? 1 : 0;
+        const bInstMatch = b.institutionId === studentInst ? 1 : 0;
+        return (bUnitMatch + bInstMatch) - (aUnitMatch + aInstMatch);
       });
     }
 
@@ -156,6 +183,7 @@ export default function CataloguePage() {
     maxPrice,
     searchQuery,
     prioritizeAcademicProfile,
+    studentSession,
     sortBy,
   ]);
 
@@ -195,7 +223,12 @@ export default function CataloguePage() {
             </div>
             <div className="text-xs">
               <span className="block font-bold text-white">Student Course Match</span>
-              <span className="text-slate-300">Makerere University • BSSE Year 2 (CSC 2101)</span>
+              <span className="text-slate-300">
+                {studentSession?.institutionName || "Makerere University"} •{" "}
+                {studentSession?.courseUnits && studentSession.courseUnits.length > 0
+                  ? studentSession.courseUnits.join(", ")
+                  : "CSC 2101"}
+              </span>
             </div>
           </div>
           <label className="flex items-center gap-1.5 text-xs font-bold text-amber-300 cursor-pointer bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
@@ -205,7 +238,7 @@ export default function CataloguePage() {
               onChange={(e) => setPrioritizeAcademicProfile(e.target.checked)}
               className="rounded"
             />
-            Boost
+            Priority
           </label>
         </div>
       </div>
@@ -330,8 +363,104 @@ export default function CataloguePage() {
         </div>
       </div>
 
-      {/* Catalogue Cards Grid */}
-      {loading ? (
+      {/* View Switcher: Study Materials vs Course Unit Directory */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-3">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setViewMode("cards")}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+              viewMode === "cards"
+                ? "bg-[#142B45] text-white shadow-sm"
+                : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+            }`}
+          >
+            <BookOpen className="h-4 w-4" />
+            <span>All Study Materials ({filteredDocs.length})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("directory")}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+              viewMode === "directory"
+                ? "bg-[#142B45] text-white shadow-sm"
+                : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+            }`}
+          >
+            <GraduationCap className="h-4 w-4" />
+            <span>Course Unit Directory</span>
+          </button>
+        </div>
+
+        <span className="text-xs font-semibold text-slate-500">
+          Showing {filteredDocs.length} of {documents.length} verified publications
+        </span>
+      </div>
+
+      {/* Course Unit Directory Mode */}
+      {viewMode === "directory" ? (
+        <div className="space-y-6">
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div className="border-b border-slate-100 pb-3">
+              <h3 className="text-base font-extrabold text-[#142B45]">
+                Ugandan Higher Education Course Unit Directory
+              </h3>
+              <p className="text-xs text-slate-500">
+                Browse academic lecture notes, past paper solutions, and practical manuals by course unit
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {(courses || []).map((course) => {
+                const count = documents.filter(
+                  (d) => d.courseUnitId === course.id || d.courseCode === course.code
+                ).length;
+                const inst = institutions.find((i) => i.id === course.institutionId);
+
+                return (
+                  <div
+                    key={course.id}
+                    className="rounded-2xl border border-slate-200 bg-[#F7F8FA] p-5 space-y-3 hover:border-[#147D78] transition shadow-sm flex flex-col justify-between"
+                  >
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-mono font-black text-xs px-2.5 py-1 rounded bg-[#142B45] text-white">
+                          {course.code}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
+                          {inst?.shortCode || "UG"}
+                        </span>
+                      </div>
+                      <h4 className="font-extrabold text-[#142B45] text-sm leading-snug">
+                        {course.name}
+                      </h4>
+                      <p className="text-xs text-slate-500">
+                        {inst?.name || "Accredited University / Institute"}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between text-xs">
+                      <span className="text-slate-600 font-semibold">
+                        {count} {count === 1 ? "publication" : "publications"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCourse(course.id);
+                          setViewMode("cards");
+                        }}
+                        className="font-bold text-[#147D78] hover:underline"
+                      >
+                        Explore Notes →
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : loading ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {[1, 2, 3].map((n) => (
             <div key={n} className="h-72 animate-pulse rounded-2xl border border-slate-200 bg-white p-6" />
@@ -371,7 +500,11 @@ export default function CataloguePage() {
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredDocs.map((doc) => {
-            const isMatch = prioritizeAcademicProfile && doc.courseCode === "CSC 2101";
+            const isMatch =
+              prioritizeAcademicProfile &&
+              (studentSession?.courseUnits || ["CSC 2101"]).some((u) =>
+                doc.courseCode.toLowerCase().includes(u.toLowerCase())
+              );
 
             return (
               <div

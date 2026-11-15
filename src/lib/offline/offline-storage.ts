@@ -341,6 +341,48 @@ class OfflineStorageManager {
     }
     return false;
   }
+
+  // --- Offline Study Annotations, Notes & Bookmarks ---
+
+  public async getAnnotations(documentId: string): Promise<StudyAnnotation[]> {
+    if (typeof window === "undefined") return [];
+    try {
+      const raw = localStorage.getItem(`somaug_annotations_${documentId}`);
+      if (raw) {
+        return JSON.parse(raw);
+      }
+    } catch {}
+    return [];
+  }
+
+  public async saveAnnotation(annotation: StudyAnnotation): Promise<void> {
+    if (typeof window === "undefined") return;
+    try {
+      const existing = await this.getAnnotations(annotation.documentId);
+      const filtered = existing.filter((a) => a.id !== annotation.id);
+      filtered.push(annotation);
+      localStorage.setItem(`somaug_annotations_${annotation.documentId}`, JSON.stringify(filtered));
+    } catch {}
+  }
+
+  public async deleteAnnotation(id: string, documentId: string): Promise<void> {
+    if (typeof window === "undefined") return;
+    try {
+      const existing = await this.getAnnotations(documentId);
+      const filtered = existing.filter((a) => a.id !== id);
+      localStorage.setItem(`somaug_annotations_${documentId}`, JSON.stringify(filtered));
+    } catch {}
+  }
+}
+
+export interface StudyAnnotation {
+  id: string;
+  documentId: string;
+  pageNumber: number;
+  type: "bookmark" | "note" | "highlight";
+  content?: string;
+  color?: string;
+  createdAt: string;
 }
 
 export const offlineStorage = new OfflineStorageManager();

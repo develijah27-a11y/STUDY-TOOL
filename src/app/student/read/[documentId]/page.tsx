@@ -23,25 +23,15 @@ import {
   WifiOff,
   AlertTriangle,
   RefreshCw,
+  X,
+  BookOpen,
 } from "lucide-react";
-import { offlineStorage } from "@/lib/offline/offline-storage";
+import { offlineStorage, StudyAnnotation } from "@/lib/offline/offline-storage";
 import { OfflineLicenseService } from "@/lib/offline/offline-license";
 import { DocumentEncryptionService } from "@/lib/crypto/document-encryption";
 import { DeviceKeyManager } from "@/lib/crypto/device-keys";
 import { resumableDownloadEngine } from "@/lib/offline/download-engine";
 import { performanceMonitor } from "@/lib/performance/metrics";
-
-interface BookmarkItem {
-  id: string;
-  pageNumber: number;
-  title?: string;
-}
-
-interface NoteItem {
-  id: string;
-  pageNumber: number;
-  noteText: string;
-}
 
 type ReaderTheme = "light" | "sepia" | "dark";
 
@@ -55,7 +45,7 @@ export default function ProtectedReaderPage() {
   const [totalPages, setTotalPages] = useState(48);
   const [zoomPercent, setZoomPercent] = useState(100);
   const [theme, setTheme] = useState<ReaderTheme>("light");
-  const [sidebarTab, setSidebarTab] = useState<"notes" | "bookmarks" | "report">("notes");
+  const [sidebarTab, setSidebarTab] = useState<"notes" | "bookmarks">("notes");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [authorized, setAuthorized] = useState<boolean>(true);
@@ -73,11 +63,20 @@ export default function ProtectedReaderPage() {
   const [downloadingOffline, setDownloadingOffline] = useState<boolean>(false);
   const [downloadProgressPercent, setDownloadProgressPercent] = useState<number>(0);
 
-  const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
-  const [notes, setNotes] = useState<NoteItem[]>([]);
-  const [newNoteText, setNewNoteText] = useState("");
-  const [reportText, setReportText] = useState("");
-  const [reportCategory, setReportCategory] = useState("document_error");
+  // Offline study annotations
+  const [annotations, setAnnotations] = useState<StudyAnnotation[]>([]);
+  const [newNoteInput, setNewNoteInput] = useState("");
+
+  const loadAnnotations = useCallback(async () => {
+    try {
+      const items = await offlineStorage.getAnnotations(documentId);
+      setAnnotations(items);
+    } catch {}
+  }, [documentId]);
+
+  useEffect(() => {
+    loadAnnotations();
+  }, [loadAnnotations]);
   const [reportStatus, setReportStatus] = useState<string | null>(null);
 
   // Load student session
@@ -188,8 +187,6 @@ export default function ProtectedReaderPage() {
       setDocTitle(data.pageData?.title || "Academic Publication");
       setTotalPages(data.pageData?.totalPages || 48);
       setPageBodyText(data.pageData?.bodyText || "");
-      setBookmarks(data.bookmarks || []);
-      setNotes(data.notes || []);
 
       // Auto-save progress to IndexedDB and server
       offlineStorage.saveReadingProgress(documentId, pageNumber, data.pageData?.totalPages || 48);
@@ -263,8 +260,53 @@ export default function ProtectedReaderPage() {
     }
   };
 
+  const isCurrentPageBookmarked = annotations.some(
+    (a) => a.pageNumber === pageNumber && a.type === "bookmark"
+  );
+
+  const handleToggleBookmark = async () => {
+    const existing = annotations.find(
+      (a) => a.pageNumber === pageNumber && a.type === "bookmark"
+    );
+    if (existing) {
+      await offlineStorage.deleteAnnotation(existing.id, documentId);
+    } else {
+      await offlineStorage.saveAnnotation({
+        id: `bm-${Date.now()}`,
+        documentId,
+        pageNumber,
+        type: "bookmark",
+        content: `Page ${pageNumber} Bookmark`,
+        createdAt: new Date().toISOString(),
+      });
+    }
+    await loadAnnotations();
+  };
+
+  const handleAddNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newNoteInput.trim()) return;
+    await offlineStorage.saveAnnotation({
+      id: `note-${Date.now()}`,
+      documentId,
+      pageNumber,
+      type: "note",
+      content: newNoteInput.trim(),
+      createdAt: new Date().toISOString(),
+    });
+    setNewNoteInput("");
+    await loadAnnotations();
+  };
+
+  const handleDeleteAnnotation = async (id: string) => {
+    await offlineStorage.deleteAnnotation(id, documentId);
+    await loadAnnotations();
+  };
+
   const completionPercent = Math.round((pageNumber / Math.max(1, totalPages)) * 100);
-  const currentPageNotes = notes.filter((n) => n.pageNumber === pageNumber);
+  const currentPageNotes = annotations.filter((a) => a.pageNumber === pageNumber && a.type === "note");
+  const allBookmarks = annotations.filter((a) => a.type === "bookmark");
+  const allNotes = annotations.filter((a) => a.type === "note");
 
   const themeClasses = {
     light: "bg-white text-[#142B45] border-slate-200",
@@ -422,6 +464,37 @@ export default function ProtectedReaderPage() {
                 <ZoomIn className="h-3.5 w-3.5" />
               </button>
             </div>
+
+            {/* Offline Study Tools: Bookmark & Notes */}
+            <div className="flex items-center gap-1.5 pl-1 border-l border-white/15">
+              <button
+                type="button"
+                onClick={handleToggleBookmark}
+                className={`p-1.5 rounded-xl border transition ${
+                  isCurrentPageBookmarked
+                    ? "bg-[#E9B949] text-slate-950 border-[#E9B949] shadow-sm font-bold"
+                    : "bg-white/10 text-white hover:bg-white/20 border-white/10"
+                }`}
+                title={isCurrentPageBookmarked ? "Remove Bookmark" : "Bookmark this Page"}
+              >
+                <BookmarkIcon className={`h-4 w-4 ${isCurrentPageBookmarked ? "fill-current" : ""}`} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 hover:bg-white/20 px-3 py-1.5 text-xs font-bold text-white transition border border-white/15"
+                title="Open Study Tools & Margin Notes"
+              >
+                <StickyNote className="h-3.5 w-3.5 text-amber-300" />
+                <span className="hidden md:inline">Study Tools</span>
+                {annotations.length > 0 && (
+                  <span className="h-4 w-4 rounded-full bg-[#147D78] text-[10px] font-black flex items-center justify-center">
+                    {annotations.length}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -483,9 +556,17 @@ export default function ProtectedReaderPage() {
             {/* Header of Rendered Page */}
             <div className="relative z-20 border-b border-current/10 pb-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider opacity-60">
-                  {isOfflineCopy ? "Encrypted Offline Copy" : "Live Streaming"} • Page {pageNumber} of {totalPages}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider opacity-60">
+                    {isOfflineCopy ? "Encrypted Offline Copy" : "Live Streaming"} • Page {pageNumber} of {totalPages}
+                  </span>
+                  {isCurrentPageBookmarked && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400 text-slate-900 border border-amber-500 shadow-sm">
+                      <BookmarkIcon className="h-3 w-3 fill-current" />
+                      <span>Bookmarked</span>
+                    </span>
+                  )}
+                </div>
                 <h2 className="text-xl sm:text-2xl font-black mt-0.5">{docTitle}</h2>
               </div>
 
@@ -496,6 +577,36 @@ export default function ProtectedReaderPage() {
                 </span>
               )}
             </div>
+
+            {/* Pinned Margin Study Notes for this Page */}
+            {currentPageNotes.length > 0 && (
+              <div className="relative z-20 mb-6 space-y-2">
+                {currentPageNotes.map((note) => (
+                  <div
+                    key={note.id}
+                    className="rounded-2xl bg-amber-500/15 border border-amber-400/40 p-3.5 text-xs text-amber-950 dark:text-amber-100 flex items-start justify-between gap-3 shadow-sm"
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <StickyNote className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                      <div className="space-y-0.5">
+                        <span className="font-bold text-[10px] uppercase tracking-wider text-amber-700 dark:text-amber-300 block">
+                          Margin Note • Page {pageNumber}
+                        </span>
+                        <p className="font-medium whitespace-pre-wrap">{note.content}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteAnnotation(note.id)}
+                      className="text-slate-400 hover:text-red-500 font-bold text-xs p-1"
+                      title="Delete Note"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Page Body */}
             {loadingPage ? (
@@ -540,6 +651,195 @@ export default function ProtectedReaderPage() {
           </button>
         </div>
       </div>
+
+      {/* Slide-out Study Tools & Notes Drawer */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex justify-end animate-in fade-in duration-200"
+          onClick={() => setIsSidebarOpen(false)}
+        >
+          <div
+            className="w-full max-w-md bg-white dark:bg-slate-900 h-full flex flex-col p-6 shadow-2xl space-y-5 border-l border-slate-200 dark:border-slate-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                  <StickyNote className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                    Study Tools &amp; Annotations
+                  </h3>
+                  <p className="text-xs text-slate-400">Offline margin notes and revision bookmarks</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSidebarOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Drawer Tabs */}
+            <div className="flex gap-2 border-b border-slate-100 dark:border-slate-800 pb-2 text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setSidebarTab("notes")}
+                className={`flex-1 py-2 rounded-xl transition ${
+                  sidebarTab === "notes"
+                    ? "bg-[#142B45] text-white shadow-sm"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                }`}
+              >
+                Margin Notes ({allNotes.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setSidebarTab("bookmarks")}
+                className={`flex-1 py-2 rounded-xl transition ${
+                  sidebarTab === "bookmarks"
+                    ? "bg-[#142B45] text-white shadow-sm"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                }`}
+              >
+                Bookmarks ({allBookmarks.length})
+              </button>
+            </div>
+
+            {/* Tab: Notes */}
+            {sidebarTab === "notes" && (
+              <div className="flex-1 flex flex-col space-y-4 overflow-y-auto">
+                {/* Add Note on Current Page */}
+                <form onSubmit={handleAddNote} className="space-y-2">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Add Revision Note for Page {pageNumber}:
+                  </label>
+                  <textarea
+                    value={newNoteInput}
+                    onChange={(e) => setNewNoteInput(e.target.value)}
+                    placeholder="e.g. Remember key algorithm proof or examination formula..."
+                    rows={3}
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-[#F7F8FA] dark:bg-slate-800 p-3 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#147D78]"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newNoteInput.trim()}
+                    className="w-full py-2.5 rounded-xl bg-[#147D78] hover:bg-teal-700 text-white text-xs font-bold transition disabled:opacity-40 shadow-sm"
+                  >
+                    Save Note to Page {pageNumber}
+                  </button>
+                </form>
+
+                {/* List of All Notes */}
+                <div className="space-y-2 pt-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Saved Notes ({allNotes.length})
+                  </span>
+                  {allNotes.length === 0 ? (
+                    <p className="text-xs text-slate-400 py-6 text-center">
+                      No notes saved yet. Add your personal revision notes above.
+                    </p>
+                  ) : (
+                    allNotes.map((note) => (
+                      <div
+                        key={note.id}
+                        className="rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 space-y-2 text-xs bg-[#F7F8FA] dark:bg-slate-800/60"
+                      >
+                        <div className="flex items-center justify-between">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPageNumber(note.pageNumber);
+                              setIsSidebarOpen(false);
+                            }}
+                            className="font-bold text-[#147D78] hover:underline flex items-center gap-1.5"
+                          >
+                            <span>Jump to Page {note.pageNumber} →</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteAnnotation(note.id)}
+                            className="text-slate-400 hover:text-red-500 font-bold"
+                            title="Delete Note"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <p className="text-slate-700 dark:text-slate-200 font-medium whitespace-pre-wrap">
+                          {note.content}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Tab: Bookmarks */}
+            {sidebarTab === "bookmarks" && (
+              <div className="flex-1 space-y-3 overflow-y-auto">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                    Current Page ({pageNumber})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleToggleBookmark}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
+                      isCurrentPageBookmarked
+                        ? "bg-amber-100 text-amber-900 border-amber-300"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+                    }`}
+                  >
+                    {isCurrentPageBookmarked ? "★ Bookmarked" : "☆ Bookmark Current Page"}
+                  </button>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                    All Bookmarked Pages ({allBookmarks.length})
+                  </span>
+                  {allBookmarks.length === 0 ? (
+                    <p className="text-xs text-slate-400 py-6 text-center">
+                      No bookmarks saved. Click the bookmark icon while reading to save pages.
+                    </p>
+                  ) : (
+                    allBookmarks.map((bm) => (
+                      <div
+                        key={bm.id}
+                        className="rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 flex items-center justify-between text-xs bg-[#F7F8FA] dark:bg-slate-800/60"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPageNumber(bm.pageNumber);
+                            setIsSidebarOpen(false);
+                          }}
+                          className="font-bold text-[#142B45] dark:text-white hover:text-[#147D78] flex items-center gap-2"
+                        >
+                          <BookmarkIcon className="h-4 w-4 text-[#E9B949] fill-current" />
+                          <span>Page {bm.pageNumber}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteAnnotation(bm.id)}
+                          className="text-slate-400 hover:text-red-500 font-bold"
+                          title="Remove Bookmark"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
