@@ -1,0 +1,51 @@
+{
+  "packageId": "ug.soma.academic",
+  "host": "study-tool-lime.vercel.app",
+  "name": "SomaUG Academic",
+  "launcherName": "SomaUG",
+  "themeColor": "#142B45",
+  "themeColorDark": "#0E1F32",
+  "navigationColor": "#142B45",
+  "navigationColorDark": "#0E1F32",
+  "navigationDividerColor": "#147D78",
+  "backgroundColor": "#142B45",
+  "enableNotifications": true,
+  "startUrl": "/student/dashboard",
+  "iconUrl": "https://study-tool-lime.vercel.app/icon-512.png",
+  "maskableIconUrl": "https://study-tool-lime.vercel.app/icon-512.png",
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "My Academic Library",
+      "shortName": "Library",
+      "url": "/student/library",
+      "chosenIconUrl": "https://study-tool-lime.vercel.app/icon-192.png"
+    },
+    {
+      "name": "Offline Reading Desk",
+      "shortName": "Offline",
+      "url": "/student/offline",
+      "chosenIconUrl": "https://study-tool-lime.vercel.app/icon-192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://study-tool-lime.vercel.app/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "playBilling": {
+      "enabled": false
+    },
+    "locationDelegation": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://study-tool-lime.vercel.app/"
+}
+

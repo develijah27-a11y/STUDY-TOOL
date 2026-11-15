@@ -1,0 +1,23 @@
+{
+  "appId": "ug.soma.academic",
+  "appName": "SomaUG Academic",
+  "webDir": "public",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://study-tool-lime.vercel.app",
+    "cleartext": false
+  },
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#142B45",
+      "showSpinner": false
+    }
+  }
+}
+

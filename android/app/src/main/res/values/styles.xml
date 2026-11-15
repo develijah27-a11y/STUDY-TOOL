@@ -1,0 +1,22 @@
+<resources>
+    <!-- Base application theme -->
+    <style name="Theme.SomaUGAcademic" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/backgroundColor</item>
+        <item name="android:navigationBarColor">@color/navigationColor</item>
+    </style>
+
+    <!-- Splash and TWA launch theme -->
+    <style name="Theme.SomaUGAcademic.Splash" parent="Theme.SomaUGAcademic">
+        <item name="android:windowBackground">@color/backgroundColor</item>
+    </style>
+
+    <!-- Fullscreen DRM WebView theme -->
+    <style name="Theme.SomaUGAcademic.Fullscreen" parent="Theme.SomaUGAcademic">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+</resources>
+

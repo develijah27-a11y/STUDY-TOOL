@@ -1,0 +1,9 @@
+<resources>
+    <color name="colorPrimary">#142B45</color>
+    <color name="colorPrimaryDark">#0E1F32</color>
+    <color name="colorAccent">#147D78</color>
+    <color name="colorGold">#E9B949</color>
+    <color name="backgroundColor">#142B45</color>
+    <color name="navigationColor">#142B45</color>
+</resources>
+
