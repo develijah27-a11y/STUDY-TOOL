@@ -19,6 +19,8 @@ export async function GET(req: NextRequest) {
             roles: [user.role],
             institutionId: user.institutionId,
             programmeId: user.programmeId,
+            department: user.department,
+            teachingRole: user.teachingRole,
           },
         });
       }

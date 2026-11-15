@@ -111,3 +111,4 @@ describe("DocumentEncryptionService (AES-GCM Authenticated Encryption)", () => {
     expect(reassembledText).toBe(docText);
   });
 });
+

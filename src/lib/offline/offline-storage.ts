@@ -344,3 +344,4 @@ class OfflineStorageManager {
 }
 
 export const offlineStorage = new OfflineStorageManager();
+

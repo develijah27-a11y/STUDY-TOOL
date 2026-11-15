@@ -89,7 +89,7 @@ export default function ProtectedReaderPage() {
         if (u.id) setStudentId(u.id);
         if (u.fullName) setStudentName(u.fullName);
       }
-    } catch {}
+    } catch { }
   }, []);
 
   // Fetch or decrypt page content
@@ -119,7 +119,7 @@ export default function ProtectedReaderPage() {
             setAuthorized(false);
             setAccessError(
               verification.error ||
-                "Your 30-day offline authorization has expired. Reconnect to the internet to renew access."
+              "Your 30-day offline authorization has expired. Reconnect to the internet to renew access."
             );
             setLoadingPage(false);
             return;
@@ -203,7 +203,7 @@ export default function ProtectedReaderPage() {
           documentId,
           pageNumber,
         }),
-      }).catch(() => {});
+      }).catch(() => { });
 
       performanceMonitor.recordPdfFirstPageRender(performance.now() - startTime);
     } catch {
@@ -284,7 +284,7 @@ export default function ProtectedReaderPage() {
       {/* Top Sticky Reader Header */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-[#142B45] text-white shadow-md">
         <div className="container mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-          
+
           {/* Left: Back & Document Metadata */}
           <div className="flex items-center gap-3">
             <Link

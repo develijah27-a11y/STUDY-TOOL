@@ -98,3 +98,4 @@ describe("OfflineLicenseService", () => {
     expect(result.error).toContain("LICENSE_EXPIRED");
   });
 });
+

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
   UploadCloud,
@@ -18,24 +18,20 @@ import {
   ShieldCheck,
   Building2,
   PlusCircle,
+  Library,
+  HardDrive,
 } from "lucide-react";
 import { formatUGX } from "@/lib/utils";
 
-export default function LecturerLayout({
+function LecturerLayoutContent({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [currentTab, setCurrentTab] = useState("overview");
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      setCurrentTab(params.get("tab") || "overview");
-    }
-  }, [pathname]);
+  const searchParams = useSearchParams();
+  const currentTab = searchParams?.get("tab") || "overview";
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [lecturer, setLecturer] = useState<{
@@ -82,7 +78,7 @@ export default function LecturerLayout({
           department: u.department || "Academic Faculty",
         });
       }
-    } catch {}
+    } catch { }
 
     async function fetchLecturerData() {
       try {
@@ -111,7 +107,7 @@ export default function LecturerLayout({
             }
           }
         }
-      } catch {}
+      } catch { }
     }
     fetchLecturerData();
   }, [pathname, currentTab]);
@@ -119,7 +115,7 @@ export default function LecturerLayout({
   const handleSignOut = async () => {
     try {
       await fetch("/api/auth/sign-out", { method: "POST" });
-    } catch {}
+    } catch { }
     localStorage.removeItem("somaug_user_session");
     window.location.href = "/sign-in";
   };
@@ -157,10 +153,12 @@ export default function LecturerLayout({
       isActive: pathname === "/lecturer/dashboard" && currentTab === "analytics",
     },
     {
-      href: "/lecturer/apply",
+      href: "/lecturer/dashboard?tab=profile",
       label: "Profile & Verification",
       icon: CheckCircle2,
-      isActive: pathname === "/lecturer/apply",
+      isActive:
+        pathname === "/lecturer/apply" ||
+        (pathname === "/lecturer/dashboard" && currentTab === "profile"),
     },
   ];
 
@@ -213,11 +211,10 @@ export default function LecturerLayout({
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-xs font-bold transition ${
-                  item.isActive
+                className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-xs font-bold transition ${item.isActive
                     ? "bg-[#147D78] text-white shadow-sm"
                     : "text-slate-300 hover:bg-white/10 hover:text-white"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <Icon className={`h-4 w-4 ${item.isActive ? "text-amber-300" : "text-slate-400"}`} />
@@ -338,11 +335,10 @@ export default function LecturerLayout({
                     key={item.label}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-xs font-bold transition ${
-                      item.isActive
+                    className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-xs font-bold transition ${item.isActive
                         ? "bg-[#147D78] text-white"
                         : "text-slate-300 hover:bg-white/10 hover:text-white"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <Icon className="h-4 w-4" />
@@ -389,11 +385,10 @@ export default function LecturerLayout({
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex flex-col items-center justify-center gap-1 transition ${
-                  item.isActive
+                className={`flex flex-col items-center justify-center gap-1 transition ${item.isActive
                     ? "text-[#147D78] font-bold"
                     : "text-slate-500 hover:text-slate-900 font-medium"
-                }`}
+                  }`}
               >
                 <Icon className={`h-5 w-5 ${item.isActive ? "stroke-[2.5]" : "stroke-2"}`} />
                 <span className="text-[10px] leading-none">{item.label}</span>
@@ -406,5 +401,17 @@ export default function LecturerLayout({
         </div>
       </nav>
     </div>
+  );
+}
+
+export default function LecturerLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen bg-[#F7F8FA]" />}>
+      <LecturerLayoutContent>{children}</LecturerLayoutContent>
+    </React.Suspense>
   );
 }

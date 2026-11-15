@@ -52,3 +52,4 @@ export class DeviceKeyManager {
     return (hex + hex + hex + hex).substring(0, 32);
   }
 }
+
