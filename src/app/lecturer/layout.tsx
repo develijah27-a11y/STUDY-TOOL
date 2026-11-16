@@ -1,24 +1,22 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
   UploadCloud,
-  FolderGit2,
-  Wallet,
+  PlusCircle,
+  Share2,
   BarChart3,
+  Wallet,
+  Receipt,
   CheckCircle2,
+  ShieldCheck,
   LogOut,
   GraduationCap,
   Menu,
   X,
-  Share2,
-  ShieldCheck,
-  Building2,
-  PlusCircle,
-  Library,
   HardDrive,
 } from "lucide-react";
 import { formatUGX } from "@/lib/utils";
@@ -45,7 +43,7 @@ function LecturerLayoutContent({
     fullName: "Lecturer",
     email: "lecturer@somaug.ac.ug",
     institutionName: "Makerere University",
-    department: "Department of Computer Science",
+    department: "Academic Faculty",
   });
   const [earningsBalance, setEarningsBalance] = useState<number>(0);
 
@@ -64,7 +62,7 @@ function LecturerLayoutContent({
     };
   }, [isMobileMenuOpen]);
 
-  // Load active lecturer session & earnings
+  // Load active lecturer session & fast balance
   useEffect(() => {
     try {
       const cached = localStorage.getItem("somaug_user_session");
@@ -95,9 +93,9 @@ function LecturerLayoutContent({
             });
             localStorage.setItem("somaug_user_session", JSON.stringify(data.user));
 
-            // Fetch lecturer earnings balance
+            // Fast Balance-Only fetch
             const walRes = await fetch(
-              `/api/wallet?userId=${data.user.id}&targetUserId=${data.user.id}&walletType=lecturer`
+              `/api/wallet?userId=${data.user.id}&targetUserId=${data.user.id}&walletType=lecturer&type=balance`
             );
             if (walRes.ok) {
               const walData = await walRes.json();
@@ -134,11 +132,16 @@ function LecturerLayoutContent({
       isActive: pathname === "/lecturer/dashboard" && currentTab === "publications",
     },
     {
-      href: "/lecturer/dashboard?tab=earnings",
-      label: "Earnings & Wallet",
-      icon: Wallet,
-      badge: "85%",
-      isActive: pathname === "/lecturer/dashboard" && currentTab === "earnings",
+      href: "/lecturer/dashboard?tab=publish",
+      label: "Publish Material",
+      icon: PlusCircle,
+      isActive: pathname === "/lecturer/dashboard" && currentTab === "publish",
+    },
+    {
+      href: "/lecturer/dashboard?tab=share",
+      label: "Share Materials",
+      icon: Share2,
+      isActive: pathname === "/lecturer/dashboard" && currentTab === "share",
     },
     {
       href: "/lecturer/dashboard?tab=analytics",
@@ -147,44 +150,57 @@ function LecturerLayoutContent({
       isActive: pathname === "/lecturer/dashboard" && currentTab === "analytics",
     },
     {
+      href: "/lecturer/dashboard?tab=earnings",
+      label: "Wallet & Earnings",
+      icon: Wallet,
+      isActive: pathname === "/lecturer/dashboard" && currentTab === "earnings",
+    },
+    {
+      href: "/lecturer/dashboard?tab=transactions",
+      label: "Transactions",
+      icon: Receipt,
+      isActive: pathname === "/lecturer/dashboard" && currentTab === "transactions",
+    },
+    {
       href: "/lecturer/dashboard?tab=profile",
-      label: "Profile & Verification",
+      label: "Profile",
       icon: CheckCircle2,
-      isActive:
-        pathname === "/lecturer/apply" ||
-        (pathname === "/lecturer/dashboard" && currentTab === "profile"),
+      isActive: pathname === "/lecturer/dashboard" && currentTab === "profile",
+    },
+    {
+      href: "/lecturer/dashboard?tab=settings",
+      label: "Settings & Security",
+      icon: ShieldCheck,
+      isActive: pathname === "/lecturer/dashboard" && currentTab === "settings",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] flex flex-col md:flex-row">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col md:flex-row">
       {/* Desktop Sidebar (Left Fixed 64) */}
       <aside className="hidden md:flex flex-col w-64 bg-[#142B45] text-white border-r border-slate-800 shrink-0 min-h-screen sticky top-0 h-screen">
         {/* Brand Header */}
-        <div className="p-6 border-b border-slate-800">
+        <div className="p-5 border-b border-slate-800">
           <Link href="/lecturer/dashboard" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#147D78] text-amber-400 font-black shadow-md border border-teal-500/30">
-              <GraduationCap className="h-6 w-6" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#147D78] text-[#E9B949] font-black shadow-md border border-teal-500/30">
+              <GraduationCap className="h-5 w-5" />
             </div>
             <div>
               <span className="block text-base font-extrabold tracking-tight text-white leading-tight">
-                Soma<span className="text-amber-400">UG</span>
+                Soma<span className="text-[#E9B949]">UG</span>
               </span>
-              <span className="block text-[11px] font-semibold text-amber-400">
-                Lecturer Desk
+              <span className="block text-[10px] font-semibold text-slate-300">
+                Lecturer Workspace
               </span>
             </div>
           </Link>
         </div>
 
-        {/* Quick Earnings Balance */}
-        <div className="px-4 py-3 mx-4 my-4 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 backdrop-blur-sm space-y-1">
-          <div className="flex items-center justify-between text-[11px] text-slate-300 font-bold uppercase tracking-wider">
-            <span>Accrued Royalties</span>
-            <span className="text-[10px] bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded font-black">
-              85% Net
-            </span>
-          </div>
+        {/* Quick Earnings Balance Card */}
+        <div className="px-4 py-3 mx-3 my-3 rounded-xl bg-white/10 border border-white/10 space-y-1">
+          <span className="text-[10px] uppercase font-bold text-slate-300 tracking-wider block">
+            Available Earnings
+          </span>
           <div className="text-xl font-black text-[#E9B949]">
             {formatUGX(earningsBalance)}
           </div>
@@ -192,12 +208,12 @@ function LecturerLayoutContent({
             href="/lecturer/dashboard?tab=earnings"
             className="block text-[11px] text-teal-300 hover:text-teal-200 font-bold pt-0.5"
           >
-            Withdraw Funds →
+            Withdraw to MoMo →
           </Link>
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 px-4 py-2 space-y-1.5 overflow-y-auto">
+        <nav className="flex-1 px-3 py-1 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
 
@@ -205,27 +221,22 @@ function LecturerLayoutContent({
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-xs font-bold transition ${item.isActive
-                    ? "bg-[#147D78] text-white shadow-sm"
-                    : "text-slate-300 hover:bg-white/10 hover:text-white"
+                className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${item.isActive
+                  ? "bg-[#147D78] text-white shadow-sm"
+                  : "text-slate-300 hover:bg-white/10 hover:text-white"
                   }`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5">
                   <Icon className={`h-4 w-4 ${item.isActive ? "text-amber-300" : "text-slate-400"}`} />
                   <span>{item.label}</span>
                 </div>
-                {item.badge && (
-                  <span className="text-[10px] bg-amber-400/30 text-amber-300 px-1.5 py-0.5 rounded font-black">
-                    {item.badge}
-                  </span>
-                )}
               </Link>
             );
           })}
         </nav>
 
         {/* Bottom User Card & Sign Out */}
-        <div className="p-4 border-t border-slate-800 bg-[#0e1f32]">
+        <div className="p-3 border-t border-slate-800 bg-[#0e1f32]">
           <div className="flex items-center justify-between">
             <div className="truncate mr-2">
               <span className="block text-xs font-extrabold text-white truncate">
@@ -238,7 +249,7 @@ function LecturerLayoutContent({
             <button
               type="button"
               onClick={handleSignOut}
-              className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-300 transition"
+              className="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-300 transition"
               title="Sign Out"
               aria-label="Sign Out"
             >
@@ -263,7 +274,7 @@ function LecturerLayoutContent({
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#147D78] text-amber-400">
               <GraduationCap className="h-4 w-4" />
             </div>
-            <span className="text-sm font-extrabold tracking-tight">Lecturer Desk</span>
+            <span className="text-sm font-extrabold tracking-tight">Lecturer Workspace</span>
           </Link>
         </div>
 
@@ -300,7 +311,7 @@ function LecturerLayoutContent({
                 <div className="h-8 w-8 rounded-lg bg-[#147D78] text-amber-400 flex items-center justify-center font-bold">
                   <GraduationCap className="h-5 w-5" />
                 </div>
-                <span className="font-extrabold text-sm">Lecturer Desk</span>
+                <span className="font-extrabold text-sm">Lecturer Workspace</span>
               </div>
               <button
                 type="button"
@@ -313,14 +324,14 @@ function LecturerLayoutContent({
 
             <div className="p-3 rounded-xl bg-white/10 space-y-1">
               <span className="text-[10px] uppercase font-bold text-slate-300 tracking-wider">
-                Accrued Royalties
+                Available Earnings
               </span>
               <div className="text-lg font-black text-amber-400">
                 {formatUGX(earningsBalance)}
               </div>
             </div>
 
-            <nav className="flex-1 space-y-1">
+            <nav className="flex-1 space-y-1 overflow-y-auto">
               {navItems.map((item) => {
                 const Icon = item.icon;
 
@@ -329,20 +340,15 @@ function LecturerLayoutContent({
                     key={item.label}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-xs font-bold transition ${item.isActive
-                        ? "bg-[#147D78] text-white"
-                        : "text-slate-300 hover:bg-white/10 hover:text-white"
+                    className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-bold transition ${item.isActive
+                      ? "bg-[#147D78] text-white"
+                      : "text-slate-300 hover:bg-white/10 hover:text-white"
                       }`}
                   >
                     <div className="flex items-center gap-3">
                       <Icon className="h-4 w-4" />
                       <span>{item.label}</span>
                     </div>
-                    {item.badge && (
-                      <span className="text-[10px] bg-amber-400/30 text-amber-300 px-1.5 py-0.5 rounded font-black">
-                        {item.badge}
-                      </span>
-                    )}
                   </Link>
                 );
               })}
@@ -363,37 +369,9 @@ function LecturerLayoutContent({
       )}
 
       {/* Main Content Pane */}
-      <main className="flex-1 overflow-x-hidden pb-20 md:pb-8">
+      <main className="flex-1 overflow-x-hidden pb-16 md:pb-8">
         {children}
       </main>
-
-      {/* Mobile Bottom Bar for Lecturer */}
-      <nav
-        aria-label="Lecturer Mobile Navigation"
-        className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 md:hidden safe-area-inset-bottom"
-      >
-        <div className="grid grid-cols-5 h-16 max-w-lg mx-auto">
-          {navItems.slice(0, 5).map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
-                className={`flex flex-col items-center justify-center gap-1 transition ${item.isActive
-                    ? "text-[#147D78] font-bold"
-                    : "text-slate-500 hover:text-slate-900 font-medium"
-                  }`}
-              >
-                <Icon className={`h-5 w-5 ${item.isActive ? "stroke-[2.5]" : "stroke-2"}`} />
-                <span className="text-[10px] leading-none">{item.label}</span>
-                {item.isActive && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#147D78] mt-0.5" />
-                )}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
     </div>
   );
 }
@@ -404,8 +382,8 @@ export default function LecturerLayout({
   children: React.ReactNode;
 }) {
   return (
-    <React.Suspense fallback={<div className="min-h-screen bg-[#F7F8FA]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#F8FAFC]" />}>
       <LecturerLayoutContent>{children}</LecturerLayoutContent>
-    </React.Suspense>
+    </Suspense>
   );
 }

@@ -274,6 +274,77 @@ export class PublishingAndDeliveryService {
   }
 
   /**
+   * Updates document metadata (title, description, price, topics, etc.)
+   */
+  static updateDocument(params: {
+    authContext: UserAuthContext;
+    documentId: string;
+    title?: string;
+    description?: string;
+    priceUGX?: number;
+    topics?: string[];
+    courseUnitId?: string;
+  }): {
+    success: boolean;
+    document?: Document;
+    error?: string;
+  } {
+    const doc = dbStore.documents.find((d) => d.id === params.documentId);
+    if (!doc) return { success: false, error: "DOCUMENT_NOT_FOUND" };
+
+    if (!AuthorizationGuard.canManageDocument(params.authContext, doc.lecturerId)) {
+      return {
+        success: false,
+        error: "FORBIDDEN: You cannot modify another lecturer's publication",
+      };
+    }
+
+    if (params.title) doc.title = params.title.trim();
+    if (params.description) doc.description = params.description.trim();
+    if (typeof params.priceUGX === "number" && params.priceUGX >= 0) doc.priceUGX = params.priceUGX;
+    if (Array.isArray(params.topics)) doc.topics = params.topics;
+    if (params.courseUnitId) doc.courseUnitId = params.courseUnitId;
+    doc.updatedAt = new Date().toISOString();
+
+    return {
+      success: true,
+      document: doc,
+    };
+  }
+
+  /**
+   * Toggles document publication status (e.g. unpublish or re-publish)
+   * Existing student purchase entitlements remain preserved.
+   */
+  static setDocumentStatus(params: {
+    authContext: UserAuthContext;
+    documentId: string;
+    status: "published" | "draft" | "archived";
+  }): {
+    success: boolean;
+    document?: Document;
+    error?: string;
+  } {
+    const doc = dbStore.documents.find((d) => d.id === params.documentId);
+    if (!doc) return { success: false, error: "DOCUMENT_NOT_FOUND" };
+
+    if (!AuthorizationGuard.canManageDocument(params.authContext, doc.lecturerId)) {
+      return {
+        success: false,
+        error: "FORBIDDEN: You cannot modify another lecturer's publication",
+      };
+    }
+
+    doc.status = params.status;
+    doc.updatedAt = new Date().toISOString();
+
+    return {
+      success: true,
+      document: doc,
+    };
+  }
+
+  /**
    * Creates or updates a Lecturer Course-Resource Collection (Part VII Section 13).
    * Strictly blocks students and class coordinators from creating or modifying collections.
    */

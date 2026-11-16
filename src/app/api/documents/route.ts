@@ -3,21 +3,28 @@ import { dbStore } from "@/lib/db/in-memory-store";
 import { PublishingAndDeliveryService } from "@/lib/documents/publishing-service";
 import { UserAuthContext } from "@/lib/auth/roles";
 import { DocumentType } from "@/types/domain";
+import { findUserById } from "@/lib/auth/user-store";
 
 function getAuthContextFromUser(userId: string): UserAuthContext {
   const profile = dbStore.profiles.find((p) => p.id === userId);
-  const roles = dbStore.userRoles.get(userId) || ["student"];
-  const lec = dbStore.lecturerProfiles.find((l) => l.userId === userId);
+  const localUser = findUserById(userId);
+  const roles = dbStore.userRoles.get(userId) || (localUser ? [localUser.role] : ["student"]);
+  const lec = dbStore.lecturerProfiles.find((l) => l.userId === userId || l.id === userId);
+
+  const isVerified =
+    lec?.verificationStatus === "approved" ||
+    localUser?.verificationStatus === "verified" ||
+    roles.includes("admin");
 
   return {
     userId,
-    email: profile?.email || "",
+    email: profile?.email || localUser?.email || "",
     roles,
-    lecturerProfile: lec
+    lecturerProfile: (roles.includes("lecturer") || roles.includes("admin"))
       ? {
-          id: lec.id,
-          verificationStatus: lec.verificationStatus,
-          institutionId: lec.institutionId,
+          id: lec ? lec.id : `lec-${userId}`,
+          verificationStatus: isVerified ? "approved" : "under_review",
+          institutionId: lec?.institutionId || localUser?.institutionId || "inst-mak",
         }
       : undefined,
   };
@@ -70,6 +77,30 @@ export async function POST(req: NextRequest) {
         fileBuffer: rawBuffer,
         fileName: body.fileName || "updated.pdf",
         suggestedPreviewPages: body.suggestedPreviewPages,
+      });
+
+      return NextResponse.json(res, { status: res.success ? 200 : 403 });
+    }
+
+    if (action === "update_document") {
+      const res = PublishingAndDeliveryService.updateDocument({
+        authContext,
+        documentId: body.documentId,
+        title: body.title,
+        description: body.description,
+        priceUGX: typeof body.priceUGX === "number" ? body.priceUGX : undefined,
+        topics: body.topics,
+        courseUnitId: body.courseUnitId,
+      });
+
+      return NextResponse.json(res, { status: res.success ? 200 : 403 });
+    }
+
+    if (action === "set_document_status") {
+      const res = PublishingAndDeliveryService.setDocumentStatus({
+        authContext,
+        documentId: body.documentId,
+        status: body.status || "draft",
       });
 
       return NextResponse.json(res, { status: res.success ? 200 : 403 });

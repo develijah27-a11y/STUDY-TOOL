@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { dbStore } from "@/lib/db/in-memory-store";
 import { WalletAndLedgerService } from "@/lib/financial/wallet-service";
 import { AuthorizationGuard, UserAuthContext } from "@/lib/auth/roles";
+import { getAllUsers, updateUserVerification, UserVerificationStatus } from "@/lib/auth/user-store";
 
 function verifyAdminCaller(callerId: string): { allowed: boolean; context: UserAuthContext } {
   const roles = dbStore.userRoles.get(callerId) || [];
@@ -39,6 +40,7 @@ export async function GET(req: NextRequest) {
     refunds: dbStore.refunds,
     auditLogs: dbStore.auditLogs,
     settings: dbStore.settings,
+    registeredUsers: getAllUsers(),
     reconciliation,
   });
 }
@@ -60,26 +62,48 @@ export async function POST(req: NextRequest) {
     const now = new Date().toISOString();
 
     if (action === "review_lecturer") {
-      const lec = dbStore.lecturerProfiles.find((l) => l.id === body.lecturerId);
-      if (!lec) return NextResponse.json({ error: "LECTURER_NOT_FOUND" }, { status: 404 });
+      const lec = dbStore.lecturerProfiles.find((l) => l.id === body.lecturerId || l.userId === body.userId);
+      const targetUserId = body.userId || (lec ? lec.userId : body.lecturerId);
 
-      lec.verificationStatus = body.decision === "approve" ? "approved" : "rejected";
-      lec.rejectionReason = body.rejectionReason || undefined;
-      lec.reviewedBy = callerId;
-      lec.reviewedAt = now;
-      lec.updatedAt = now;
+      let newStatus: UserVerificationStatus = "pending_verification";
+      if (body.decision === "approve" || body.decision === "verified") {
+        newStatus = "verified";
+      } else if (body.decision === "reject" || body.decision === "rejected") {
+        newStatus = "rejected";
+      } else if (body.decision === "suspend" || body.decision === "suspended") {
+        newStatus = "suspended";
+      }
+
+      if (lec) {
+        lec.verificationStatus =
+          newStatus === "verified"
+            ? "approved"
+            : newStatus === "rejected"
+            ? "rejected"
+            : newStatus === "suspended"
+            ? "suspended"
+            : "under_review";
+        lec.rejectionReason = body.rejectionReason || undefined;
+        lec.reviewedBy = callerId;
+        lec.reviewedAt = now;
+        lec.updatedAt = now;
+      }
+
+      if (targetUserId) {
+        updateUserVerification(targetUserId, newStatus);
+      }
 
       dbStore.auditLogs.unshift({
         id: `aud-${Date.now()}`,
         actorId: callerId,
-        action: `LECTURER_VERIFICATION_${lec.verificationStatus.toUpperCase()}`,
+        action: `LECTURER_VERIFICATION_${newStatus.toUpperCase()}`,
         targetType: "lecturer_profile",
-        targetId: lec.id,
-        metadata: { decision: body.decision, reason: body.rejectionReason },
+        targetId: targetUserId,
+        metadata: { decision: body.decision, reason: body.rejectionReason, newStatus },
         createdAt: now,
       });
 
-      return NextResponse.json({ success: true, lecturerProfile: lec });
+      return NextResponse.json({ success: true, newStatus, lecturerProfile: lec });
     }
 
     if (action === "process_refund") {

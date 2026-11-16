@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
             programmeId: user.programmeId,
             department: user.department,
             teachingRole: user.teachingRole,
+            verificationStatus: user.verificationStatus,
           },
         });
       }

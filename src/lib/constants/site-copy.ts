@@ -1,67 +1,67 @@
 /**
  * Centralized Copy Dictionary for SomaUG Academic
- * Strictly follows The One Rule:
- * "Only claim what is true today, and show what the product does instead of who it knows."
+ * Strictly follows The One Rule and Project Beta Guidelines:
  * No unverified claims, no false institution partnerships, no misleading legal promises.
+ * Financial details (e.g. 85% revenue share) remain strictly inside the lecturer workspace.
  */
 
 export const SITE_COPY = {
   brand: {
     name: "SomaUG Academic",
-    tagline: "Course Study Notes & Revision Guides",
+    tagline: "Course Study Materials & Revision Guides",
     footerDescription:
-      "Independent academic marketplace for Ugandan higher education. Find lecture notes and revision guides authored by lecturers and tutors, and pay per document with mobile money.",
+      "SomaUG helps university and tertiary students discover lecture notes, study summaries, and revision guides authored by lecturers and academic tutors.",
   },
 
   actions: {
-    createAccount: "Create account",
-    browseVisitor: "Browse materials",
-    scanQr: "Scan document QR",
-    searchPlaceholder: "Search by course unit code (e.g. CSC 2101, LAW 1101) or topic...",
-    searchButton: "Search materials",
+    createAccount: "Get Started",
+    browseVisitor: "Explore Materials",
+    scanQr: "Scan QR",
+    searchPlaceholder: "Search by course code (e.g. CSC 2101, LAW 1101) or topic...",
+    searchButton: "Search Materials",
     viewAndBuy: "Preview & Buy",
   },
 
   hero: {
     badge: "Independent Study Materials · Mobile Money Checkout",
-    headline: "Find and buy study notes for your course, pay with mobile money.",
+    headline: "Access academic study notes authored by your course lecturers.",
     subline:
-      "Lecture notes and study guides from lecturers and tutors. Preview before you pay.",
+      "Lecture notes, revision summaries, and practical guides. Preview free sample pages before you pay with mobile money.",
   },
 
   howItWorks: [
     {
       step: 1,
       title: "Find your course unit",
-      description: "Search by course code, unit title, or filter by your institution to locate relevant lecture notes.",
+      description: "Search by course unit code or title, and filter by your university or institute in the catalogue.",
     },
     {
       step: 2,
       title: "Preview before paying",
-      description: "Read the free sample pages, verify the table of contents, and pay with MTN or Airtel Mobile Money.",
+      description: "Read the free sample pages and verify syllabus coverage before purchasing with MTN or Airtel Mobile Money.",
     },
     {
       step: 3,
-      title: "Read or download",
-      description: "Access your notes instantly in your browser reader, highlight key concepts, or download for offline revision.",
+      title: "Read online or offline",
+      description: "Access your notes instantly in the browser reader, highlight key points, and study offline without extra data charges.",
     },
   ],
 
   forLecturers: {
-    heading: "Publish your study materials on SomaUG",
-    subheading: "Help students revise effectively while earning from your original course notes and revision guides.",
+    heading: "Publish your course materials on SomaUG",
+    subheading: "Help students revise effectively with your original course notes and structured syllabus guides.",
     benefits: [
       {
-        title: "Keep 85% of your earnings",
-        description: "You receive 85% of every document sale. SomaUG keeps 15% to cover payment gateway fees and hosting.",
+        title: "Direct student reach",
+        description: "Distribute revision notes and course materials directly to students taking your course units.",
       },
       {
-        title: "Direct mobile money payouts",
-        description: "Withdraw your balance anytime to your registered MTN or Airtel mobile money number.",
+        title: "Copyright protected",
+        description: "You remain the author and copyright owner with personalized watermarking on student downloads.",
       },
       {
-        title: "Retain your copyright",
-        description: "You remain the author and copyright owner. You grant SomaUG a non-exclusive distribution right.",
+        title: "Mobile money withdrawals",
+        description: "Withdraw your verified balance anytime directly to your registered MTN or Airtel phone number.",
       },
     ],
     declarationNotice:
@@ -70,34 +70,34 @@ export const SITE_COPY = {
 
   faq: [
     {
-      question: "Is it safe to pay on SomaUG?",
+      question: "What is SomaUG Academic?",
       answer:
-        "Yes. Payments are processed per document directly via licensed mobile money payment gateways. SomaUG does not hold stored balances or store your PIN.",
+        "SomaUG is an independent digital study tool where university lecturers and tutors publish original course notes, study guides, and revision summaries for higher education in Uganda.",
     },
     {
-      question: "Can I preview notes before buying?",
+      question: "Can I preview notes before paying?",
       answer:
-        "Yes. Every publication includes free sample pages and a table of contents so you can inspect the quality and syllabus coverage before paying.",
+        "Yes. Every published document includes free sample pages and an overview of topics so you can inspect quality before paying.",
     },
     {
-      question: "What if the document file does not open or is incorrect?",
+      question: "How do payments work?",
       answer:
-        "We offer a 24-hour refund policy. If a file is corrupted, illegible, or materially different from its description, contact our support on WhatsApp or email for a swift review and refund.",
+        "Payments are pay-per-document using MTN Mobile Money or Airtel Money. You pay only for the individual notes you need with zero recurring subscriptions.",
     },
     {
-      question: "Who owns the notes on SomaUG?",
+      question: "Can I read materials offline?",
       answer:
-        "Notes are authored and owned by the respective lecturers and tutors. SomaUG acts as an independent distribution platform.",
+        "Yes. Once you unlock a document, you can save it to your offline study library and read without an active internet connection.",
     },
     {
-      question: "How do I report copyright infringement or unauthorized materials?",
+      question: "What if a file is damaged or incomplete?",
       answer:
-        "We review uploads and respond to takedown requests within 48 hours. Submit a request via our Copyright & Takedown page or email copyright@somaug.org.",
+        "We offer a 24-hour refund policy. If a file does not open or is materially misdescribed, reach out to our support on WhatsApp or email for a prompt refund.",
     },
     {
-      question: "Is SomaUG affiliated with Makerere, Kyambogo, or any university?",
+      question: "Is SomaUG affiliated with any university?",
       answer:
-        "No. SomaUG is an independent platform. It is not affiliated with, endorsed by, or sponsored by any university or institution. Institution names are used strictly to help students find materials for their courses.",
+        "No. SomaUG is an independent platform. It is not affiliated with, endorsed by, or sponsored by any university or institution. Institution names are used solely to help students locate materials relevant to their coursework.",
     },
   ],
 

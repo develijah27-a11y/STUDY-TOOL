@@ -31,6 +31,7 @@ import {
   Download,
   ArrowUpRight,
   Check,
+  Users,
 } from "lucide-react";
 import {
   offlineStorage,
@@ -221,6 +222,61 @@ export default function StudentDashboardPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Quick Navigation Cards: Library, Community, Tutors, Catalogue */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <Link
+          href="/student/library"
+          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-[#147D78] transition flex items-center gap-3"
+        >
+          <div className="h-10 w-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center shrink-0">
+            <BookOpen className="h-5 w-5" />
+          </div>
+          <div>
+            <span className="block text-xs font-bold text-slate-900">My Library</span>
+            <span className="block text-[11px] text-slate-500">Purchased &amp; Offline Notes</span>
+          </div>
+        </Link>
+
+        <Link
+          href="/catalogue"
+          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-[#147D78] transition flex items-center gap-3"
+        >
+          <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+            <Search className="h-5 w-5" />
+          </div>
+          <div>
+            <span className="block text-xs font-bold text-slate-900">Explore Materials</span>
+            <span className="block text-[11px] text-slate-500">Search Course Units</span>
+          </div>
+        </Link>
+
+        <Link
+          href="/student/community"
+          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-[#147D78] transition flex items-center gap-3"
+        >
+          <div className="h-10 w-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0">
+            <Users className="h-5 w-5" />
+          </div>
+          <div>
+            <span className="block text-xs font-bold text-slate-900">Study Community</span>
+            <span className="block text-[11px] text-slate-500">Course Q&amp;A &amp; Discussion</span>
+          </div>
+        </Link>
+
+        <Link
+          href="/student/tutors"
+          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:border-[#147D78] transition flex items-center gap-3"
+        >
+          <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+            <GraduationCap className="h-5 w-5" />
+          </div>
+          <div>
+            <span className="block text-xs font-bold text-slate-900">Find a Tutor</span>
+            <span className="block text-[11px] text-slate-500">Verified Revision Tutors</span>
+          </div>
+        </Link>
       </div>
 
       {/* 2. Prominent Search Bar (Publication titles, Lecturers, Institutions, Course Units) */}

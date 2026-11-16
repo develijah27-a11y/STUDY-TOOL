@@ -43,8 +43,11 @@ export async function POST(req: NextRequest) {
             fullName: demoUser.fullName,
             role: demoUser.role,
             roles: [demoUser.role],
+            verificationStatus: demoUser.verificationStatus,
             institutionId: demoUser.institutionId,
             programmeId: demoUser.programmeId,
+            department: demoUser.department,
+            teachingRole: demoUser.teachingRole,
           },
           token: sessionToken,
         });
@@ -74,8 +77,11 @@ export async function POST(req: NextRequest) {
           fullName: localUser.fullName,
           role: localUser.role,
           roles: [localUser.role],
+          verificationStatus: localUser.verificationStatus,
           institutionId: localUser.institutionId,
           programmeId: localUser.programmeId,
+          department: localUser.department,
+          teachingRole: localUser.teachingRole,
         },
         token: sessionToken,
       });

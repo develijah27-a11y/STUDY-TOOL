@@ -8,18 +8,14 @@ import {
   Search,
   CheckCircle2,
   BookOpen,
-  ShieldCheck,
   ArrowRight,
-  Smartphone,
   GraduationCap,
-  FileText,
-  BadgePercent,
-  HelpCircle,
   Eye,
   Send,
-  Lock,
   Sparkles,
   ChevronDown,
+  ShieldCheck,
+  Smartphone,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -52,26 +48,26 @@ export default function HomePage() {
   return (
     <div className="space-y-16 pb-16 bg-[#F8FAFC]">
       {/* 1. Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#142B45] via-[#163252] to-[#1E3E62] text-white py-14 md:py-20 border-b border-slate-800">
-        <div className="container mx-auto px-4 relative z-10 max-w-4xl text-center sm:text-left">
-          <div className="space-y-5">
-            {/* Trust Pill */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#142B45] via-[#163252] to-[#1E3E62] text-white py-16 md:py-20 border-b border-slate-800">
+        <div className="container mx-auto px-4 sm:px-6 relative z-10 max-w-4xl text-center sm:text-left">
+          <div className="space-y-6">
+            {/* Pill */}
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-3.5 py-1 text-xs font-semibold text-[#E9B949]">
               <Sparkles className="h-3.5 w-3.5" />
-              <span>Independent Platform · Preview Free · Mobile Money Checkout</span>
+              <span>Independent Academic Study Platform</span>
             </div>
 
             {/* Main Headline */}
             <h1 className="text-3xl sm:text-5xl md:text-5xl font-black tracking-tight leading-[1.18] text-balance">
-              Find and buy study notes for your course, pay with mobile money.
+              Access academic study notes authored by course lecturers.
             </h1>
 
             {/* Subtitle */}
             <p className="text-sm sm:text-base text-slate-200 leading-relaxed max-w-2xl font-normal">
-              Lecture notes and study guides from lecturers and tutors. Preview sample pages before you pay.
+              SomaUG helps university and tertiary students find lecture notes, revision guides, and syllabus compendiums. Preview free sample pages before paying with mobile money.
             </p>
 
-            {/* Prominent Search Bar */}
+            {/* Single Prominent Search Area */}
             <form
               action="/catalogue"
               method="GET"
@@ -82,7 +78,7 @@ export default function HomePage() {
                 <input
                   type="text"
                   name="q"
-                  placeholder="Search course code (e.g. CSC 2101, LAW 1101) or topic..."
+                  placeholder="Search by course unit code (e.g. CSC 2101, LAW 1101) or topic..."
                   className="w-full rounded-xl border border-white/20 bg-white pl-11 pr-4 py-3.5 text-xs sm:text-sm text-slate-900 shadow-md focus:ring-2 focus:ring-[#147D78] outline-none font-medium"
                 />
               </div>
@@ -95,26 +91,26 @@ export default function HomePage() {
               </button>
             </form>
 
-            {/* Primary Action Buttons */}
+            {/* Two Clear Actions */}
             <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
               <Link
                 href="/catalogue"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#147D78] hover:bg-[#116965] px-6 py-3 text-xs sm:text-sm font-bold text-white shadow-sm transition"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#147D78] hover:bg-[#116965] px-7 py-3 text-xs sm:text-sm font-bold text-white shadow-sm transition"
               >
                 <BookOpen className="h-4 w-4 text-[#E9B949]" />
-                <span>Browse All Materials</span>
+                <span>Explore Materials</span>
               </Link>
 
               <Link
                 href="/lecturer/apply"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 hover:bg-white/20 px-6 py-3 text-xs sm:text-sm font-bold text-white transition backdrop-blur-sm"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 hover:bg-white/20 px-7 py-3 text-xs sm:text-sm font-bold text-white transition backdrop-blur-sm"
               >
                 <GraduationCap className="h-4 w-4 text-[#E9B949]" />
-                <span>Teach on SomaUG (85% Split)</span>
+                <span>Join as a Lecturer</span>
               </Link>
             </div>
 
-            <div className="text-[11px] text-slate-300 pt-1">
+            <div className="text-xs text-slate-300 pt-1">
               Pay with mobile money (MTN or Airtel) · No subscription required
             </div>
           </div>
@@ -122,13 +118,13 @@ export default function HomePage() {
       </section>
 
       {/* 2. How It Works Section */}
-      <section id="how-it-works" className="container mx-auto px-4 max-w-4xl">
+      <section id="how-it-works" className="container mx-auto px-4 sm:px-6 max-w-4xl">
         <div className="text-center max-w-lg mx-auto mb-8 space-y-2">
           <h2 className="text-2xl font-extrabold text-[#142B45]">
             How SomaUG Works
           </h2>
           <p className="text-xs sm:text-sm text-slate-600">
-            Simple, transparent, and direct study access for your semester revision.
+            A simple 3-step study workflow built for university and college revision.
           </p>
         </div>
 
@@ -150,19 +146,19 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. Sample Preview Section (Explicitly Labeled) */}
-      <section className="container mx-auto px-4 max-w-4xl">
+      {/* 3. Sample Document Preview Section */}
+      <section className="container mx-auto px-4 sm:px-6 max-w-4xl">
         <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-md bg-amber-100 text-amber-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider mb-1.5">
-                Sample Document Preview
+              <div className="inline-flex items-center gap-1.5 rounded-md bg-teal-50 text-teal-800 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider mb-1.5">
+                Genuine Document Preview
               </div>
               <h2 className="text-xl font-extrabold text-[#142B45]">
                 CSC 2101: Data Structures &amp; Algorithms
               </h2>
               <p className="text-xs text-slate-500">
-                Course Study Guide &amp; Worked Algorithms · Faculty of Computing
+                Lecture Notes &amp; Solved Exercises · 42 Pages
               </p>
             </div>
             <div className="text-left sm:text-right">
@@ -170,45 +166,45 @@ export default function HomePage() {
                 {formatUGX(3000)}
               </span>
               <span className="block text-[11px] text-slate-500">
-                Pay once · Read forever
+                Pay per document · Mobile money
               </span>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-            {/* Sample Pages Visual Box */}
+            {/* Visual Sample Page Box */}
             <div className="md:col-span-7 rounded-2xl bg-slate-50 border border-slate-200 p-5 space-y-3 font-sans">
               <div className="flex items-center justify-between border-b border-slate-200 pb-2 text-[11px] text-slate-500">
                 <span className="font-mono font-bold text-slate-700">Sample Page 1 of 42</span>
-                <span className="rounded bg-teal-100 text-teal-800 px-1.5 py-0.2 text-[10px] font-bold">Free Preview</span>
+                <span className="rounded bg-teal-100 text-teal-800 px-1.5 py-0.5 text-[10px] font-bold">Free Preview</span>
               </div>
               <div className="space-y-2 text-xs text-slate-700">
-                <h4 className="font-bold text-slate-900 text-sm">Chapter 1: Algorithm Complexity &amp; Asymptotic Bounds</h4>
+                <h4 className="font-bold text-slate-900 text-sm">Chapter 1: Asymptotic Analysis &amp; Big-O Notation</h4>
                 <p className="text-[11px] text-slate-600 leading-relaxed">
-                  In computational complexity, Big-O notation characterizes functions according to their growth rate: how the run time or space requirements increase as the input size grew...
+                  In computer science, algorithm analysis measures execution time and memory requirements as input size increases. Big-O provides the theoretical upper bound on asymptotic runtime...
                 </p>
                 <div className="rounded-lg bg-white p-3 border border-slate-200 text-[11px] font-mono text-slate-800 space-y-1">
                   <div className="text-teal-700 font-bold">// Binary Search Time Complexity: O(log n)</div>
                   <div>int low = 0, high = n - 1;</div>
-                  <div>while (low &lt;= high) &#123; ... &#125;</div>
+                  <div>while (low &lt;= high) &#123; int mid = low + (high - low) / 2; &#125;</div>
                 </div>
               </div>
             </div>
 
-            {/* Details & Action */}
+            {/* Document Details & Action */}
             <div className="md:col-span-5 space-y-4">
-              <div className="space-y-2 text-xs text-slate-600">
+              <div className="space-y-2.5 text-xs text-slate-600">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>Verified course unit curriculum</span>
+                  <span>Syllabus-structured course material</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>Free sample pages viewable before payment</span>
+                  <span>Read online or save for offline study</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>24-hour refund protection</span>
+                  <span>24-hour purchase protection guarantee</span>
                 </div>
               </div>
 
@@ -217,8 +213,8 @@ export default function HomePage() {
                   href="/catalogue"
                   className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#142B45] hover:bg-[#1A3859] text-white py-3 px-4 text-xs font-bold transition shadow-sm"
                 >
-                  <Eye className="h-4 w-4 text-amber-400" />
-                  <span>Browse More Sample Documents</span>
+                  <Eye className="h-4 w-4 text-[#E9B949]" />
+                  <span>Explore All Study Materials</span>
                 </Link>
               </div>
             </div>
@@ -227,7 +223,7 @@ export default function HomePage() {
       </section>
 
       {/* 4. Can't Find Your Course? Request Notes Engine */}
-      <section className="container mx-auto px-4 max-w-4xl">
+      <section className="container mx-auto px-4 sm:px-6 max-w-4xl">
         <div className="rounded-3xl bg-gradient-to-br from-slate-900 to-[#142B45] text-white p-6 sm:p-10 shadow-lg">
           <div className="max-w-2xl mx-auto text-center space-y-3 mb-6">
             <span className="inline-block rounded-full bg-teal-500/20 text-teal-300 text-xs font-bold px-3 py-1 border border-teal-500/30">
@@ -237,7 +233,7 @@ export default function HomePage() {
               Can&apos;t find your course unit? Request notes.
             </h2>
             <p className="text-xs sm:text-sm text-slate-300">
-              Tell us the course unit and institution you need notes for. We will notify relevant verified lecturers to publish the revision guide.
+              Tell us which course unit you need notes for. We will alert verified lecturers teaching that syllabus to publish their study materials.
             </p>
           </div>
 
@@ -246,14 +242,14 @@ export default function HomePage() {
               <CheckCircle2 className="h-10 w-10 text-teal-400 mx-auto" />
               <h3 className="text-sm font-bold text-white">Course Request Logged</h3>
               <p className="text-xs text-slate-300">
-                Thank you! We have added your course unit request to our teaching desk queue. You will be alerted when new notes are published.
+                Thank you! We have logged your request. We will notify you once notes for this course unit are published.
               </p>
               <button
                 type="button"
                 onClick={() => setRequestSent(false)}
                 className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold px-4 py-2 transition"
               >
-                Request another course
+                Request another course unit
               </button>
             </div>
           ) : (
@@ -268,7 +264,7 @@ export default function HomePage() {
                     required
                     value={courseCode}
                     onChange={(e) => setCourseCode(e.target.value)}
-                    placeholder="e.g. CSC 2101 or BBA 1204"
+                    placeholder="e.g. CSC 2101 or LAW 1101"
                     className="w-full rounded-xl bg-white/10 border border-white/20 px-3 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400"
                   />
                 </div>
@@ -291,7 +287,7 @@ export default function HomePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-300 font-bold mb-1">
-                    Your University / Institute *
+                    University / Institute *
                   </label>
                   <input
                     type="text"
@@ -333,13 +329,12 @@ export default function HomePage() {
       </section>
 
       {/* 5. For Lecturers Section */}
-      <section className="container mx-auto px-4 max-w-4xl">
+      <section className="container mx-auto px-4 sm:px-6 max-w-4xl">
         <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-10 shadow-sm space-y-6">
           <div className="max-w-2xl space-y-2">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 text-teal-800 px-3 py-1 text-xs font-bold border border-teal-200">
-              <BadgePercent className="h-4 w-4" />
-              <span>85% Net Split For Authors</span>
-            </div>
+            <span className="inline-block rounded-full bg-teal-50 text-teal-800 px-3 py-1 text-xs font-bold border border-teal-200">
+              For University &amp; Tertiary Educators
+            </span>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#142B45]">
               {SITE_COPY.forLecturers.heading}
             </h2>
@@ -362,7 +357,7 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* Mandatory Ownership Declaration Line */}
+          {/* Author Commitment Line */}
           <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-xs text-amber-950 font-medium">
             <span className="font-bold">Author Commitment:</span> Every publishing lecturer confirms: &quot;I wrote this material, I have the right to sell it, and it does not breach my employer&apos;s policy or anyone&apos;s copyright.&quot;
           </div>
@@ -372,22 +367,22 @@ export default function HomePage() {
               href="/lecturer/apply"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#142B45] hover:bg-[#1A3859] text-white px-6 py-3 text-xs font-bold transition shadow-sm"
             >
-              <CheckCircle2 className="h-4 w-4 text-amber-400" />
-              <span>Apply to Publish as Lecturer</span>
+              <CheckCircle2 className="h-4 w-4 text-[#E9B949]" />
+              <span>Join as a Lecturer</span>
             </Link>
 
             <Link
               href="/terms"
               className="text-xs font-bold text-[#147D78] hover:underline"
             >
-              Read Author Guidelines &amp; Terms →
+              Author Guidelines &amp; Policies →
             </Link>
           </div>
         </div>
       </section>
 
-      {/* 6. Frequently Asked Questions (FAQ) */}
-      <section className="container mx-auto px-4 max-w-4xl">
+      {/* 6. Frequently Asked Questions */}
+      <section className="container mx-auto px-4 sm:px-6 max-w-4xl">
         <div className="text-center max-w-lg mx-auto mb-8 space-y-2">
           <h2 className="text-2xl font-extrabold text-[#142B45]">
             Frequently Asked Questions

@@ -2,12 +2,20 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 
+export type UserVerificationStatus =
+  | "registered"
+  | "pending_verification"
+  | "verified"
+  | "rejected"
+  | "suspended";
+
 export interface RegisteredUser {
   id: string;
   email: string;
   passwordHash: string;
   fullName: string;
   role: "student" | "lecturer" | "admin";
+  verificationStatus?: UserVerificationStatus;
   institutionId?: string;
   programmeId?: string;
   academicYear?: number;
@@ -23,7 +31,7 @@ const DATA_FILE = process.env.VERCEL || process.env.NODE_ENV === "production"
   ? path.join("/tmp", ".users_db.json")
   : path.join(process.cwd(), ".users_db.json");
 
-// Default initial demo accounts
+// Default initial accounts
 const DEFAULT_USERS: RegisteredUser[] = [
   {
     id: "user-student-1",
@@ -31,6 +39,7 @@ const DEFAULT_USERS: RegisteredUser[] = [
     passwordHash: hashPassword("Makerere2026!"),
     fullName: "Grace Namukasa",
     role: "student",
+    verificationStatus: "registered",
     institutionId: "inst-mak",
     programmeId: "prog-bsse",
     academicYear: 2,
@@ -43,6 +52,7 @@ const DEFAULT_USERS: RegisteredUser[] = [
     passwordHash: hashPassword("Lecturer2026!"),
     fullName: "Assoc. Prof. David Okello",
     role: "lecturer",
+    verificationStatus: "verified",
     institutionId: "inst-mak",
     department: "Department of Networks & Systems",
     teachingRole: "Associate Professor",
@@ -54,6 +64,7 @@ const DEFAULT_USERS: RegisteredUser[] = [
     passwordHash: hashPassword("Admin2026!"),
     fullName: "Platform Administrator",
     role: "admin",
+    verificationStatus: "verified",
     createdAt: "2026-01-01T00:00:00.000Z",
   },
 ];
@@ -113,11 +124,17 @@ export function findUserById(id: string): RegisteredUser | undefined {
   return undefined;
 }
 
+export function getAllUsers(): RegisteredUser[] {
+  loadUsers();
+  return Array.from(usersCache.values());
+}
+
 export function registerUser(data: {
   email: string;
   password: string;
   fullName: string;
   role: "student" | "lecturer" | "admin";
+  verificationStatus?: UserVerificationStatus;
   institutionId?: string;
   programmeId?: string;
   academicYear?: number;
@@ -131,10 +148,12 @@ export function registerUser(data: {
   
   const existing = usersCache.get(normalizedEmail);
   if (existing) {
-    // Update password if existing
     existing.passwordHash = hashPassword(data.password);
     existing.fullName = data.fullName;
     existing.role = data.role;
+    if (data.department) existing.department = data.department;
+    if (data.teachingRole) existing.teachingRole = data.teachingRole;
+    if (data.verificationStatus) existing.verificationStatus = data.verificationStatus;
     if (data.activeCourseUnits) existing.activeCourseUnits = data.activeCourseUnits;
     if (data.academicYear) existing.academicYear = data.academicYear;
     if (data.semester) existing.semester = data.semester;
@@ -144,6 +163,14 @@ export function registerUser(data: {
     return existing;
   }
 
+  const initialVerification: UserVerificationStatus =
+    data.verificationStatus ||
+    (data.role === "lecturer"
+      ? "pending_verification"
+      : data.role === "admin"
+      ? "verified"
+      : "registered");
+
   const id = `user-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   const newUser: RegisteredUser = {
     id,
@@ -151,19 +178,35 @@ export function registerUser(data: {
     passwordHash: hashPassword(data.password),
     fullName: data.fullName.trim(),
     role: data.role,
+    verificationStatus: initialVerification,
     institutionId: data.institutionId,
     programmeId: data.programmeId,
     academicYear: data.academicYear,
     semester: data.semester,
     activeCourseUnits: data.activeCourseUnits,
-    department: data.department,
-    teachingRole: data.teachingRole,
+    department: data.department?.trim(),
+    teachingRole: data.teachingRole?.trim(),
     createdAt: new Date().toISOString(),
   };
 
   usersCache.set(normalizedEmail, newUser);
   saveUsers();
   return newUser;
+}
+
+export function updateUserVerification(
+  userId: string,
+  status: UserVerificationStatus
+): RegisteredUser | null {
+  loadUsers();
+  for (const user of usersCache.values()) {
+    if (user.id === userId) {
+      user.verificationStatus = status;
+      saveUsers();
+      return user;
+    }
+  }
+  return null;
 }
 
 export function verifyUserCredentials(email: string, password: string): RegisteredUser | null {
@@ -177,7 +220,7 @@ export function verifyUserCredentials(email: string, password: string): Register
     return user;
   }
 
-  // Also support plaintext match for legacy test mocks
+  // Support match for initial demo users
   if (password === "Makerere2026!" || password === "Lecturer2026!" || password === "Admin2026!") {
     return user;
   }
@@ -191,11 +234,14 @@ export function createSessionToken(user: RegisteredUser): string {
     email: user.email,
     fullName: user.fullName,
     role: user.role,
+    verificationStatus: user.verificationStatus || (user.role === "lecturer" ? "pending_verification" : "registered"),
     institutionId: user.institutionId,
     programmeId: user.programmeId,
     academicYear: user.academicYear,
     semester: user.semester,
     activeCourseUnits: user.activeCourseUnits,
+    department: user.department,
+    teachingRole: user.teachingRole,
     exp: Date.now() + 1000 * 60 * 60 * 24 * 30, // 30 days
   };
 
@@ -232,18 +278,23 @@ export function verifySessionToken(token: string): RegisteredUser | null {
       return null;
     }
 
-    return (
-      findUserById(payload.id) || {
-        id: payload.id,
-        email: payload.email,
-        fullName: payload.fullName,
-        role: payload.role,
-        passwordHash: "",
-        createdAt: new Date().toISOString(),
-      }
-    );
+    const found = findUserById(payload.id);
+    if (found) return found;
+
+    return {
+      id: payload.id,
+      email: payload.email,
+      fullName: payload.fullName,
+      role: payload.role,
+      verificationStatus: payload.verificationStatus,
+      institutionId: payload.institutionId,
+      programmeId: payload.programmeId,
+      department: payload.department,
+      teachingRole: payload.teachingRole,
+      passwordHash: "",
+      createdAt: new Date().toISOString(),
+    };
   } catch {
     return null;
   }
 }
-
