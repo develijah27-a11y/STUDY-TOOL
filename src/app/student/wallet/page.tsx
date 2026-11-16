@@ -277,18 +277,29 @@ export default function StudentWalletPage() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
 
+      {/* Regulatory & Payment Model Notice Banner */}
+      <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-xs text-amber-950 flex items-start gap-3">
+        <ShieldCheck className="h-5 w-5 text-amber-700 shrink-0 mt-0.5" />
+        <div className="space-y-1">
+          <span className="font-bold">Payment &amp; Wallet Notice:</span>
+          <p className="leading-relaxed text-amber-900">
+            Under Uganda&apos;s National Payment Systems Act 2020, SomaUG uses direct pay-per-document mobile money checkouts. If you have an existing balance below, you can use it to unlock documents or withdraw it back to your mobile money number anytime.
+          </p>
+        </div>
+      </div>
+
       {/* Top Banner: Spendable & Reserved Balance Card */}
       <div className="rounded-3xl bg-[#142B45] text-white p-6 md:p-10 shadow-xl border border-slate-800">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full bg-[#147D78]/30 border border-[#147D78]/50 px-3.5 py-1 text-xs font-extrabold text-teal-200">
               <Wallet className="h-3.5 w-3.5 text-[#E9B949]" />
-              <span>Double-Entry Student Wallet (Uganda Shillings)</span>
+              <span>Student Study Balance (UGX)</span>
             </div>
 
             <div className="space-y-1">
               <span className="text-xs uppercase font-bold text-slate-300 tracking-wider">
-                Available Spendable Balance
+                Available Study Balance
               </span>
               <div className="text-4xl md:text-5xl font-black text-[#E9B949] tracking-tight">
                 {formatUGX(spendableBalance)}
@@ -298,11 +309,11 @@ export default function StudentWalletPage() {
             <div className="flex flex-wrap items-center gap-4 text-xs text-slate-300 pt-1">
               <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-lg border border-white/15">
                 <Clock className="h-3.5 w-3.5 text-[#E9B949]" />
-                <span>Reserved in Settlement: <strong>{formatUGX(reservedBalance)}</strong></span>
+                <span>Reserved in Purchases: <strong>{formatUGX(reservedBalance)}</strong></span>
               </div>
               <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-lg border border-white/15">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-                <span>Double-Entry Balanced</span>
+                <span>Instant MoMo Withdrawals Available</span>
               </div>
             </div>
           </div>

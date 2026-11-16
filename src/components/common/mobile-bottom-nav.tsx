@@ -5,15 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Home,
-  Compass,
+  Search,
   BookOpen,
-  Wallet,
   User,
   QrCode,
   LogIn,
-  UserPlus,
   UploadCloud,
-  FileText,
+  Wallet,
 } from "lucide-react";
 
 export function MobileBottomNav() {
@@ -49,12 +47,11 @@ export function MobileBottomNav() {
   }, [pathname]);
 
   // Hide persistent bottom bar inside protected student/lecturer/admin routes (they render their own role-tailored layout nav)
-  const isDashboardRoute =
-    Boolean(
-      pathname.startsWith("/student") ||
-      pathname.startsWith("/lecturer") ||
-      pathname.startsWith("/admin")
-    );
+  const isDashboardRoute = Boolean(
+    pathname.startsWith("/student") ||
+    pathname.startsWith("/lecturer") ||
+    pathname.startsWith("/admin")
+  );
 
   if (isDashboardRoute) {
     return null;
@@ -69,7 +66,7 @@ export function MobileBottomNav() {
   }[] = [];
 
   if (!authenticatedUser) {
-    // Guest / Unauthenticated Visitor
+    // Guest / Unauthenticated Visitor: 4 focused tabs
     navItems = [
       {
         label: "Home",
@@ -78,9 +75,9 @@ export function MobileBottomNav() {
         isActive: pathname === "/",
       },
       {
-        label: "Explore",
+        label: "Browse",
         href: "/catalogue",
-        icon: Compass,
+        icon: Search,
         isActive: pathname.startsWith("/catalogue"),
       },
       {
@@ -93,17 +90,11 @@ export function MobileBottomNav() {
         label: "Sign In",
         href: "/sign-in",
         icon: LogIn,
-        isActive: pathname === "/sign-in",
-      },
-      {
-        label: "Join Free",
-        href: "/sign-up",
-        icon: UserPlus,
-        isActive: pathname === "/sign-up",
+        isActive: pathname === "/sign-in" || pathname === "/sign-up",
       },
     ];
   } else if (authenticatedUser.role === "lecturer") {
-    // Authenticated Lecturer
+    // Authenticated Lecturer: 4 tabs
     navItems = [
       {
         label: "Overview",
@@ -124,20 +115,14 @@ export function MobileBottomNav() {
         isActive: pathname.includes("tab=earnings"),
       },
       {
-        label: "Explore",
+        label: "Browse",
         href: "/catalogue",
-        icon: Compass,
+        icon: Search,
         isActive: pathname.startsWith("/catalogue"),
-      },
-      {
-        label: "Account",
-        href: "/lecturer/apply",
-        icon: User,
-        isActive: pathname === "/lecturer/apply",
       },
     ];
   } else {
-    // Authenticated Student
+    // Authenticated Student: 4 tabs
     navItems = [
       {
         label: "Dashboard",
@@ -146,9 +131,9 @@ export function MobileBottomNav() {
         isActive: pathname === "/student/dashboard",
       },
       {
-        label: "Explore",
+        label: "Browse",
         href: "/catalogue",
-        icon: Compass,
+        icon: Search,
         isActive: pathname.startsWith("/catalogue"),
       },
       {
@@ -156,12 +141,6 @@ export function MobileBottomNav() {
         href: "/student/library",
         icon: BookOpen,
         isActive: pathname.startsWith("/student/library"),
-      },
-      {
-        label: "Wallet",
-        href: "/student/wallet",
-        icon: Wallet,
-        isActive: pathname.startsWith("/student/wallet"),
       },
       {
         label: "Profile",
@@ -172,12 +151,14 @@ export function MobileBottomNav() {
     ];
   }
 
+  const gridColsClass = navItems.length === 4 ? "grid-cols-4" : "grid-cols-5";
+
   return (
     <nav
       aria-label="Mobile Bottom Navigation"
       className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 md:hidden safe-area-inset-bottom"
     >
-      <div className="grid grid-cols-5 h-16 max-w-lg mx-auto">
+      <div className={`grid ${gridColsClass} h-16 max-w-lg mx-auto`}>
         {navItems.map((item) => {
           const Icon = item.icon;
           return (

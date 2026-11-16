@@ -263,7 +263,7 @@ function LecturerDashboardContent() {
       }
 
       setPublishResult(
-        `Successfully published! Access Code: ${data.document.accessCode}. Double-entry ledger registered.`
+        `Successfully published! Access Code: ${data.document.accessCode}. Your document is now available in the catalogue.`
       );
       setLastPublishedDoc({
         id: data.document.id,
@@ -868,10 +868,10 @@ function LecturerDashboardContent() {
                     <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-xs text-amber-900 space-y-2">
                       <span className="font-bold flex items-center gap-1.5 text-amber-900">
                         <ShieldCheck className="h-4 w-4 text-[#147D78]" />
-                        <span>Protected Academic Publishing Safeguards:</span>
+                        <span>Author Safeguards &amp; 85% Net Split:</span>
                       </span>
                       <p className="text-xs leading-relaxed text-amber-950">
-                        Documents published on SomaUG Academic receive dynamic student-identity watermarks, anti-scrape DRM protection, and double-entry ledger settlement on each sale.
+                        You will receive 85% of each document sale (SomaUG retains 15% to cover payment processing and hosting). Documents are watermarked with the purchasing student&apos;s details to discourage unauthorized redistribution.
                       </p>
                     </div>
 
@@ -883,8 +883,8 @@ function LecturerDashboardContent() {
                         className="mt-0.5 rounded text-[#147D78] focus:ring-[#147D78]"
                         required
                       />
-                      <span>
-                        I confirm that I hold academic authorship or educational distribution rights for this material.
+                      <span className="font-medium text-slate-800">
+                        I confirm that I wrote this material, I have the right to sell it, and it does not breach my employer&apos;s policy or anyone&apos;s copyright.
                       </span>
                     </label>
 

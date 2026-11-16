@@ -1,93 +1,109 @@
 /**
  * Centralized Copy Dictionary for SomaUG Academic
- * Strictly follows the UI/UX Master Design Directive.
- * Prohibits unverified claims (e.g. "peer-reviewed", "official endorsement")
- * and technical jargon in student-facing prose.
+ * Strictly follows The One Rule:
+ * "Only claim what is true today, and show what the product does instead of who it knows."
+ * No unverified claims, no false institution partnerships, no misleading legal promises.
  */
 
 export const SITE_COPY = {
   brand: {
     name: "SomaUG Academic",
-    tagline: "Uganda Universities & Vocational Institutes",
+    tagline: "Course Study Notes & Revision Guides",
     footerDescription:
-      "Study materials marketplace for Ugandan universities, polytechnics and institutes. Instant unlock with MTN and Airtel Mobile Money.",
+      "Independent academic marketplace for Ugandan higher education. Find lecture notes and revision guides authored by lecturers and tutors, and pay per document with mobile money.",
   },
 
   actions: {
-    createAccount: "Create free account",
-    browseVisitor: "Browse as visitor",
-    scanQr: "Scan QR",
-    searchPlaceholder: "Search by course code (e.g. CSC 2101, BRIBTE EE 1101) or topic...",
+    createAccount: "Create account",
+    browseVisitor: "Browse materials",
+    scanQr: "Scan document QR",
+    searchPlaceholder: "Search by course unit code (e.g. CSC 2101, LAW 1101) or topic...",
     searchButton: "Search materials",
-    viewAndBuy: "View & Buy",
+    viewAndBuy: "Preview & Buy",
   },
 
   hero: {
-    badge: "Higher education & vocational study materials in Uganda",
-    headline: "Study notes and past papers from your lecturers. Pay with MoMo.",
+    badge: "Independent Study Materials · Mobile Money Checkout",
+    headline: "Find and buy study notes for your course, pay with mobile money.",
     subline:
-      "Notes, solved past papers and lab manuals for Makerere, Kyambogo, MUST and more. From UGX 2,000.",
-    onboardingHeading: "Study here, or sell your notes",
-    onboardingBody:
-      "Top up once with MTN MoMo or Airtel Money, then unlock anything instantly. Browsing is free.",
+      "Lecture notes and study guides from lecturers and tutors. Preview before you pay.",
   },
 
-  featureCards: {
-    universities: {
-      category: "Universities",
-      title: "University notes and past papers",
-      body: "Lecture notes, past exams with marking schemes, and lab guides for Makerere, Kyambogo, MUST, MUBS, UCU and KIU.",
-      linkText: "Explore university notes",
+  howItWorks: [
+    {
+      step: 1,
+      title: "Find your course unit",
+      description: "Search by course code, unit title, or filter by your institution to locate relevant lecture notes.",
     },
-    vocational: {
-      category: "Vocational & Technical",
-      title: "Vocational and practical handbooks",
-      body: "UBTEB syllabus handbooks, practical guides, workshop diagrams and course summaries for Buganda Royal, Kampala Polytechnic, UICT and more.",
-      linkText: "Explore technical manuals",
+    {
+      step: 2,
+      title: "Preview before paying",
+      description: "Read the free sample pages, verify the table of contents, and pay with MTN or Airtel Mobile Money.",
     },
-    payments: {
-      category: "Payments & Mobile Money",
-      title: "Instant MoMo access and direct links",
-      body: "Top up once with MTN MoMo or Airtel Money. Lecturers share direct links in class WhatsApp groups to unlock notes immediately.",
-      linkText: "How mobile payments work",
+    {
+      step: 3,
+      title: "Read or download",
+      description: "Access your notes instantly in your browser reader, highlight key concepts, or download for offline revision.",
     },
+  ],
+
+  forLecturers: {
+    heading: "Publish your study materials on SomaUG",
+    subheading: "Help students revise effectively while earning from your original course notes and revision guides.",
+    benefits: [
+      {
+        title: "Keep 85% of your earnings",
+        description: "You receive 85% of every document sale. SomaUG keeps 15% to cover payment gateway fees and hosting.",
+      },
+      {
+        title: "Direct mobile money payouts",
+        description: "Withdraw your balance anytime to your registered MTN or Airtel mobile money number.",
+      },
+      {
+        title: "Retain your copyright",
+        description: "You remain the author and copyright owner. You grant SomaUG a non-exclusive distribution right.",
+      },
+    ],
+    declarationNotice:
+      "Every publishing lecturer confirms: 'I wrote this material, I have the right to sell it, and it does not breach my employer's policy or anyone's copyright.'",
   },
 
-  institutions: {
-    heading: "Browse by university and institute",
-    subtitle: "Materials for 14+ universities and institutes across Uganda.",
-    universitiesLabel: "Universities",
-    vocationalLabel: "Vocational, Technical & Polytechnic Institutes",
-    viewAll: "View full directory",
-  },
-
-  publications: {
-    heading: "Recently published",
-    subtitle: "Notes, practical handbooks and solved past papers, ready to unlock.",
-    seeAll: (count: number) => `See all ${count}`,
-  },
-
-  guarantees: {
-    lecturersTitle: "Lecturer-Authored Notes",
-    lecturersBody: "Study materials uploaded directly by course lecturers and workshop instructors.",
-    ledgerTitle: "Transparent Accounting",
-    ledgerBody: "Payments in Ugandan Shillings (UGX). Every deposit and purchase is tracked with an instant digital receipt.",
-    momoTitle: "MTN MoMo & Airtel Money",
-    momoBody: "Top up with MTN MoMo (*165#) or Airtel Money (*185#). Instant access on your smartphone.",
-    readerTitle: "Study Anywhere",
-    readerBody: "Comfortable reading on mobile or laptop with custom themes, bookmarking and highlights.",
-  },
-
-  bottomBanner: {
-    heading: "Find notes and past papers for your course",
-    body: "Search by course code, pay with MoMo, read on your phone, tablet or laptop.",
-  },
+  faq: [
+    {
+      question: "Is it safe to pay on SomaUG?",
+      answer:
+        "Yes. Payments are processed per document directly via licensed mobile money payment gateways. SomaUG does not hold stored balances or store your PIN.",
+    },
+    {
+      question: "Can I preview notes before buying?",
+      answer:
+        "Yes. Every publication includes free sample pages and a table of contents so you can inspect the quality and syllabus coverage before paying.",
+    },
+    {
+      question: "What if the document file does not open or is incorrect?",
+      answer:
+        "We offer a 24-hour refund policy. If a file is corrupted, illegible, or materially different from its description, contact our support on WhatsApp or email for a swift review and refund.",
+    },
+    {
+      question: "Who owns the notes on SomaUG?",
+      answer:
+        "Notes are authored and owned by the respective lecturers and tutors. SomaUG acts as an independent distribution platform.",
+    },
+    {
+      question: "How do I report copyright infringement or unauthorized materials?",
+      answer:
+        "We review uploads and respond to takedown requests within 48 hours. Submit a request via our Copyright & Takedown page or email copyright@somaug.org.",
+    },
+    {
+      question: "Is SomaUG affiliated with Makerere, Kyambogo, or any university?",
+      answer:
+        "No. SomaUG is an independent platform. It is not affiliated with, endorsed by, or sponsored by any university or institution. Institution names are used strictly to help students find materials for their courses.",
+    },
+  ],
 
   footer: {
-    securityHeading: "Security and payments",
-    securityBody:
-      "Payments are secure and every purchase is recorded. Documents are watermarked with your details to discourage sharing.",
-    copyright: `© ${new Date().getFullYear()} SomaUG Academic. Study materials for Ugandan higher education and vocational institutes.`,
+    disclaimer:
+      "SomaUG is an independent platform. It is not affiliated with, endorsed by, or sponsored by any university or institution. Institution names are used only to help students find materials for their courses.",
+    copyright: `© ${new Date().getFullYear()} SomaUG Academic. All rights reserved.`,
   },
 } as const;
-

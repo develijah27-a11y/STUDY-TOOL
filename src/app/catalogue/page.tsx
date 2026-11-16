@@ -8,7 +8,6 @@ import {
   Filter,
   RotateCcw,
   CheckCircle2,
-  Building2,
   FileText,
   BookOpen,
   GraduationCap,
@@ -72,7 +71,7 @@ export default function CataloguePage() {
   const [selectedCourse, setSelectedCourse] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
   const [maxPrice, setMaxPrice] = useState<number>(50000);
-  const [prioritizeAcademicProfile, setPrioritizeAcademicProfile] = useState(true);
+  const [prioritizeAcademicProfile, setPrioritizeAcademicProfile] = useState(false);
   const [sortBy, setSortBy] = useState<"relevant" | "price_asc" | "price_desc" | "sales">("relevant");
 
   useEffect(() => {
@@ -80,12 +79,15 @@ export default function CataloguePage() {
       const cached = localStorage.getItem("somaug_user_session");
       if (cached) {
         const u = JSON.parse(cached);
-        setStudentSession({
-          institutionId: u.institutionId,
-          institutionName: u.institutionName || "Makerere University",
-          courseUnits: u.activeCourseUnits || ["CSC 2101"],
-          department: u.department,
-        });
+        if (u.role === "student" && (u.institutionId || u.activeCourseUnits?.length)) {
+          setStudentSession({
+            institutionId: u.institutionId,
+            institutionName: u.institutionName,
+            courseUnits: u.activeCourseUnits || [],
+            department: u.department,
+          });
+          setPrioritizeAcademicProfile(true);
+        }
       }
     } catch {}
 
@@ -161,15 +163,15 @@ export default function CataloguePage() {
       list.sort((a, b) => (b.priceUGX ?? 0) - (a.priceUGX ?? 0));
     } else if (sortBy === "sales") {
       list.sort((a, b) => (b.salesCount ?? 0) - (a.salesCount ?? 0));
-    } else if (prioritizeAcademicProfile) {
-      const studentUnits = studentSession?.courseUnits || ["CSC 2101"];
-      const studentInst = studentSession?.institutionId || "inst-mak";
+    } else if (prioritizeAcademicProfile && studentSession) {
+      const studentUnits = studentSession.courseUnits || [];
+      const studentInst = studentSession.institutionId;
 
       list.sort((a, b) => {
         const aUnitMatch = studentUnits.some((u) => a.courseCode.toLowerCase().includes(u.toLowerCase())) ? 3 : 0;
         const bUnitMatch = studentUnits.some((u) => b.courseCode.toLowerCase().includes(u.toLowerCase())) ? 3 : 0;
-        const aInstMatch = a.institutionId === studentInst ? 1 : 0;
-        const bInstMatch = b.institutionId === studentInst ? 1 : 0;
+        const aInstMatch = studentInst && a.institutionId === studentInst ? 1 : 0;
+        const bInstMatch = studentInst && b.institutionId === studentInst ? 1 : 0;
         return (bUnitMatch + bInstMatch) - (aUnitMatch + aInstMatch);
       });
     }
@@ -198,49 +200,47 @@ export default function CataloguePage() {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
-
-      {/* Hero Header & Course Unit Match Banner */}
+      {/* Hero Header */}
       <div className="rounded-3xl bg-gradient-to-r from-[#0B192C] via-[#162942] to-[#1E3E62] text-white p-6 md:p-10 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="space-y-2 max-w-2xl">
           <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/20 border border-amber-400/30 px-3.5 py-1 text-xs font-bold text-amber-300">
             <Sparkles className="h-3.5 w-3.5" />
-            <span>Ugandan Academic Resource Catalogue</span>
+            <span>Course Notes &amp; Revision Guides</span>
           </div>
           <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">
-            Discover Verified Lecture Materials in UGX.
+            Browse Study Materials in UGX.
           </h1>
           <p className="text-xs md:text-sm text-slate-300 leading-relaxed">
-            Curated materials from verified lecturers across Makerere, Kyambogo, MUST, UCU, and MUBS.
-            Instant unlock with your student wallet.
+            Lecture notes, summaries, and revision guides from educators and tutors. Preview sample pages before paying with mobile money.
           </p>
         </div>
 
-        {/* Academic Profile Priority Pill */}
-        <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-4 sm:p-5 flex items-center justify-between gap-4 max-w-md">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400">
-              <GraduationCap className="h-5 w-5" />
+        {/* Academic Profile Priority Pill (ONLY for logged-in students with saved profile) */}
+        {studentSession && studentSession.courseUnits && studentSession.courseUnits.length > 0 && (
+          <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 p-4 sm:p-5 flex items-center justify-between gap-4 max-w-md">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400">
+                <GraduationCap className="h-5 w-5" />
+              </div>
+              <div className="text-xs">
+                <span className="block font-bold text-white">Your Course Units</span>
+                <span className="text-slate-300">
+                  {studentSession.institutionName || "Saved Institute"} •{" "}
+                  {studentSession.courseUnits.join(", ")}
+                </span>
+              </div>
             </div>
-            <div className="text-xs">
-              <span className="block font-bold text-white">Student Course Match</span>
-              <span className="text-slate-300">
-                {studentSession?.institutionName || "Makerere University"} •{" "}
-                {studentSession?.courseUnits && studentSession.courseUnits.length > 0
-                  ? studentSession.courseUnits.join(", ")
-                  : "CSC 2101"}
-              </span>
-            </div>
+            <label className="flex items-center gap-1.5 text-xs font-bold text-amber-300 cursor-pointer bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
+              <input
+                type="checkbox"
+                checked={prioritizeAcademicProfile}
+                onChange={(e) => setPrioritizeAcademicProfile(e.target.checked)}
+                className="rounded"
+              />
+              Priority
+            </label>
           </div>
-          <label className="flex items-center gap-1.5 text-xs font-bold text-amber-300 cursor-pointer bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
-            <input
-              type="checkbox"
-              checked={prioritizeAcademicProfile}
-              onChange={(e) => setPrioritizeAcademicProfile(e.target.checked)}
-              className="rounded"
-            />
-            Priority
-          </label>
-        </div>
+        )}
       </div>
 
       {/* Filter & Search Toolbar */}
@@ -258,14 +258,14 @@ export default function CataloguePage() {
             />
           </div>
 
-          {/* University Filter */}
+          {/* Institution Filter Dropdown (Plain text filter, no logos/claims) */}
           <div className="md:col-span-2">
             <select
               value={selectedInstitution}
               onChange={(e) => setSelectedInstitution(e.target.value)}
               className="w-full rounded-xl border border-slate-300 bg-slate-50/50 px-3 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-[#0B192C]"
             >
-              <option value="all">All Institutions (Univ &amp; Vocational)</option>
+              <option value="all">Filter by Institution</option>
               <optgroup label="Universities">
                 {(institutions || [])
                   .filter((i: any) => !i.category || i.category === "university")
@@ -275,7 +275,7 @@ export default function CataloguePage() {
                     </option>
                   ))}
               </optgroup>
-              <optgroup label="Vocational, Technical &amp; Colleges">
+              <optgroup label="Vocational &amp; Technical">
                 {(institutions || [])
                   .filter((i: any) => i.category && i.category !== "university")
                   .map((i) => (
@@ -393,7 +393,7 @@ export default function CataloguePage() {
         </div>
 
         <span className="text-xs font-semibold text-slate-500">
-          Showing {filteredDocs.length} of {documents.length} verified publications
+          Showing {filteredDocs.length} of {documents.length} publications
         </span>
       </div>
 
@@ -403,10 +403,10 @@ export default function CataloguePage() {
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
             <div className="border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-[#142B45]">
-                Ugandan Higher Education Course Unit Directory
+                Course Unit Directory
               </h3>
               <p className="text-xs text-slate-500">
-                Browse academic lecture notes, past paper solutions, and practical manuals by course unit
+                Browse lecture notes and study guides organized by course unit
               </p>
             </div>
 
@@ -435,7 +435,7 @@ export default function CataloguePage() {
                         {course.name}
                       </h4>
                       <p className="text-xs text-slate-500">
-                        {inst?.name || "Accredited University / Institute"}
+                        {inst?.name || "Institution"}
                       </p>
                     </div>
 
@@ -473,10 +473,10 @@ export default function CataloguePage() {
           </div>
           <div className="space-y-1.5">
             <h3 className="text-base font-extrabold text-[#142B45]">
-              No verified publications found
+              No publications found
             </h3>
             <p className="text-xs text-slate-600 leading-relaxed font-normal">
-              Materials on SomaUG originate exclusively from authorized uploads by accredited lecturers from Makerere, Kyambogo, MUST, and verified Ugandan institutes. No synthetic or unverified papers are published.
+              No study notes matched your search criteria. Try clearing filters or search for another course unit code. If your course is not yet listed, you can request it or apply to publish.
             </p>
           </div>
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -485,7 +485,7 @@ export default function CataloguePage() {
               className="inline-flex items-center gap-2 rounded-xl bg-[#147D78] hover:bg-[#116965] px-5 py-2.5 text-xs font-bold text-white transition shadow-sm"
             >
               <CheckCircle2 className="h-4 w-4 text-[#E9B949]" />
-              <span>Apply to Publish as Lecturer</span>
+              <span>Apply to Publish Notes</span>
             </Link>
             <button
               type="button"
@@ -502,15 +502,17 @@ export default function CataloguePage() {
           {filteredDocs.map((doc) => {
             const isMatch =
               prioritizeAcademicProfile &&
-              (studentSession?.courseUnits || ["CSC 2101"]).some((u) =>
+              studentSession?.courseUnits &&
+              studentSession.courseUnits.some((u) =>
                 doc.courseCode.toLowerCase().includes(u.toLowerCase())
               );
 
             return (
               <div
                 key={doc.id}
-                className={`flex flex-col justify-between rounded-2xl border bg-white p-5 shadow-sm hover:shadow-md transition-all space-y-4 ${isMatch ? "border-[#E9B949] ring-2 ring-[#E9B949]/20" : "border-slate-200"
-                  }`}
+                className={`flex flex-col justify-between rounded-2xl border bg-white p-5 shadow-sm hover:shadow-md transition-all space-y-4 ${
+                  isMatch ? "border-[#E9B949] ring-2 ring-[#E9B949]/20" : "border-slate-200"
+                }`}
               >
                 <div className="space-y-3">
                   {/* Top Row: Course Code Badge & Prominent Price */}
@@ -526,11 +528,11 @@ export default function CataloguePage() {
                   {isMatch && (
                     <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-0.5 text-xs font-bold text-amber-900">
                       <Sparkles className="h-3 w-3 text-amber-600" />
-                      Matched to Enrolled Semester Course
+                      Matched to Your Enrolled Course
                     </div>
                   )}
 
-                  {/* Title limited to 2 lines */}
+                  {/* Title */}
                   <Link href={`/catalogue/${doc.id}`} className="block group">
                     <h2 className="text-base font-bold text-[#142B45] group-hover:text-[#147D78] transition line-clamp-2 leading-snug">
                       {doc.title}
@@ -562,7 +564,7 @@ export default function CataloguePage() {
                     ))}
                   </div>
 
-                  {/* Page Count, Institution & Preview Availability */}
+                  {/* Page Count & Institution */}
                   <div className="flex items-center gap-2 pt-1 text-xs text-slate-500 font-normal">
                     <span className="font-semibold text-slate-700">{doc.institutionShortCode}</span>
                     <span>•</span>
@@ -574,7 +576,7 @@ export default function CataloguePage() {
                           href={`/catalogue/${doc.id}#preview`}
                           className="font-bold text-[#147D78] hover:underline"
                         >
-                          Preview first 2 pages
+                          Preview sample
                         </Link>
                       </>
                     )}
@@ -588,7 +590,7 @@ export default function CataloguePage() {
                     className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#142B45] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#1A3859] active:scale-[0.99] transition"
                   >
                     <FileText className="h-3.5 w-3.5 text-[#E9B949]" />
-                    <span>View &amp; Buy</span>
+                    <span>Preview &amp; Buy</span>
                   </Link>
                 </div>
               </div>

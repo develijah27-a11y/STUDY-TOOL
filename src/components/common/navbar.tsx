@@ -6,31 +6,26 @@ import { usePathname, useRouter } from "next/navigation";
 import { SITE_COPY } from "@/lib/constants/site-copy";
 import {
   BookOpen,
-  Wallet,
   GraduationCap,
   ShieldCheck,
   Search,
   Library,
   UploadCloud,
-  Share2,
   UserCheck,
   LogIn,
   LogOut,
   QrCode,
-  ArrowRight,
   FileText,
   Menu,
   X,
-  Building2,
-  Sparkles,
   UserPlus,
   Home,
   CheckCircle2,
   User,
   HelpCircle,
   Smartphone,
+  Wallet,
 } from "lucide-react";
-import { formatUGX } from "@/lib/utils";
 
 interface NavGroup {
   label: string;
@@ -55,12 +50,11 @@ export function Navbar() {
   } | null>(null);
 
   // Isolate dashboard shells completely: student, lecturer, and admin have dedicated layouts
-  const isDashboardRoute =
-    Boolean(
-      pathname.startsWith("/student") ||
-      pathname.startsWith("/lecturer") ||
-      pathname.startsWith("/admin")
-    );
+  const isDashboardRoute = Boolean(
+    pathname.startsWith("/student") ||
+    pathname.startsWith("/lecturer") ||
+    pathname.startsWith("/admin")
+  );
 
   // Close sidebar drawer on route change
   useEffect(() => {
@@ -82,7 +76,7 @@ export function Navbar() {
     };
   }, [isSidebarOpen]);
 
-  // Check authentication session (instant localStorage cache + authoritative server check)
+  // Check authentication session
   useEffect(() => {
     try {
       const cached = localStorage.getItem("somaug_user_session");
@@ -102,12 +96,9 @@ export function Navbar() {
             return;
           }
         }
-        // Authoritative: Server says unauthenticated
         setAuthenticatedUser(null);
         localStorage.removeItem("somaug_user_session");
-      } catch {
-        // Network error: don't wipe immediately, keep current state
-      }
+      } catch {}
     }
     checkSession();
   }, [pathname]);
@@ -122,33 +113,35 @@ export function Navbar() {
     router.push("/sign-in");
   };
 
-  // Dynamic navigation groups strictly segregated by role and auth state
+  // Grouped navigation strictly following The One Rule
   const navGroups: NavGroup[] = [];
 
   if (!authenticatedUser) {
-    // 1. Unauthenticated Visitor / Guest on Landing page or Public views
+    // 1. Unauthenticated Visitor / Guest
     navGroups.push(
       {
-        label: "Academic Catalogue",
+        label: "Study Materials",
         items: [
           { href: "/", label: "Home", icon: Home },
-          { href: "/catalogue", label: "Course Notes & Past Papers", icon: Search },
+          { href: "/catalogue", label: "Browse Course Materials", icon: Search },
           { href: "/d", label: "Scan Document QR", icon: QrCode },
         ],
       },
       {
-        label: "Institutions & Security",
+        label: "For Educators",
         items: [
-          { href: "/#institutions", label: "Supported Universities & Colleges", icon: Building2 },
-          { href: "/#payments", label: "How Mobile Money Works", icon: Smartphone },
-          { href: "/#guarantees", label: "Platform Trust & Verification", icon: ShieldCheck },
+          { href: "/lecturer/apply", label: "Teach on SomaUG", icon: CheckCircle2, badge: "85% Split" },
         ],
       },
       {
-        label: "Educators & Policies",
+        label: "Policies & Legal",
         items: [
-          { href: "/lecturer/apply", label: "Teach / Publish on SomaUG", icon: CheckCircle2, badge: "85% Split" },
-          { href: "/#terms", label: "Terms of Use & Copyright", icon: FileText },
+          { href: "/#how-it-works", label: "How It Works", icon: Smartphone },
+          { href: "/terms", label: "Terms of Use", icon: FileText },
+          { href: "/privacy", label: "Privacy Policy (PDPO)", icon: ShieldCheck },
+          { href: "/copyright", label: "Copyright & Takedown", icon: FileText },
+          { href: "/refunds", label: "Refund Policy", icon: CheckCircle2 },
+          { href: "/contact", label: "Contact Support", icon: HelpCircle },
         ],
       }
     );
@@ -159,22 +152,23 @@ export function Navbar() {
         label: "Lecturer Desk",
         items: [
           { href: "/lecturer/dashboard", label: "Lecturer Overview", icon: Home },
-          { href: "/lecturer/dashboard?tab=publications", label: "My Publications & Upload", icon: UploadCloud },
-          { href: "/lecturer/dashboard?tab=earnings", label: "Earnings & MoMo Payouts", icon: Wallet, badge: "85%" },
-          { href: "/collections/MAK-CSC2101-2026", label: "Class WhatsApp Packs", icon: Share2 },
+          { href: "/lecturer/dashboard?tab=publications", label: "Publications & Upload", icon: UploadCloud },
+          { href: "/lecturer/dashboard?tab=earnings", label: "Earnings & MoMo Withdrawals", icon: Wallet, badge: "85%" },
         ],
       },
       {
         label: "Academic Discovery",
         items: [
-          { href: "/catalogue", label: "Academic Catalogue", icon: Search },
+          { href: "/catalogue", label: "Browse Materials", icon: Search },
           { href: "/d", label: "Scan Document QR", icon: QrCode },
         ],
       },
       {
-        label: "Guidelines",
+        label: "Policies & Support",
         items: [
-          { href: "/#terms", label: "Publication Guidelines & Copyright", icon: FileText },
+          { href: "/terms", label: "Terms & Author Guidelines", icon: FileText },
+          { href: "/copyright", label: "Copyright Policy", icon: FileText },
+          { href: "/contact", label: "Contact Support", icon: HelpCircle },
         ],
       }
     );
@@ -184,8 +178,8 @@ export function Navbar() {
       {
         label: "Administration",
         items: [
-          { href: "/admin/dashboard", label: "Platform Review & Audit", icon: ShieldCheck, badge: "Live" },
-          { href: "/catalogue", label: "Academic Catalogue", icon: Search },
+          { href: "/admin/dashboard", label: "Platform Review & Audit", icon: ShieldCheck, badge: "Admin" },
+          { href: "/catalogue", label: "Browse Materials", icon: Search },
         ],
       }
     );
@@ -196,22 +190,23 @@ export function Navbar() {
         label: "Student Desk",
         items: [
           { href: "/student/dashboard", label: "Student Dashboard", icon: Home },
-          { href: "/student/library", label: "My Study Library", icon: Library },
-          { href: "/student/wallet", label: "UGX Wallet & Top Up", icon: Wallet },
-          { href: "/student/profile", label: "Academic Profile & Enrolment", icon: UserCheck },
+          { href: "/student/library", label: "My Library & Purchases", icon: Library },
+          { href: "/student/profile", label: "Academic Profile", icon: UserCheck },
         ],
       },
       {
         label: "Academic Discovery",
         items: [
-          { href: "/catalogue", label: "Browse Course Materials", icon: Search },
+          { href: "/catalogue", label: "Browse Materials", icon: Search },
           { href: "/d", label: "Scan Document QR", icon: QrCode },
         ],
       },
       {
-        label: "Assistance",
+        label: "Policies & Support",
         items: [
-          { href: "/#terms", label: "Terms of Use & Student Guidelines", icon: FileText },
+          { href: "/terms", label: "Terms of Use", icon: FileText },
+          { href: "/refunds", label: "Refund Policy", icon: CheckCircle2 },
+          { href: "/contact", label: "Contact Support", icon: HelpCircle },
         ],
       }
     );
@@ -226,7 +221,6 @@ export function Navbar() {
       {/* Top Header */}
       <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-
           {/* Left: Sidebar Toggle & Brand Logo */}
           <div className="flex items-center gap-3">
             <button
@@ -243,12 +237,12 @@ export function Navbar() {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#142B45] text-[#E9B949] shadow-sm">
                 <GraduationCap className="h-6 w-6" />
               </div>
-              <div className="hidden sm:block">
+              <div>
                 <span className="block text-base font-extrabold tracking-tight text-[#142B45] leading-none">
                   Soma<span className="text-amber-600">UG</span> Academic
                 </span>
                 <span className="block text-[10px] font-semibold text-slate-500 mt-1">
-                  Uganda Universities &amp; Vocational Institutes
+                  Course Study Notes &amp; Revision Guides
                 </span>
               </div>
             </Link>
@@ -260,16 +254,10 @@ export function Navbar() {
               href="/catalogue"
               className="px-3 py-2 rounded-xl hover:bg-slate-100 hover:text-[#147D78] transition"
             >
-              Explore Catalogue
+              Browse Materials
             </Link>
             <Link
-              href="/#institutions"
-              className="px-3 py-2 rounded-xl hover:bg-slate-100 hover:text-[#147D78] transition"
-            >
-              Institutions
-            </Link>
-            <Link
-              href="/#guarantees"
+              href="/#how-it-works"
               className="px-3 py-2 rounded-xl hover:bg-slate-100 hover:text-[#147D78] transition"
             >
               How It Works
@@ -278,7 +266,7 @@ export function Navbar() {
               href="/lecturer/apply"
               className="px-3 py-2 rounded-xl hover:bg-teal-50 text-[#147D78] transition flex items-center gap-1.5"
             >
-              <span>For Lecturers</span>
+              <span>Teach on SomaUG</span>
               <span className="rounded-md bg-teal-100 text-[#147D78] px-1.5 py-0.5 text-[10px]">
                 85%
               </span>
@@ -295,21 +283,26 @@ export function Navbar() {
           {/* Right: Quick Actions */}
           <div className="flex items-center gap-2">
             {authenticatedUser ? (
-              // Authenticated User Header Actions
               <div className="flex items-center gap-2">
                 <Link
                   href={
                     authenticatedUser.role === "lecturer"
                       ? "/lecturer/dashboard"
-                      : "/student/wallet"
+                      : "/student/library"
                   }
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100 transition shadow-sm"
-                  title="Your Account Dashboard & Wallet"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 border border-slate-200 px-3 py-2 text-xs font-bold text-slate-800 hover:bg-slate-200 transition shadow-sm"
                 >
-                  <Wallet className="h-3.5 w-3.5 text-amber-600" />
-                  <span className="hidden sm:inline">
-                    {authenticatedUser.role === "lecturer" ? "Lecturer Desk" : "My Wallet"}
-                  </span>
+                  {authenticatedUser.role === "lecturer" ? (
+                    <>
+                      <UploadCloud className="h-3.5 w-3.5 text-teal-700" />
+                      <span className="hidden sm:inline">Lecturer Desk</span>
+                    </>
+                  ) : (
+                    <>
+                      <Library className="h-3.5 w-3.5 text-teal-700" />
+                      <span className="hidden sm:inline">My Library</span>
+                    </>
+                  )}
                 </Link>
 
                 <Link
@@ -325,7 +318,6 @@ export function Navbar() {
                 </Link>
               </div>
             ) : (
-              // Unauthenticated Visitor Header Actions: Clear Sign In & Create Account
               <div className="flex items-center gap-2">
                 <Link
                   href="/sign-in"
@@ -372,7 +364,7 @@ export function Navbar() {
                 Soma<span className="text-amber-600">UG</span> Academic
               </span>
               <span className="block text-[10px] font-semibold text-slate-500">
-                Uganda Higher Education
+                Course Study Notes &amp; Guides
               </span>
             </div>
           </Link>
@@ -387,7 +379,7 @@ export function Navbar() {
           </button>
         </div>
 
-        {/* User Status / Role Card (ONLY for logged-in users; Visitor banner ONLY for unauthenticated) */}
+        {/* User Card */}
         <div className="p-3 shrink-0">
           {authenticatedUser ? (
             <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#0B192C] to-[#1E3E62] text-white shadow-md space-y-2">
@@ -412,25 +404,25 @@ export function Navbar() {
                   onClick={() => setIsSidebarOpen(false)}
                   className="flex-1 text-center rounded-lg bg-amber-500 py-1.5 text-[11px] font-black text-slate-950 hover:bg-amber-400"
                 >
-                  Go to Dashboard
+                  Dashboard
                 </Link>
                 <Link
-                  href={authenticatedUser.role === "lecturer" ? "/lecturer/dashboard?tab=earnings" : "/student/wallet"}
+                  href={authenticatedUser.role === "lecturer" ? "/lecturer/dashboard?tab=earnings" : "/student/library"}
                   onClick={() => setIsSidebarOpen(false)}
                   className="flex-1 text-center rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 py-1.5 text-[11px] font-bold text-white"
                 >
-                  Wallet
+                  {authenticatedUser.role === "lecturer" ? "Earnings" : "My Library"}
                 </Link>
               </div>
             </div>
           ) : (
             <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#0B192C] to-[#1E3E62] text-white shadow-md space-y-2">
               <div className="flex items-center gap-1.5 text-amber-300 text-xs font-bold">
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>Join SomaUG Academic</span>
+                <BookOpen className="h-3.5 w-3.5" />
+                <span>Find Notes for Your Course</span>
               </div>
               <p className="text-[11px] text-slate-200 leading-relaxed font-normal">
-                Access lecture notes, past paper solutions, and vocational guides from verified Ugandan tutors.
+                Preview sample pages before you pay. Pay per document with mobile money.
               </p>
               <div className="flex gap-2 pt-1">
                 <Link
@@ -452,7 +444,7 @@ export function Navbar() {
           )}
         </div>
 
-        {/* Grouped Navigation Links (Smooth Native Touch Scrollable) */}
+        {/* Grouped Navigation Links */}
         <div className="flex-1 overflow-y-auto px-4 py-2 space-y-5 overscroll-contain touch-pan-y">
           {navGroups.map((group, idx) => (
             <div key={idx} className="space-y-1">
@@ -541,11 +533,6 @@ export function Navbar() {
               </Link>
             </div>
           )}
-
-          <div className="flex items-center gap-2 text-[11px] text-slate-600 font-medium pt-1 border-t border-slate-200/60">
-            <Building2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-            <span className="truncate">Makerere, Kyambogo, BRIBTE, UICT</span>
-          </div>
         </div>
       </aside>
     </>
@@ -563,75 +550,99 @@ export function Footer() {
   }
 
   return (
-    <footer className="border-t border-slate-800 bg-[#0B192C] text-slate-200 mt-16">
+    <footer className="border-t border-slate-200 bg-white text-slate-700 mt-16">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-white font-extrabold text-base">
-              <BookOpen className="h-5 w-5 text-amber-400" />
-              <span>{SITE_COPY.brand.name}</span>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-8">
+          {/* Brand & Mission (md:col-span-5) */}
+          <div className="md:col-span-5 space-y-3">
+            <div className="flex items-center gap-2.5 text-[#142B45] font-extrabold text-base">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#142B45] text-[#E9B949]">
+                <GraduationCap className="h-5 w-5" />
+              </div>
+              <span>SomaUG Academic</span>
             </div>
-            <p className="text-xs text-slate-300 leading-relaxed font-normal">
-              {SITE_COPY.brand.footerDescription}
+            <p className="text-xs text-slate-600 leading-relaxed max-w-sm">
+              Study notes and revision guides authored by course lecturers and tutors. Preview sample pages before paying with mobile money.
             </p>
+            <div className="text-xs text-slate-500 pt-1 font-medium">
+              Pay with mobile money (MTN or Airtel)
+            </div>
           </div>
 
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-3">
-              Universities
+          {/* Quick Links (md:col-span-3) */}
+          <div className="md:col-span-3 space-y-2.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+              Quick Links
             </h3>
-            <ul className="space-y-2 text-xs text-slate-300 font-medium">
-              <li>Makerere University (MAK)</li>
-              <li>Kyambogo University (KYU)</li>
-              <li>Mbarara University (MUST)</li>
-              <li>Uganda Christian University (UCU)</li>
-              <li>Makerere University Business School (MUBS)</li>
-              <li>Kampala International University (KIU)</li>
-              <li>Gulu University (GU)</li>
+            <ul className="space-y-2 text-xs text-slate-600 font-medium">
+              <li>
+                <Link href="/catalogue" className="hover:text-teal-700 transition">
+                  Browse Materials
+                </Link>
+              </li>
+              <li>
+                <Link href="/#how-it-works" className="hover:text-teal-700 transition">
+                  How It Works
+                </Link>
+              </li>
+              <li>
+                <Link href="/lecturer/apply" className="hover:text-teal-700 transition">
+                  Teach on SomaUG (85% Split)
+                </Link>
+              </li>
+              <li>
+                <Link href="/d" className="hover:text-teal-700 transition">
+                  Scan Document QR
+                </Link>
+              </li>
             </ul>
           </div>
 
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-3">
-              Vocational &amp; Technical Institutes
+          {/* Legal & Compliance (md:col-span-4) */}
+          <div className="md:col-span-4 space-y-2.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+              Policies &amp; Support
             </h3>
-            <ul className="space-y-2 text-xs text-slate-300 font-medium">
-              <li>Buganda Royal Institute (BRIBTE Mengo)</li>
-              <li>Kampala Polytechnic Mengo (KPM)</li>
-              <li>Uganda Institute of ICT (UICT Nakawa)</li>
-              <li>Nakawa Vocational Training College (NVTC)</li>
-              <li>Uganda Technical College (UTC Kichwamba)</li>
-              <li>Law Development Centre (LDC)</li>
-              <li>YMCA Comprehensive Institute</li>
+            <ul className="space-y-2 text-xs text-slate-600 font-medium">
+              <li>
+                <Link href="/terms" className="hover:text-teal-700 transition">
+                  Terms of Use
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy" className="hover:text-teal-700 transition">
+                  Privacy Policy (Uganda DPPA 2019)
+                </Link>
+              </li>
+              <li>
+                <Link href="/copyright" className="hover:text-teal-700 transition">
+                  Copyright &amp; 48-Hour Takedown Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/refunds" className="hover:text-teal-700 transition">
+                  24-Hour Refund Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-teal-700 transition">
+                  Contact Support (WhatsApp &amp; Email)
+                </Link>
+              </li>
             </ul>
-          </div>
-
-          <div id="terms">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-3">
-              {SITE_COPY.footer.securityHeading}
-            </h3>
-            <p className="text-xs text-slate-300 leading-relaxed mb-3 font-normal">
-              {SITE_COPY.footer.securityBody}
-            </p>
-            <div className="flex flex-wrap gap-2 text-xs font-bold text-slate-900">
-              <span className="rounded-lg bg-amber-400 px-2.5 py-1 shadow-sm">
-                MTN MoMo
-              </span>
-              <span className="rounded-lg bg-red-500 text-white px-2.5 py-1 shadow-sm">
-                Airtel Money
-              </span>
-              <span className="rounded-lg bg-white/20 text-white border border-white/30 px-2 py-1">
-                Uganda UGX
-              </span>
-            </div>
           </div>
         </div>
 
-        <div className="mt-8 border-t border-slate-800 pt-6 text-center text-xs text-slate-400">
-          {SITE_COPY.footer.copyright}
+        {/* Mandatory Independent Platform Disclaimer */}
+        <div className="border-t border-slate-200 pt-6 space-y-3">
+          <p className="text-[11px] leading-relaxed text-slate-500 text-center max-w-4xl mx-auto">
+            {SITE_COPY.footer.disclaimer}
+          </p>
+          <div className="text-center text-xs text-slate-400">
+            {SITE_COPY.footer.copyright}
+          </div>
         </div>
       </div>
     </footer>
   );
 }
-

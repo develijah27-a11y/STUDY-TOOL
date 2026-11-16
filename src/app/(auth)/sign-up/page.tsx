@@ -34,6 +34,7 @@ export default function SignUpPage() {
   const [activeCourseUnits, setActiveCourseUnits] = useState("CSC 2101, BIT 1202");
   const [department, setDepartment] = useState("");
   const [teachingRole, setTeachingRole] = useState("Lecturer");
+  const [agreeTerms, setAgreeTerms] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -49,6 +50,12 @@ export default function SignUpPage() {
     setLoading(true);
     setErrorMsg(null);
     setSuccessMsg(null);
+
+    if (!agreeTerms) {
+      setErrorMsg("Please accept the Terms of Use and Privacy Policy.");
+      setLoading(false);
+      return;
+    }
 
     if (!hasMinLength || !hasLetter || !hasNumber) {
       setErrorMsg("Please ensure password meets the security requirements below.");
@@ -148,8 +155,8 @@ export default function SignUpPage() {
               </h1>
               <p className="text-xs text-slate-300 leading-relaxed">
                 {role === "student"
-                  ? "Search by course unit (e.g. CSC 2101), deposit via MTN/Airtel Money, and unlock permanent study access."
-                  : "Submit academic verification, organize WhatsApp course packs, and receive weekly payouts."}
+                  ? "Search by course unit (e.g. CSC 2101), preview free sample pages, and pay with mobile money."
+                  : "Share course notes, retain 85% of each sale, and withdraw earnings directly to mobile money."}
               </p>
             </div>
 
@@ -188,7 +195,7 @@ export default function SignUpPage() {
           </div>
 
           <div className="relative z-10 pt-6 mt-6 border-t border-white/10 text-[11px] text-slate-400">
-            🔒 Protected by Row Level Security and double-entry accounting.
+            🔒 Encrypted communication · Data handled under Uganda DPPA 2019.
           </div>
         </div>
 
@@ -447,9 +454,30 @@ export default function SignUpPage() {
                 </div>
               )}
 
+              {/* Mandatory Consent Checkbox */}
+              <label className="flex items-start gap-2.5 text-xs text-slate-700 cursor-pointer pt-2">
+                <input
+                  type="checkbox"
+                  required
+                  checked={agreeTerms}
+                  onChange={(e) => setAgreeTerms(e.target.checked)}
+                  className="mt-0.5 rounded text-[#147D78] focus:ring-[#147D78]"
+                />
+                <span className="leading-relaxed">
+                  I agree to the{" "}
+                  <Link href="/terms" target="_blank" className="font-bold underline text-teal-700 hover:text-teal-900">
+                    Terms of Use
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" target="_blank" className="font-bold underline text-teal-700 hover:text-teal-900">
+                    Privacy Policy
+                  </Link>.
+                </span>
+              </label>
+
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !agreeTerms}
                 className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B192C] px-5 py-3 text-xs font-bold text-white shadow-md hover:bg-[#162942] active:scale-[0.99] disabled:opacity-50 transition"
               >
                 <span>{loading ? "Creating Account..." : "Complete Registration"}</span>

@@ -133,10 +133,10 @@ export default function SignInPage() {
 
             <div className="space-y-2 pt-2">
               <h1 className="text-2xl font-extrabold leading-snug">
-                Welcome back to verified academic &amp; vocational study materials.
+                Welcome back to your study workspace.
               </h1>
               <p className="text-xs text-slate-300 leading-relaxed font-normal">
-                Log in to access your study library, view your student wallet, or manage publications on your role dashboard.
+                Log in to access your purchased study materials, library highlights, or manage your lecturer publications.
               </p>
             </div>
 
@@ -144,35 +144,21 @@ export default function SignInPage() {
             <div className="space-y-3 pt-4 border-t border-white/10 text-xs text-slate-200">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                <span>Dedicated role dashboards (Student, Lecturer, Admin)</span>
+                <span>Access your offline downloads and study notes</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                <span>Secure study wallet in Ugandan Shillings (UGX)</span>
+                <span>Highlighter tools and personal study revision desk</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                <span>One-tap links &amp; scannable QR codes for class handouts</span>
+                <span>Mobile money receipts and purchase history</span>
               </div>
             </div>
           </div>
 
-          {/* Supported Institutions & Accreditation */}
-          <div className="relative z-10 pt-6 mt-6 border-t border-white/10 space-y-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-              <Building2 className="h-3.5 w-3.5 text-amber-400" />
-              <span>Supported Institutions &amp; Faculties</span>
-            </span>
-            <p className="text-xs text-slate-300 leading-relaxed font-normal">
-              Course notes, practical manuals, and solved past papers for universities, technical colleges, and vocational institutes across Uganda.
-            </p>
-            <div className="flex flex-wrap gap-1.5 pt-1 text-xs">
-              <span className="rounded-md bg-white/10 border border-white/10 px-2 py-0.5 text-slate-200">Makerere (MAK)</span>
-              <span className="rounded-md bg-white/10 border border-white/10 px-2 py-0.5 text-slate-200">Kyambogo (KYU)</span>
-              <span className="rounded-md bg-white/10 border border-white/10 px-2 py-0.5 text-slate-200">Buganda Royal (BRIBTE)</span>
-              <span className="rounded-md bg-white/10 border border-white/10 px-2 py-0.5 text-slate-200">UICT Nakawa</span>
-              <span className="rounded-md bg-white/10 border border-white/10 px-2 py-0.5 text-slate-200">Mbarara (MUST)</span>
-            </div>
+          <div className="relative z-10 pt-6 mt-6 border-t border-white/10 text-[11px] text-slate-400">
+            Independent educational platform · Pay per document with mobile money
           </div>
         </div>
 
@@ -188,10 +174,6 @@ export default function SignInPage() {
                   Enter your email address and password to continue
                 </p>
               </div>
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                SSL Encrypted
-              </span>
             </div>
 
             {errorMsg && (
