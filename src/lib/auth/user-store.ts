@@ -145,7 +145,7 @@ export function registerUser(data: {
 }): RegisteredUser {
   loadUsers();
   const normalizedEmail = data.email.trim().toLowerCase();
-  
+
   const existing = usersCache.get(normalizedEmail);
   if (existing) {
     existing.passwordHash = hashPassword(data.password);
@@ -168,8 +168,8 @@ export function registerUser(data: {
     (data.role === "lecturer"
       ? "pending_verification"
       : data.role === "admin"
-      ? "verified"
-      : "registered");
+        ? "verified"
+        : "registered");
 
   const id = `user-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   const newUser: RegisteredUser = {
