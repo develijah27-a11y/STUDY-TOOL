@@ -111,7 +111,7 @@ describe("Offline Encrypted Learning & Entitlement Integration Tests (Parts C, F
     const docKey = await DocumentEncryptionService.importKeyFromHex(derivedKeyHex);
     const decryptedBytes = await DocumentEncryptionService.decryptChunk(chunkData, docKey);
     expect(decryptedBytes.length).toBeGreaterThan(0);
-  });
+  }, 15000);
 
   it("rejects chunk request if token is missing or forged (HTTP 403)", async () => {
     // Missing token

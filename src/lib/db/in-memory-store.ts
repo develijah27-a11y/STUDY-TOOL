@@ -608,6 +608,14 @@ class MarketplaceStore {
         createdAt: now,
         updatedAt: now,
       },
+      {
+        id: "user-admin-develijah",
+        email: "develijah27@gmail.com",
+        fullName: "Elijah Hannington (Admin)",
+        phoneNumber: "256770000000",
+        createdAt: now,
+        updatedAt: now,
+      },
     ];
 
     this.userRoles.set("user-student-1", ["student"]);
@@ -616,6 +624,7 @@ class MarketplaceStore {
     this.userRoles.set("user-lecturer-2", ["lecturer"]);
     this.userRoles.set("user-lecturer-pending", ["lecturer"]);
     this.userRoles.set("user-admin-1", ["admin"]);
+    this.userRoles.set("user-admin-develijah", ["admin"]);
 
     // 6. Lecturer Profiles
     this.lecturerProfiles = [

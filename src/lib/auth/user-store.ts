@@ -72,6 +72,15 @@ const DEFAULT_USERS: RegisteredUser[] = [
     verificationStatus: "verified",
     createdAt: "2026-01-01T00:00:00.000Z",
   },
+  {
+    id: "user-admin-develijah",
+    email: "develijah27@gmail.com",
+    passwordHash: hashPassword("UVT1673"),
+    fullName: "Elijah Hannington (Admin)",
+    role: "admin",
+    verificationStatus: "verified",
+    createdAt: "2026-01-01T00:00:00.000Z",
+  },
 ];
 
 // In-memory cache backed by disk file
