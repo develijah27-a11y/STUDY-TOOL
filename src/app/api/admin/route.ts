@@ -34,6 +34,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     lecturerProfiles: dbStore.lecturerProfiles,
+    documents: dbStore.documents,
     reports: dbStore.reports,
     orders: dbStore.orders,
     payoutItems: dbStore.payoutItems,
@@ -184,6 +185,51 @@ export async function POST(req: NextRequest) {
       });
 
       return NextResponse.json({ success: true, settings: dbStore.settings });
+    }
+
+    if (action === "update_user") {
+      const { targetUserId, role, verificationStatus } = body;
+      const targetUser = getAllUsers().find((u) => u.id === targetUserId || u.email === body.email);
+      if (targetUser) {
+        if (role) {
+          targetUser.role = role;
+          dbStore.userRoles.set(targetUser.id, [role]);
+        }
+        if (verificationStatus) {
+          updateUserVerification(targetUser.id, verificationStatus);
+        }
+        dbStore.auditLogs.unshift({
+          id: `aud-${Date.now()}`,
+          actorId: callerId,
+          action: "UPDATE_USER_PROFILE",
+          targetType: "user",
+          targetId: targetUser.id,
+          metadata: { role, verificationStatus },
+          createdAt: now,
+        });
+        return NextResponse.json({ success: true, user: targetUser });
+      }
+      return NextResponse.json({ error: "USER_NOT_FOUND" }, { status: 404 });
+    }
+
+    if (action === "review_document") {
+      const { documentId, status } = body;
+      const doc = dbStore.documents.find((d) => d.id === documentId);
+      if (doc) {
+        doc.status = status;
+        doc.updatedAt = now;
+        dbStore.auditLogs.unshift({
+          id: `aud-${Date.now()}`,
+          actorId: callerId,
+          action: `DOCUMENT_STATUS_${status.toUpperCase()}`,
+          targetType: "document",
+          targetId: doc.id,
+          metadata: { newStatus: status },
+          createdAt: now,
+        });
+        return NextResponse.json({ success: true, document: doc });
+      }
+      return NextResponse.json({ error: "DOCUMENT_NOT_FOUND" }, { status: 404 });
     }
 
     return NextResponse.json({ error: "UNKNOWN_ADMIN_ACTION" }, { status: 400 });

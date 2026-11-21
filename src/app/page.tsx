@@ -460,9 +460,8 @@ export default function HomePage() {
                 >
                   <span>{item.q}</span>
                   <ChevronDown
-                    className={`h-4 w-4 text-slate-400 transition-transform ${
-                      isOpen ? "rotate-180 text-teal-700" : ""
-                    }`}
+                    className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? "rotate-180 text-teal-700" : ""
+                      }`}
                   />
                 </button>
                 {isOpen && (
