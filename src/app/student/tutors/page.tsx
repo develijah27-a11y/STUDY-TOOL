@@ -129,17 +129,15 @@ export default function FindTutorPage() {
             Find an Academic Tutor
           </h1>
           <p className="text-xs text-slate-300">
-            One-on-one and small group revision assistance from verified university tutors and top academic performers.
+            Book 1-on-1 revision sessions with subject tutors.
           </p>
         </div>
       </div>
 
       {/* Trust Guarantee */}
-      <div className="rounded-2xl bg-teal-50 border border-teal-200 p-4 flex items-center gap-3 text-xs text-teal-950">
-        <ShieldCheck className="h-5 w-5 text-teal-700 shrink-0" />
-        <span className="leading-relaxed">
-          <strong>Verified Profiles:</strong> Every listed tutor has verified academic credentials and subject experience. Transparent UGX rates with zero upfront booking fees.
-        </span>
+      <div className="rounded-2xl bg-teal-50 border border-teal-200 p-3.5 flex items-center gap-2.5 text-xs text-teal-950 font-medium">
+        <ShieldCheck className="h-4 w-4 text-teal-700 shrink-0" />
+        <span>Tutors set hourly rates in UGX. Direct session scheduling.</span>
       </div>
 
       {/* Search & Filter Toolbar */}
@@ -194,7 +192,7 @@ export default function FindTutorPage() {
                   <span className="text-xs font-semibold text-slate-600 block">
                     {tutor.title}
                   </span>
-                  <span className="text-[11px] text-slate-500 block">
+                  <span className="text-xs text-slate-500 block">
                     {tutor.institution}
                   </span>
                 </div>
@@ -203,7 +201,7 @@ export default function FindTutorPage() {
                   <span className="text-base font-black text-slate-900 block font-mono">
                     {formatUGX(tutor.hourlyRateUGX)}
                   </span>
-                  <span className="text-[10px] text-slate-500">per hour</span>
+                  <span className="text-xs text-slate-500">per hour</span>
                 </div>
               </div>
 
@@ -216,7 +214,7 @@ export default function FindTutorPage() {
                 {tutor.subjects.map((sub) => (
                   <span
                     key={sub}
-                    className="rounded-md bg-slate-100 text-slate-700 px-2 py-0.5 text-[11px] font-medium"
+                    className="rounded-md bg-slate-100 text-slate-700 px-2.5 py-0.5 text-xs font-medium"
                   >
                     {sub}
                   </span>
@@ -231,8 +229,8 @@ export default function FindTutorPage() {
                   <span className="text-slate-400 font-normal">({tutor.reviewsCount} reviews)</span>
                 </div>
 
-                <div className="flex items-center gap-1 text-slate-600 text-[11px]">
-                  <Clock className="h-3 w-3 text-slate-400" />
+                <div className="flex items-center gap-1 text-slate-600 text-xs">
+                  <Clock className="h-3.5 w-3.5 text-slate-400" />
                   <span>{tutor.availability}</span>
                 </div>
               </div>
@@ -258,7 +256,7 @@ export default function FindTutorPage() {
                 <h3 className="text-sm font-bold text-slate-900">
                   Request Tutoring: {selectedTutor.name}
                 </h3>
-                <span className="text-[11px] text-slate-500 font-mono">
+                <span className="text-xs text-slate-500 font-mono">
                   Rate: {formatUGX(selectedTutor.hourlyRateUGX)}/hr
                 </span>
               </div>

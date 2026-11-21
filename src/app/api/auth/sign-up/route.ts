@@ -30,12 +30,17 @@ export async function POST(req: NextRequest) {
 
     const {
       institutionId,
+      faculty,
       programmeId,
       academicYear,
       semester,
       activeCourseUnits,
       department,
       teachingRole,
+      staffId,
+      coursesTaught,
+      payoutMobileNumber,
+      payoutMobileNetwork,
     } = body;
 
     const parsedUnits = Array.isArray(activeCourseUnits)
@@ -44,6 +49,15 @@ export async function POST(req: NextRequest) {
       ? activeCourseUnits
           .split(",")
           .map((u) => u.trim().toUpperCase())
+          .filter(Boolean)
+      : undefined;
+
+    const parsedCoursesTaught = Array.isArray(coursesTaught)
+      ? coursesTaught.map((c: string) => String(c).trim().toUpperCase()).filter(Boolean)
+      : typeof coursesTaught === "string"
+      ? coursesTaught
+          .split(",")
+          .map((c) => c.trim().toUpperCase())
           .filter(Boolean)
       : undefined;
 
@@ -76,12 +90,17 @@ export async function POST(req: NextRequest) {
       fullName,
       role,
       institutionId,
+      faculty: faculty?.trim(),
       programmeId,
       academicYear: academicYear ? Number(academicYear) : undefined,
       semester: semester ? Number(semester) : undefined,
       activeCourseUnits: parsedUnits,
       department: department?.trim(),
       teachingRole: teachingRole?.trim(),
+      staffId: staffId?.trim(),
+      coursesTaught: parsedCoursesTaught,
+      payoutMobileNumber: payoutMobileNumber?.trim(),
+      payoutMobileNetwork: payoutMobileNetwork === "AIRTEL" ? "AIRTEL" : "MTN",
     });
 
     const userId = localUser.id;
@@ -99,6 +118,22 @@ export async function POST(req: NextRequest) {
       createdAt: now,
       updatedAt: now,
     });
+
+    if (role === "lecturer") {
+      dbStore.lecturerProfiles.push({
+        id: `lec-${userId}`,
+        userId,
+        fullName,
+        institutionId: institutionId || "inst-mak",
+        department: department?.trim() || "Department of Academic Studies",
+        teachingRole: teachingRole?.trim() || "Lecturer",
+        institutionalEmail: email,
+        verificationStatus: "under_review",
+        payoutMobileNumber: payoutMobileNumber?.trim() || undefined,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
 
     dbStore.userRoles.set(userId, [role]);
 
@@ -163,13 +198,18 @@ export async function POST(req: NextRequest) {
         roles: [localUser.role],
         verificationStatus: localUser.verificationStatus,
         institutionId: localUser.institutionId,
+        faculty: localUser.faculty,
+        department: localUser.department,
         programmeId: localUser.programmeId,
         academicYear: localUser.academicYear,
         semester: localUser.semester,
         activeCourseUnits: localUser.activeCourseUnits || [],
         selectedCourses: localUser.activeCourseUnits || [],
-        department: localUser.department,
         teachingRole: localUser.teachingRole,
+        staffId: localUser.staffId,
+        coursesTaught: localUser.coursesTaught || [],
+        payoutMobileNumber: localUser.payoutMobileNumber,
+        payoutMobileNetwork: localUser.payoutMobileNetwork,
       },
       token: sessionToken,
       message:

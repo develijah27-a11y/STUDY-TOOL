@@ -125,7 +125,7 @@ export default function StudentCommunityPage() {
             Course Study Groups &amp; Q&amp;A
           </h1>
           <p className="text-xs text-slate-300">
-            Connect with verified peers and tutors for moderated revision questions across your course units.
+            Course questions and discussions with peers and tutors.
           </p>
         </div>
 
@@ -188,7 +188,7 @@ export default function StudentCommunityPage() {
                   {thread.courseCode}
                 </span>
                 <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                     thread.authorRole === "Lecturer"
                       ? "bg-purple-100 text-purple-800"
                       : thread.authorRole === "Tutor"

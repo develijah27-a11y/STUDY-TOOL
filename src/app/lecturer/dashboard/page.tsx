@@ -549,9 +549,9 @@ function LecturerDashboardContent() {
         <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 flex items-start gap-3 text-amber-950 text-xs">
           <Clock className="h-5 w-5 text-amber-700 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <strong className="block font-bold">Publisher Profile Under Administrative Review:</strong>
-            <p className="leading-relaxed text-amber-900">
-              Your educator account has been received by SomaUG. While your application is being reviewed, you may prepare publication drafts. Once verified, your materials will become publicly searchable in the student catalogue.
+            <strong className="block font-bold">Profile Under Review:</strong>
+            <p className="text-amber-900 text-xs">
+              Your account is pending admin verification. You may create drafts in the meantime.
             </p>
           </div>
         </div>
@@ -563,49 +563,49 @@ function LecturerDashboardContent() {
           {/* Key Metrics Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 Available Earnings
               </span>
               <div className="text-2xl font-black text-[#142B45]">
                 {formatUGX(walletBalance)}
               </div>
-              <span className="text-[11px] text-teal-700 font-medium block">
+              <span className="text-xs text-teal-700 font-medium block">
                 Ready to withdraw to MoMo
               </span>
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 Published Materials
               </span>
               <div className="text-2xl font-black text-[#142B45]">
                 {publishedCount}
               </div>
-              <span className="text-[11px] text-slate-500 font-medium block">
+              <span className="text-xs text-slate-500 font-medium block">
                 {draftCount} in drafts
               </span>
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 Student Purchases
               </span>
               <div className="text-2xl font-black text-[#142B45]">
                 {totalSalesCount}
               </div>
-              <span className="text-[11px] text-slate-500 font-medium block">
+              <span className="text-xs text-slate-500 font-medium block">
                 Across your course units
               </span>
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 Total Withdrawn
               </span>
               <div className="text-2xl font-black text-slate-900">
                 {formatUGX(totalWithdrawn)}
               </div>
-              <span className="text-[11px] text-slate-500 font-medium block">
+              <span className="text-xs text-slate-500 font-medium block">
                 Settled to MTN / Airtel
               </span>
             </div>
@@ -659,7 +659,7 @@ function LecturerDashboardContent() {
                             {doc.courseCode}
                           </span>
                           <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${doc.status === "published"
+                            className={`text-xs font-bold px-2 py-0.5 rounded-full ${doc.status === "published"
                               ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
                               : "bg-slate-100 text-slate-600 border border-slate-200"
                               }`}
@@ -670,7 +670,7 @@ function LecturerDashboardContent() {
                         <h3 className="text-xs font-bold text-slate-900 truncate">
                           {doc.title}
                         </h3>
-                        <div className="text-[11px] text-slate-500 flex items-center gap-2">
+                        <div className="text-xs text-slate-500 flex items-center gap-2">
                           <span>{doc.pageCount} pages</span>
                           <span>•</span>
                           <span>{formatUGX(doc.priceUGX)}</span>
@@ -734,13 +734,13 @@ function LecturerDashboardContent() {
                 </div>
               </div>
 
-              <div className="rounded-3xl bg-slate-900 text-white p-5 space-y-2.5">
-                <div className="flex items-center gap-2 text-amber-400 text-xs font-bold">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>Author Rights &amp; Retention</span>
+              <div className="rounded-2xl bg-slate-900 text-white p-4 space-y-1">
+                <div className="flex items-center gap-1.5 text-amber-400 text-xs font-bold">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  <span>Author Rights</span>
                 </div>
-                <p className="text-[11px] text-slate-300 leading-relaxed font-normal">
-                  You retain full copyright ownership of your study materials. Each download is protected by personalized student watermarks to prevent mass leakage.
+                <p className="text-xs text-slate-300">
+                  You retain full copyright ownership of all your materials.
                 </p>
               </div>
             </div>
@@ -757,7 +757,7 @@ function LecturerDashboardContent() {
                 Publication Management
               </h2>
               <p className="text-xs text-slate-500">
-                Edit descriptions, update versions, preview, and share your published notes.
+                Manage, edit, and share your publications.
               </p>
             </div>
             <button
@@ -804,7 +804,7 @@ function LecturerDashboardContent() {
                       </p>
                     )}
 
-                    <div className="text-[11px] text-slate-500 space-y-1 pt-1">
+                    <div className="text-xs text-slate-500 space-y-1 pt-1">
                       <div className="flex justify-between">
                         <span>Version {doc.currentVersion} • {doc.pageCount} Pages</span>
                         <span
@@ -840,7 +840,7 @@ function LecturerDashboardContent() {
                     <button
                       type="button"
                       onClick={() => handleToggleStatus(doc)}
-                      className="p-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold flex items-center justify-center text-[11px]"
+                      className="p-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold flex items-center justify-center text-xs"
                     >
                       <span>{doc.status === "published" ? "Unpublish" : "Publish"}</span>
                     </button>
@@ -944,7 +944,7 @@ function LecturerDashboardContent() {
               Publish New Study Material
             </h2>
             <p className="text-xs text-slate-500">
-              Upload original syllabus summaries, worked examples, and lecture notes for your students.
+              Upload syllabus notes, guides, or solutions.
             </p>
           </div>
 
@@ -1335,8 +1335,8 @@ function LecturerDashboardContent() {
                   <div className="h-32 w-32 mx-auto bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center font-mono text-xs text-slate-500">
                     [QR Code: {selectedShareDoc.accessCode}]
                   </div>
-                  <span className="text-[11px] text-slate-500 block">
-                    Display on projector or print on course syllabus for instant mobile scanning.
+                  <span className="text-xs text-slate-500 block">
+                    Print on course syllabus or handout for instant mobile scanning.
                   </span>
                 </div>
               )}
@@ -1352,35 +1352,32 @@ function LecturerDashboardContent() {
       {/* 6. TAB: ANALYTICS (Real Metrics Only) */}
       {activeTab === "analytics" && (
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
-          <div className="border-b border-slate-100 pb-4">
+          <div className="border-b border-slate-100 pb-3">
             <h2 className="text-lg font-extrabold text-[#142B45]">
               Readership &amp; Sales Analytics
             </h2>
-            <p className="text-xs text-slate-500">
-              Performance metrics calculated from actual student reads and verified purchases.
-            </p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-slate-200 space-y-1">
-              <span className="text-[11px] font-bold uppercase text-slate-500">Total Views</span>
+              <span className="text-xs font-bold uppercase text-slate-500">Total Views</span>
               <div className="text-2xl font-black text-slate-900">{totalViewsCount}</div>
             </div>
 
             <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-slate-200 space-y-1">
-              <span className="text-[11px] font-bold uppercase text-slate-500">Unique Readers</span>
+              <span className="text-xs font-bold uppercase text-slate-500">Unique Readers</span>
               <div className="text-2xl font-black text-slate-900">
                 {myDocuments.reduce((sum, d) => sum + (d.uniqueReaders || 0), 0)}
               </div>
             </div>
 
             <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-slate-200 space-y-1">
-              <span className="text-[11px] font-bold uppercase text-slate-500">Verified Purchases</span>
+              <span className="text-xs font-bold uppercase text-slate-500">Verified Purchases</span>
               <div className="text-2xl font-black text-emerald-700">{totalSalesCount}</div>
             </div>
 
             <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-slate-200 space-y-1">
-              <span className="text-[11px] font-bold uppercase text-slate-500">Conversion Rate</span>
+              <span className="text-xs font-bold uppercase text-slate-500">Conversion Rate</span>
               <div className="text-2xl font-black text-[#142B45]">
                 {totalViewsCount > 0 ? ((totalSalesCount / totalViewsCount) * 100).toFixed(1) : "0.0"}%
               </div>
@@ -1416,7 +1413,7 @@ function LecturerDashboardContent() {
                           <div className="w-16 bg-slate-200 rounded-full h-1.5 overflow-hidden">
                             <div className="bg-teal-600 h-1.5 rounded-full" style={{ width: `${d.readingProgressAvg || 75}%` }} />
                           </div>
-                          <span className="text-[11px]">{d.readingProgressAvg || 75}%</span>
+                          <span className="text-xs">{d.readingProgressAvg || 75}%</span>
                         </div>
                       </td>
                       <td className="p-3">
@@ -1437,33 +1434,27 @@ function LecturerDashboardContent() {
       {/* 7. TAB: WALLET & EARNINGS */}
       {activeTab === "earnings" && (
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
-          <div className="border-b border-slate-100 pb-4">
+          <div className="border-b border-slate-100 pb-3">
             <h2 className="text-lg font-extrabold text-[#142B45]">
-              Wallet &amp; Mobile Money Withdrawals
+              Wallet &amp; Withdrawals
             </h2>
-            <p className="text-xs text-slate-500">
-              Withdraw your verified teaching earnings directly to your MTN or Airtel mobile money account.
-            </p>
           </div>
 
           {/* Earnings Breakdown */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="p-5 rounded-2xl bg-teal-50 border border-teal-200 space-y-1">
-              <span className="text-[11px] font-bold uppercase text-teal-800">Available Balance</span>
+              <span className="text-xs font-bold uppercase text-teal-800">Available Balance</span>
               <div className="text-3xl font-black text-teal-950">{formatUGX(walletBalance)}</div>
-              <span className="text-[11px] text-teal-700">Eligible for instant withdrawal</span>
             </div>
 
             <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-              <span className="text-[11px] font-bold uppercase text-slate-500">Reserved in Settlement</span>
+              <span className="text-xs font-bold uppercase text-slate-500">Reserved</span>
               <div className="text-3xl font-black text-slate-800">{formatUGX(reservedBalance)}</div>
-              <span className="text-[11px] text-slate-500">Pending final transaction clearance</span>
             </div>
 
             <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-              <span className="text-[11px] font-bold uppercase text-slate-500">Total Withdrawn</span>
+              <span className="text-xs font-bold uppercase text-slate-500">Total Withdrawn</span>
               <div className="text-3xl font-black text-slate-800">{formatUGX(totalWithdrawn)}</div>
-              <span className="text-[11px] text-slate-500">Successfully paid to Mobile Money</span>
             </div>
           </div>
 
@@ -1504,7 +1495,7 @@ function LecturerDashboardContent() {
                   onChange={(e) => setWithdrawAmount(Number(e.target.value))}
                   className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 font-mono font-bold text-slate-900"
                 />
-                <span className="text-[11px] text-slate-500 mt-0.5 block">
+                <span className="text-xs text-slate-500 mt-0.5 block">
                   Minimum withdrawal: UGX 5,000 · Platform fee: 0 UGX on withdrawal
                 </span>
               </div>
@@ -1603,7 +1594,7 @@ function LecturerDashboardContent() {
                       <span className="font-bold text-slate-900 block">
                         Student Purchase: {doc.courseCode}
                       </span>
-                      <span className="text-[11px] text-slate-500">
+                      <span className="text-xs text-slate-500">
                         {doc.title}
                       </span>
                     </div>
@@ -1611,7 +1602,7 @@ function LecturerDashboardContent() {
                       <span className="font-mono font-bold text-emerald-700 block">
                         +{formatUGX(doc.priceUGX)}
                       </span>
-                      <span className="text-[10px] text-slate-400">Completed</span>
+                      <span className="text-xs text-slate-400">Completed</span>
                     </div>
                   </div>
                 ))
@@ -1660,7 +1651,7 @@ function LecturerDashboardContent() {
               <div className="flex justify-between items-center pt-1">
                 <span className="text-slate-500">Publisher Status:</span>
                 <span
-                  className={`font-bold px-2.5 py-0.5 rounded-full text-[11px] ${currentUser.verificationStatus === "verified"
+                  className={`font-bold px-2.5 py-0.5 rounded-full text-xs ${currentUser.verificationStatus === "verified"
                     ? "bg-emerald-100 text-emerald-800"
                     : "bg-amber-100 text-amber-900"
                     }`}
@@ -1751,10 +1742,4 @@ export default function LecturerDashboardPage() {
       <LecturerDashboardContent />
     </Suspense>
   );
-}
-return (
-  <Suspense fallback={<div className="min-h-screen bg-[#F8FAFC]" />}>
-    <LecturerDashboardContent />
-  </Suspense>
-);
 }

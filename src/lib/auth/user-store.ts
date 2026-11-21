@@ -17,12 +17,17 @@ export interface RegisteredUser {
   role: "student" | "lecturer" | "admin";
   verificationStatus?: UserVerificationStatus;
   institutionId?: string;
+  faculty?: string;
+  department?: string;
   programmeId?: string;
   academicYear?: number;
   semester?: number;
   activeCourseUnits?: string[];
-  department?: string;
   teachingRole?: string;
+  staffId?: string;
+  coursesTaught?: string[];
+  payoutMobileNumber?: string;
+  payoutMobileNetwork?: "MTN" | "AIRTEL";
   createdAt: string;
 }
 
@@ -136,12 +141,17 @@ export function registerUser(data: {
   role: "student" | "lecturer" | "admin";
   verificationStatus?: UserVerificationStatus;
   institutionId?: string;
+  faculty?: string;
+  department?: string;
   programmeId?: string;
   academicYear?: number;
   semester?: number;
   activeCourseUnits?: string[];
-  department?: string;
   teachingRole?: string;
+  staffId?: string;
+  coursesTaught?: string[];
+  payoutMobileNumber?: string;
+  payoutMobileNetwork?: "MTN" | "AIRTEL";
 }): RegisteredUser {
   loadUsers();
   const normalizedEmail = data.email.trim().toLowerCase();
@@ -151,8 +161,13 @@ export function registerUser(data: {
     existing.passwordHash = hashPassword(data.password);
     existing.fullName = data.fullName;
     existing.role = data.role;
+    if (data.faculty) existing.faculty = data.faculty;
     if (data.department) existing.department = data.department;
     if (data.teachingRole) existing.teachingRole = data.teachingRole;
+    if (data.staffId) existing.staffId = data.staffId;
+    if (data.coursesTaught) existing.coursesTaught = data.coursesTaught;
+    if (data.payoutMobileNumber) existing.payoutMobileNumber = data.payoutMobileNumber;
+    if (data.payoutMobileNetwork) existing.payoutMobileNetwork = data.payoutMobileNetwork;
     if (data.verificationStatus) existing.verificationStatus = data.verificationStatus;
     if (data.activeCourseUnits) existing.activeCourseUnits = data.activeCourseUnits;
     if (data.academicYear) existing.academicYear = data.academicYear;
@@ -180,12 +195,17 @@ export function registerUser(data: {
     role: data.role,
     verificationStatus: initialVerification,
     institutionId: data.institutionId,
+    faculty: data.faculty?.trim(),
+    department: data.department?.trim(),
     programmeId: data.programmeId,
     academicYear: data.academicYear,
     semester: data.semester,
     activeCourseUnits: data.activeCourseUnits,
-    department: data.department?.trim(),
     teachingRole: data.teachingRole?.trim(),
+    staffId: data.staffId?.trim(),
+    coursesTaught: data.coursesTaught,
+    payoutMobileNumber: data.payoutMobileNumber?.trim(),
+    payoutMobileNetwork: data.payoutMobileNetwork,
     createdAt: new Date().toISOString(),
   };
 
@@ -236,12 +256,17 @@ export function createSessionToken(user: RegisteredUser): string {
     role: user.role,
     verificationStatus: user.verificationStatus || (user.role === "lecturer" ? "pending_verification" : "registered"),
     institutionId: user.institutionId,
+    faculty: user.faculty,
+    department: user.department,
     programmeId: user.programmeId,
     academicYear: user.academicYear,
     semester: user.semester,
     activeCourseUnits: user.activeCourseUnits,
-    department: user.department,
     teachingRole: user.teachingRole,
+    staffId: user.staffId,
+    coursesTaught: user.coursesTaught,
+    payoutMobileNumber: user.payoutMobileNumber,
+    payoutMobileNetwork: user.payoutMobileNetwork,
     exp: Date.now() + 1000 * 60 * 60 * 24 * 30, // 30 days
   };
 

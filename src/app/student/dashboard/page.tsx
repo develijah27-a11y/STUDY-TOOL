@@ -202,10 +202,10 @@ export default function StudentDashboardPage() {
             </div>
 
             <div className="space-y-1">
-              <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
-                {greeting}, {firstName}. What are you studying today?
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+                {greeting}, {firstName}.
               </h1>
-              <p className="text-xs sm:text-sm text-slate-300 font-medium">
+              <p className="text-xs text-slate-300">
                 {institution} • {programme}
               </p>
             </div>
@@ -235,7 +235,7 @@ export default function StudentDashboardPage() {
           </div>
           <div>
             <span className="block text-xs font-bold text-slate-900">My Library</span>
-            <span className="block text-[11px] text-slate-500">Purchased &amp; Offline Notes</span>
+            <span className="block text-xs text-slate-500">Purchased &amp; Offline Notes</span>
           </div>
         </Link>
 
@@ -248,7 +248,7 @@ export default function StudentDashboardPage() {
           </div>
           <div>
             <span className="block text-xs font-bold text-slate-900">Explore Materials</span>
-            <span className="block text-[11px] text-slate-500">Search Course Units</span>
+            <span className="block text-xs text-slate-500">Search Course Units</span>
           </div>
         </Link>
 
@@ -261,7 +261,7 @@ export default function StudentDashboardPage() {
           </div>
           <div>
             <span className="block text-xs font-bold text-slate-900">Study Community</span>
-            <span className="block text-[11px] text-slate-500">Course Q&amp;A &amp; Discussion</span>
+            <span className="block text-xs text-slate-500">Course Q&amp;A &amp; Discussion</span>
           </div>
         </Link>
 
@@ -274,7 +274,7 @@ export default function StudentDashboardPage() {
           </div>
           <div>
             <span className="block text-xs font-bold text-slate-900">Find a Tutor</span>
-            <span className="block text-[11px] text-slate-500">Verified Revision Tutors</span>
+            <span className="block text-xs text-slate-500">Verified Revision Tutors</span>
           </div>
         </Link>
       </div>
@@ -425,30 +425,23 @@ export default function StudentDashboardPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-base font-extrabold text-[#142B45]">
-                    Offline Reading Desk (Downloaded Notes)
+                    Offline Downloads
                   </h2>
-                  <span className="text-[10px] font-black uppercase text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                    100% Offline
+                  <span className="text-xs font-bold uppercase text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                    Offline
                   </span>
                 </div>
-                <p className="text-xs text-slate-500">
-                  Read these publications anytime without data, wifi, or mobile network coverage
-                </p>
               </div>
             </div>
 
             <div className="text-xs font-bold text-slate-500">
-              {offlineMaterials.length} Downloaded Pack{offlineMaterials.length === 1 ? "" : "s"}
+              {offlineMaterials.length} Item{offlineMaterials.length === 1 ? "" : "s"}
             </div>
           </div>
 
           {offlineMaterials.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-200 bg-[#F7F8FA] p-6 text-center space-y-2">
-              <HardDrive className="h-8 w-8 text-slate-300 mx-auto" />
-              <p className="text-xs font-bold text-slate-700">No offline downloads stored on this device yet</p>
-              <p className="text-[11px] text-slate-500 max-w-md mx-auto">
-                Open any unlocked document in your library and click &ldquo;Download Offline&rdquo; to store AES-GCM encrypted notes inside your browser for zero-data reading.
-              </p>
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-[#F7F8FA] p-4 text-center">
+              <p className="text-xs text-slate-500">No offline downloads. Tap &ldquo;Download Offline&rdquo; in any document to read with zero data.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -462,20 +455,20 @@ export default function StudentDashboardPage() {
                       <span className="font-mono text-xs font-black bg-teal-100 text-[#147D78] px-2 py-0.5 rounded">
                         {mat.courseCode}
                       </span>
-                      <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded-full">
+                      <span className="text-xs font-bold text-emerald-800 bg-emerald-100/70 px-2.5 py-0.5 rounded-full">
                         Encrypted • {Math.round(mat.fileSizeBytes / 1024)} KB
                       </span>
                     </div>
                     <h3 className="font-extrabold text-[#142B45] text-xs line-clamp-2">
                       {mat.title}
                     </h3>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-xs text-slate-500">
                       {mat.institutionName} • {mat.lecturerName} • {mat.pageCount} Pages
                     </p>
                   </div>
 
                   <div className="pt-2 border-t border-teal-100 flex items-center justify-between">
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-xs text-slate-500">
                       Downloaded {new Date(mat.downloadedAt).toLocaleDateString()}
                     </span>
                     <Link
@@ -502,30 +495,20 @@ export default function StudentDashboardPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-base font-extrabold text-[#142B45]">
-                    Personal Study &amp; Revision Desk
+                    Study Notes &amp; Highlights
                   </h2>
-                  <span className="text-[10px] font-black uppercase text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">
-                    Revision Notes &amp; Highlights
-                  </span>
                 </div>
-                <p className="text-xs text-slate-500">
-                  Key concepts, definitions, exam formulas, and margin notes captured while studying
-                </p>
               </div>
             </div>
 
             <div className="text-xs font-bold text-slate-500">
-              {savedAnnotations.length} Study Item{savedAnnotations.length === 1 ? "" : "s"}
+              {savedAnnotations.length} Item{savedAnnotations.length === 1 ? "" : "s"}
             </div>
           </div>
 
           {savedAnnotations.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-200 bg-[#F7F8FA] p-6 text-center space-y-2">
-              <StickyNote className="h-8 w-8 text-slate-300 mx-auto" />
-              <p className="text-xs font-bold text-slate-700">No revision notes or highlights taken yet</p>
-              <p className="text-[11px] text-slate-500 max-w-md mx-auto">
-                While reading any lecture publication, use the Highlighter tool or add margin notes to build your personal revision compendium for semester examinations.
-              </p>
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-[#F7F8FA] p-4 text-center">
+              <p className="text-xs text-slate-500">No notes or highlights saved yet. Highlight text while reading to save it here.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -533,7 +516,7 @@ export default function StudentDashboardPage() {
                 const isHighlight = item.type === "highlight";
                 const badgeColor =
                   item.color === "green"
-                    ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                     ? "bg-emerald-100 text-emerald-800 border-emerald-300"
                     : item.color === "teal"
                     ? "bg-teal-100 text-teal-800 border-teal-300"
                     : "bg-amber-100 text-amber-900 border-amber-300";
@@ -554,11 +537,11 @@ export default function StudentDashboardPage() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span
-                          className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${badgeColor}`}
+                          className={`text-xs font-bold uppercase px-2 py-0.5 rounded-full border ${badgeColor}`}
                         >
                           {badgeText}
                         </span>
-                        <span className="text-[11px] font-mono font-bold text-slate-400">
+                        <span className="text-xs font-mono font-bold text-slate-400">
                           Page {item.pageNumber}
                         </span>
                       </div>
@@ -568,7 +551,7 @@ export default function StudentDashboardPage() {
                     </div>
 
                     <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-xs text-slate-400">
                         {new Date(item.createdAt).toLocaleDateString()}
                       </span>
                       <Link
@@ -615,8 +598,8 @@ export default function StudentDashboardPage() {
             <div className="py-8 text-center space-y-2 border border-dashed border-slate-200 rounded-2xl bg-[#F7F8FA] p-6">
               <BookOpen className="h-7 w-7 text-slate-400 mx-auto" />
               <p className="text-xs font-bold text-slate-700">No verified course notes published yet for {programme}</p>
-              <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
-                Accredited lecturers publish materials directly. You can request your course unit or browse other university faculties.
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                Lecturers publish materials directly. You can request your course unit or browse other faculties.
               </p>
               <Link
                 href="/catalogue"
@@ -689,9 +672,9 @@ export default function StudentDashboardPage() {
           {popularDocs.length === 0 ? (
             <div className="py-8 text-center space-y-2 border border-dashed border-slate-200 rounded-2xl bg-[#F7F8FA] p-6">
               <TrendingUp className="h-7 w-7 text-slate-400 mx-auto" />
-              <p className="text-xs font-bold text-slate-700">Catalogue is being populated by verified lecturers</p>
-              <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
-                Only authentic, lecturer-uploaded compendiums and marking schemes are approved across Ugandan institutions.
+              <p className="text-xs font-bold text-slate-700">Catalogue is being populated by registered lecturers</p>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                Only authentic, lecturer-uploaded study materials and marking schemes are published on SomaUG.
               </p>
             </div>
           ) : (

@@ -28,12 +28,17 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [institutionId, setInstitutionId] = useState("inst-mak");
+  const [faculty, setFaculty] = useState("");
+  const [department, setDepartment] = useState("");
   const [programmeId, setProgrammeId] = useState("prog-bsse");
   const [academicYear, setAcademicYear] = useState<number>(2);
   const [semester, setSemester] = useState<number>(1);
   const [activeCourseUnits, setActiveCourseUnits] = useState("CSC 2101, BIT 1202");
-  const [department, setDepartment] = useState("");
   const [teachingRole, setTeachingRole] = useState("Lecturer");
+  const [staffId, setStaffId] = useState("");
+  const [coursesTaught, setCoursesTaught] = useState("CSC 2101");
+  const [payoutMobileNumber, setPayoutMobileNumber] = useState("");
+  const [payoutMobileNetwork, setPayoutMobileNetwork] = useState<"MTN" | "AIRTEL">("MTN");
   const [agreeTerms, setAgreeTerms] = useState(false);
 
   const [loading, setLoading] = useState(false);
@@ -69,6 +74,11 @@ export default function SignUpPage() {
         .map((u) => u.trim().toUpperCase())
         .filter(Boolean);
 
+      const parsedCourses = coursesTaught
+        .split(",")
+        .map((c) => c.trim().toUpperCase())
+        .filter(Boolean);
+
       const res = await fetch("/api/auth/sign-up", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,12 +88,17 @@ export default function SignUpPage() {
           fullName,
           role,
           institutionId,
+          faculty: faculty.trim() || undefined,
+          department: department.trim() || undefined,
           programmeId: role === "student" ? programmeId : undefined,
           academicYear: role === "student" ? Number(academicYear) : undefined,
           semester: role === "student" ? Number(semester) : undefined,
           activeCourseUnits: role === "student" ? parsedUnits : undefined,
-          department: role === "lecturer" ? department : undefined,
           teachingRole: role === "lecturer" ? teachingRole : undefined,
+          staffId: role === "lecturer" ? staffId.trim() || undefined : undefined,
+          coursesTaught: role === "lecturer" ? parsedCourses : undefined,
+          payoutMobileNumber: role === "lecturer" ? payoutMobileNumber.trim() || undefined : undefined,
+          payoutMobileNetwork: role === "lecturer" ? payoutMobileNetwork : undefined,
         }),
       });
 
@@ -137,7 +152,7 @@ export default function SignUpPage() {
                 <span className="block text-base font-extrabold tracking-tight">
                   Soma<span className="text-amber-400">UG</span>
                 </span>
-                <span className="block text-[11px] font-medium text-slate-300">
+                <span className="block text-xs font-medium text-slate-300">
                   Academic Marketplace
                 </span>
               </div>
@@ -150,19 +165,19 @@ export default function SignUpPage() {
               </span>
               <h1 className="text-2xl font-extrabold leading-snug">
                 {role === "student"
-                  ? "Discover verified study packs & lecture notes."
-                  : "Publish educational materials & earn net royalties."}
+                  ? "Access lecture notes."
+                  : "Publish course materials."}
               </h1>
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <p className="text-xs text-slate-300">
                 {role === "student"
-                  ? "Search by course unit (e.g. CSC 2101), preview free sample pages, and pay with mobile money."
-                  : "Share course notes, retain 85% of each sale, and withdraw earnings directly to mobile money."}
+                  ? "Preview sample pages and unlock with mobile money."
+                  : "Upload notes and withdraw earnings directly."}
               </p>
             </div>
 
             {/* Role Switcher in Left Hero */}
             <div className="pt-4 border-t border-white/10 space-y-2">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-amber-300 block">
+              <label className="text-xs font-bold uppercase tracking-wider text-amber-300 block">
                 Choose Account Type:
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -194,7 +209,7 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          <div className="relative z-10 pt-6 mt-6 border-t border-white/10 text-[11px] text-slate-400">
+          <div className="relative z-10 pt-6 mt-6 border-t border-white/10 text-xs text-slate-400">
             🔒 Encrypted communication · Data handled under Uganda DPPA 2019.
           </div>
         </div>
@@ -291,7 +306,7 @@ export default function SignUpPage() {
                 </div>
               </div>
 
-              {/* Student Academic Verification Profile (Institution, Programme, Year, Semester, Active Course Units) */}
+              {/* Student Academic Verification Profile (Institution, Faculty, Department, Programme, Year, Semester, Active Course Units) */}
               {role === "student" && (
                 <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 space-y-3">
                   <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
@@ -299,9 +314,32 @@ export default function SignUpPage() {
                       <GraduationCap className="h-4 w-4 text-[#147D78]" />
                       <span>Academic Enrolment &amp; Active Course Units:</span>
                     </span>
-                    <span className="text-[10px] font-black uppercase text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
                       Verified Matching
                     </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Faculty / School</label>
+                      <input
+                        type="text"
+                        value={faculty}
+                        onChange={(e) => setFaculty(e.target.value)}
+                        placeholder="e.g. School of Computing & IT, Faculty of Law"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium outline-none focus:border-[#147D78]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Department</label>
+                      <input
+                        type="text"
+                        value={department}
+                        onChange={(e) => setDepartment(e.target.value)}
+                        placeholder="e.g. Computer Science, Accounting, Law"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium outline-none focus:border-[#147D78]"
+                      />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -365,7 +403,7 @@ export default function SignUpPage() {
                       className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono font-bold text-slate-900 outline-none focus:border-[#147D78]"
                     />
                     <div className="flex flex-wrap items-center gap-1.5 pt-2">
-                      <span className="text-[11px] text-slate-500">Active Tags:</span>
+                      <span className="text-xs text-slate-500">Active Tags:</span>
                       {activeCourseUnits
                         .split(",")
                         .map((u) => u.trim().toUpperCase())
@@ -373,7 +411,7 @@ export default function SignUpPage() {
                         .map((unit) => (
                           <span
                             key={unit}
-                            className="inline-flex items-center rounded bg-teal-100 text-[#147D78] px-2 py-0.5 text-[11px] font-mono font-bold border border-teal-200"
+                            className="inline-flex items-center rounded bg-teal-100 text-[#147D78] px-2 py-0.5 text-xs font-mono font-bold border border-teal-200"
                           >
                             {unit}
                           </span>
@@ -405,7 +443,7 @@ export default function SignUpPage() {
                 </div>
 
                 {/* Password Strength Indicators */}
-                <div className="mt-2 flex items-center gap-3 text-[11px] text-slate-500">
+                <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
                   <span className={`flex items-center gap-1 ${hasMinLength ? "text-emerald-700 font-bold" : ""}`}>
                     {hasMinLength ? "✓" : "•"} Min 8 characters
                   </span>
@@ -422,33 +460,97 @@ export default function SignUpPage() {
               {role === "lecturer" && (
                 <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 space-y-3">
                   <span className="font-bold text-slate-900 block border-b border-slate-200 pb-1.5">
-                    Teaching Appointment Details:
+                    Teaching Appointment &amp; Payout Setup:
                   </span>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block font-bold text-slate-700 mb-1">Department</label>
+                      <label className="block font-bold text-slate-700 mb-1">Faculty / School *</label>
+                      <input
+                        type="text"
+                        value={faculty}
+                        onChange={(e) => setFaculty(e.target.value)}
+                        placeholder="e.g. Faculty of Technology, School of Law"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs outline-none focus:border-[#147D78]"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Department *</label>
                       <input
                         type="text"
                         value={department}
                         onChange={(e) => setDepartment(e.target.value)}
-                        placeholder="e.g. Computer Science"
-                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 outline-none"
+                        placeholder="e.g. Computer Science, Accounting"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs outline-none focus:border-[#147D78]"
                         required
                       />
                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block font-bold text-slate-700 mb-1">Academic Title</label>
                       <select
                         value={teachingRole}
                         onChange={(e) => setTeachingRole(e.target.value)}
-                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 font-medium"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium"
                       >
                         <option value="Professor">Professor</option>
                         <option value="Associate Professor">Associate Professor</option>
                         <option value="Senior Lecturer">Senior Lecturer</option>
                         <option value="Lecturer">Lecturer</option>
                         <option value="Assistant Lecturer">Assistant Lecturer</option>
+                        <option value="Teaching Assistant">Teaching Assistant / Tutor</option>
                       </select>
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Staff ID / Staff Number</label>
+                      <input
+                        type="text"
+                        value={staffId}
+                        onChange={(e) => setStaffId(e.target.value)}
+                        placeholder="e.g. MAK/STAFF/2021/04"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs outline-none focus:border-[#147D78]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Courses Taught</label>
+                    <input
+                      type="text"
+                      value={coursesTaught}
+                      onChange={(e) => setCoursesTaught(e.target.value)}
+                      placeholder="e.g. CSC 2101, CSC 3102 (comma separated)"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono font-bold text-slate-900 outline-none focus:border-[#147D78]"
+                    />
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-200">
+                    <span className="block font-bold text-slate-800 mb-2">Mobile Money Payout Destination (Direct Withdrawals):</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Network</label>
+                        <select
+                          value={payoutMobileNetwork}
+                          onChange={(e) => setPayoutMobileNetwork(e.target.value as "MTN" | "AIRTEL")}
+                          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium"
+                        >
+                          <option value="MTN">MTN Mobile Money</option>
+                          <option value="AIRTEL">Airtel Money</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block font-bold text-slate-700 mb-1">Phone Number</label>
+                        <input
+                          type="text"
+                          value={payoutMobileNumber}
+                          onChange={(e) => setPayoutMobileNumber(e.target.value)}
+                          placeholder="e.g. 0772 123 456"
+                          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono outline-none focus:border-[#147D78]"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

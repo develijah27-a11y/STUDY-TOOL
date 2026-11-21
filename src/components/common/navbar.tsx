@@ -94,7 +94,7 @@ export function Navbar() {
             <span className="block text-base font-extrabold tracking-tight text-[#142B45] leading-none">
               Soma<span className="text-teal-700">UG</span> Academic
             </span>
-            <span className="block text-[10px] font-semibold text-slate-500 mt-0.5">
+            <span className="block text-xs font-semibold text-slate-500 mt-0.5">
               Course Study Materials
             </span>
           </div>
@@ -368,7 +368,7 @@ export function Footer() {
 
         {/* Mandatory Independent Platform Disclaimer */}
         <div className="border-t border-slate-200 pt-6 space-y-3">
-          <p className="text-[11px] leading-relaxed text-slate-500 text-center max-w-4xl mx-auto">
+          <p className="text-xs leading-relaxed text-slate-500 text-center max-w-4xl mx-auto">
             {SITE_COPY.footer.disclaimer}
           </p>
           <div className="text-center text-xs text-slate-400">
