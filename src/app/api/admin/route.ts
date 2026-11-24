@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
     const { action } = body;
     const now = new Date().toISOString();
 
-    const financialActions = ["process_refund", "resolve_payout_item", "update_settings"];
+    const financialActions = ["process_refund", "resolve_payout_item", "resolve_withdrawal_item", "update_settings"];
     if (financialActions.includes(action) && !check.context.roles.includes("admin")) {
       return NextResponse.json(
         { error: "FORBIDDEN: Financial operations and policy updates require explicit Administrator privileges." },
@@ -217,7 +217,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(res, { status: res.success ? 200 : 400 });
     }
 
-    if (action === "resolve_payout_item") {
+    if (action === "resolve_payout_item" || action === "resolve_withdrawal_item") {
       const res = WalletAndLedgerService.resolveLecturerPayoutItem({
         payoutReference: body.payoutReference,
         outcome: body.outcome || "PAID",
@@ -228,8 +228,8 @@ export async function POST(req: NextRequest) {
       dbStore.auditLogs.unshift({
         id: `aud-${Date.now()}`,
         actorId: callerId,
-        action: `PAYOUT_RECONCILE_${body.outcome}`,
-        targetType: "payout_item",
+        action: `LECTURER_WITHDRAWAL_RECONCILE_${body.outcome}`,
+        targetType: "withdrawal_item",
         targetId: body.payoutReference,
         metadata: { outcome: body.outcome },
         createdAt: now,

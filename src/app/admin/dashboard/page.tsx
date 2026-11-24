@@ -64,7 +64,7 @@ type SectionTab =
   | "institutions"
   | "transactions"
   | "revenue"
-  | "payouts"
+  | "withdrawals"
   | "qrcodes"
   | "reports"
   | "support"
@@ -160,9 +160,9 @@ export default function AdminDashboardPage() {
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [selectedLecturer, setSelectedLecturer] = useState<any | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
-  const [payoutProviderTxId, setPayoutProviderTxId] = useState("");
-  const [payoutFailureReason, setPayoutFailureReason] = useState("");
-  const [selectedPayout, setSelectedPayout] = useState<any | null>(null);
+  const [withdrawalProviderTxId, setWithdrawalProviderTxId] = useState("");
+  const [withdrawalFailureReason, setWithdrawalFailureReason] = useState("");
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState<any | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
     title: string;
     message: string;
@@ -277,8 +277,8 @@ export default function AdminDashboardPage() {
     const lecturerEarningsUGX = grossSalesUGX - platformCommissionUGX;
 
     const payoutItems = data.payoutItems || [];
-    const pendingPayouts = payoutItems.filter((p) => p.status === "REQUESTED" || p.status === "PROCESSING");
-    const pendingPayoutsUGX = pendingPayouts.reduce((sum, p) => sum + (p.amountUGX || 0), 0);
+    const pendingWithdrawals = payoutItems.filter((p) => p.status === "REQUESTED" || p.status === "PROCESSING");
+    const pendingWithdrawalsUGX = pendingWithdrawals.reduce((sum, p) => sum + (p.amountUGX || 0), 0);
 
     return {
       totalStudents: students.length,
@@ -291,8 +291,8 @@ export default function AdminDashboardPage() {
       grossSalesUGX,
       platformCommissionUGX,
       lecturerEarningsUGX,
-      pendingPayoutsCount: pendingPayouts.length,
-      pendingPayoutsUGX,
+      pendingWithdrawalsCount: pendingWithdrawals.length,
+      pendingWithdrawalsUGX,
     };
   }, [data]);
 
@@ -316,7 +316,7 @@ export default function AdminDashboardPage() {
       items: [
         { id: "transactions" as SectionTab, label: "Transactions", icon: CreditCard },
         { id: "revenue" as SectionTab, label: "Revenue & Analytics", icon: TrendingUp },
-        { id: "payouts" as SectionTab, label: "Lecturer Payouts", icon: Banknote },
+        { id: "withdrawals" as SectionTab, label: "Lecturer Withdrawals", icon: Banknote },
       ],
     },
     {
@@ -580,9 +580,9 @@ export default function AdminDashboardPage() {
                           {kpis.pendingVerifications}
                         </span>
                       )}
-                      {item.id === "payouts" && kpis && kpis.pendingPayoutsCount > 0 && (
+                      {item.id === "withdrawals" && kpis && kpis.pendingWithdrawalsCount > 0 && (
                         <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                          {kpis.pendingPayoutsCount}
+                          {kpis.pendingWithdrawalsCount}
                         </span>
                       )}
                     </button>
@@ -740,9 +740,9 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
                   <div className="p-3 rounded-xl bg-[#172438] border border-[#263449]">
-                    <div className="text-[10px] text-slate-400 uppercase font-mono">Pending Lecturer Payouts</div>
+                    <div className="text-[10px] text-slate-400 uppercase font-mono">Pending Lecturer Withdrawals</div>
                     <div className="text-lg font-black text-amber-400 font-mono mt-0.5">
-                      {formatUGX(kpis.pendingPayoutsUGX)}
+                      {formatUGX(kpis.pendingWithdrawalsUGX)}
                     </div>
                   </div>
                 </div>
@@ -1159,7 +1159,7 @@ export default function AdminDashboardPage() {
                           <span className="font-mono text-white">{selectedLecturer.staffId || "STAFF-2026-MAK"}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-400">Phone for Payouts:</span>
+                          <span className="text-slate-400">Phone for Withdrawals:</span>
                           <span className="font-mono text-teal-400">
                             {selectedLecturer.payoutMobileNumber || "256770000001"}
                           </span>
@@ -1534,29 +1534,29 @@ export default function AdminDashboardPage() {
           )}
 
           {/* ========================================================================= */}
-          {/* 8. LECTURER PAYOUTS */}
+          {/* 8. LECTURER WITHDRAWALS */}
           {/* ========================================================================= */}
-          {activeTab === "payouts" && (
+          {activeTab === "withdrawals" && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#263449] pb-4">
                 <div>
-                  <h1 className="text-xl sm:text-2xl font-black text-white">Lecturer Payout Management</h1>
+                  <h1 className="text-xl sm:text-2xl font-black text-white">Lecturer Withdrawal Management</h1>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Minimum payout threshold: <span className="font-mono text-[#14B8A6]">UGX 20,000</span>. Review and reconcile payouts.
+                    Lecturers withdraw their net earnings via MTN or Airtel Mobile Money. Minimum withdrawal threshold: <span className="font-mono text-[#14B8A6]">UGX 20,000</span>.
                   </p>
                 </div>
               </div>
 
-              {/* Payout Items Table */}
+              {/* Withdrawal Items Table */}
               <div className="rounded-2xl border border-[#263449] bg-[#111C2E] overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="bg-[#172438] text-slate-300 border-b border-[#263449] font-mono">
-                        <th className="p-3.5">Payout Reference</th>
+                        <th className="p-3.5">Withdrawal Ref</th>
                         <th className="p-3.5">Lecturer</th>
                         <th className="p-3.5">Amount</th>
-                        <th className="p-3.5">Provider Ref</th>
+                        <th className="p-3.5">Provider Tx Ref</th>
                         <th className="p-3.5">Status</th>
                         <th className="p-3.5 text-right">Resolution</th>
                       </tr>
@@ -1588,7 +1588,7 @@ export default function AdminDashboardPage() {
                           <td className="p-3.5 text-right">
                             {p.status === "REQUESTED" && (
                               <button
-                                onClick={() => setSelectedPayout(p)}
+                                onClick={() => setSelectedWithdrawal(p)}
                                 className="px-2.5 py-1 rounded-lg bg-[#2563EB] hover:bg-blue-600 text-white font-bold text-xs transition"
                               >
                                 Reconcile
@@ -1602,17 +1602,17 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* Reconcile Payout Modal */}
-              {selectedPayout && (
+              {/* Reconcile Withdrawal Modal */}
+              {selectedWithdrawal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
                   <div className="bg-[#111C2E] border border-[#263449] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
                     <div className="flex items-center justify-between border-b border-[#263449] pb-3">
                       <div>
-                        <h3 className="text-base font-bold text-white">Reconcile Lecturer Payout</h3>
-                        <p className="text-xs text-slate-400 font-mono">{selectedPayout.payoutReference}</p>
+                        <h3 className="text-base font-bold text-white">Reconcile Lecturer Withdrawal</h3>
+                        <p className="text-xs text-slate-400 font-mono">{selectedWithdrawal.payoutReference}</p>
                       </div>
                       <button
-                        onClick={() => setSelectedPayout(null)}
+                        onClick={() => setSelectedWithdrawal(null)}
                         className="text-slate-400 hover:text-white"
                       >
                         <X className="h-5 w-5" />
@@ -1623,7 +1623,7 @@ export default function AdminDashboardPage() {
                       <div className="p-3 rounded-xl bg-[#172438] flex justify-between">
                         <span className="text-slate-400">Amount Due:</span>
                         <span className="font-mono font-bold text-emerald-400">
-                          {formatUGX(selectedPayout.amountUGX)}
+                          {formatUGX(selectedWithdrawal.amountUGX)}
                         </span>
                       </div>
 
@@ -1631,8 +1631,8 @@ export default function AdminDashboardPage() {
                         <label className="text-slate-300 font-bold">Mobile Money Provider Transaction ID:</label>
                         <input
                           type="text"
-                          value={payoutProviderTxId}
-                          onChange={(e) => setPayoutProviderTxId(e.target.value)}
+                          value={withdrawalProviderTxId}
+                          onChange={(e) => setWithdrawalProviderTxId(e.target.value)}
                           placeholder="e.g. MTN-MOMO-TX-9872145"
                           className="w-full bg-[#172438] border border-[#263449] rounded-xl p-2.5 text-xs text-white placeholder-slate-500 outline-none focus:border-[#14B8A6]"
                         />
@@ -1643,25 +1643,25 @@ export default function AdminDashboardPage() {
                           onClick={() => {
                             handleAdminAction({
                               action: "resolve_payout_item",
-                              payoutReference: selectedPayout.payoutReference,
+                              payoutReference: selectedWithdrawal.payoutReference,
                               outcome: "REJECTED",
                               failureReason: "Manual administrative rejection or insufficient verification",
                             });
-                            setSelectedPayout(null);
+                            setSelectedWithdrawal(null);
                           }}
                           className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition"
                         >
-                          Reject Payout
+                          Reject Withdrawal
                         </button>
                         <button
                           onClick={() => {
                             handleAdminAction({
                               action: "resolve_payout_item",
-                              payoutReference: selectedPayout.payoutReference,
+                              payoutReference: selectedWithdrawal.payoutReference,
                               outcome: "PAID",
-                              providerTransactionId: payoutProviderTxId || `MOMO-${Date.now()}`,
+                              providerTransactionId: withdrawalProviderTxId || `MOMO-${Date.now()}`,
                             });
-                            setSelectedPayout(null);
+                            setSelectedWithdrawal(null);
                           }}
                           className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition"
                         >
@@ -1782,13 +1782,13 @@ export default function AdminDashboardPage() {
                     <Banknote className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white">Lecturer Payout Settlements</h3>
+                    <h3 className="text-sm font-bold text-white">Lecturer Withdrawal Settlements</h3>
                     <p className="text-xs text-slate-400 mt-1">
-                      Audited historical record of all processed and pending payout requests.
+                      Audited historical record of all processed and pending withdrawal requests.
                     </p>
                   </div>
                   <button
-                    onClick={() => exportReportsToCSV("payouts")}
+                    onClick={() => exportReportsToCSV("withdrawals")}
                     className="w-full py-2 rounded-xl bg-amber-600 hover:bg-amber-700 font-bold text-xs text-white transition flex items-center justify-center gap-1.5"
                   >
                     <Download className="h-4 w-4" />
@@ -2281,11 +2281,11 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-slate-300 font-bold">Minimum Lecturer Payout Threshold (UGX):</label>
+                  <label className="text-slate-300 font-bold">Minimum Lecturer Withdrawal Threshold (UGX):</label>
                   <input
                     type="number"
                     defaultValue={data?.settings.minLecturerPayoutUGX}
-                    id="minPayoutInput"
+                    id="minWithdrawalInput"
                     className="w-full bg-[#172438] border border-[#263449] rounded-xl px-3 py-2 text-white font-mono"
                   />
                   <p className="text-[10px] text-slate-400">Minimum threshold is UGX 20,000.</p>
@@ -2295,12 +2295,12 @@ export default function AdminDashboardPage() {
                   <button
                     onClick={() => {
                       const comm = Number((document.getElementById("commissionInput") as HTMLInputElement)?.value);
-                      const minPayout = Number((document.getElementById("minPayoutInput") as HTMLInputElement)?.value);
+                      const minWithdrawal = Number((document.getElementById("minWithdrawalInput") as HTMLInputElement)?.value);
 
                       handleAdminAction({
                         action: "update_settings",
                         commissionPercent: comm,
-                        minLecturerPayoutUGX: minPayout,
+                        minLecturerPayoutUGX: minWithdrawal,
                       });
                     }}
                     className="px-5 py-2 rounded-xl bg-[#14B8A6] hover:bg-teal-600 font-bold text-white transition"
