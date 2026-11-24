@@ -48,7 +48,7 @@ export function Navbar() {
       if (cached) {
         setAuthenticatedUser(JSON.parse(cached));
       }
-    } catch {}
+    } catch { }
 
     async function checkSession() {
       try {
@@ -63,7 +63,7 @@ export function Navbar() {
         }
         setAuthenticatedUser(null);
         localStorage.removeItem("somaug_user_session");
-      } catch {}
+      } catch { }
     }
     checkSession();
   }, [pathname]);
@@ -71,7 +71,7 @@ export function Navbar() {
   const handleSignOut = async () => {
     try {
       await fetch("/api/auth/sign-out", { method: "POST" });
-    } catch {}
+    } catch { }
     localStorage.removeItem("somaug_user_session");
     setAuthenticatedUser(null);
     setMobileMenuOpen(false);
@@ -168,8 +168,8 @@ export function Navbar() {
                   authenticatedUser.role === "lecturer"
                     ? "/lecturer/dashboard"
                     : authenticatedUser.role === "admin"
-                    ? "/admin/dashboard"
-                    : "/student/dashboard"
+                      ? "/admin/dashboard"
+                      : "/student/dashboard"
                 }
                 className="inline-flex items-center gap-1.5 rounded-xl bg-[#172B27] hover:bg-[#116B55] px-4 py-2 text-xs font-bold text-white transition shadow-sm"
               >
