@@ -83,40 +83,40 @@ export function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/95 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full border-b border-[#E2ECE7] bg-white/95 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#142B45] text-[#E9B949] shadow-sm">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#16866A] text-white shadow-sm">
             <GraduationCap className="h-5 w-5" />
           </div>
           <div>
-            <span className="block text-base font-extrabold tracking-tight text-[#142B45] leading-none">
-              Soma<span className="text-teal-700">UG</span> Academic
+            <span className="block text-base font-extrabold tracking-tight text-[#172B27] leading-none">
+              Soma<span className="text-[#16866A]">UG</span> Academic
             </span>
-            <span className="block text-xs font-semibold text-slate-500 mt-0.5">
+            <span className="block text-[11px] font-semibold text-[#64736D] mt-0.5">
               Course Study Materials
             </span>
           </div>
         </Link>
 
         {/* Desktop Primary Navigation */}
-        <nav className="hidden md:flex items-center gap-1 text-xs font-bold text-slate-700">
+        <nav className="hidden md:flex items-center gap-1 text-xs font-semibold text-[#64736D]">
           <Link
             href="/catalogue"
-            className="px-3.5 py-2 rounded-xl hover:bg-slate-100 hover:text-teal-800 transition"
+            className="px-3.5 py-2 rounded-xl hover:bg-[#F4F7F6] hover:text-[#16866A] transition"
           >
             Explore Materials
           </Link>
           <Link
             href="/#how-it-works"
-            className="px-3.5 py-2 rounded-xl hover:bg-slate-100 hover:text-teal-800 transition"
+            className="px-3.5 py-2 rounded-xl hover:bg-[#F4F7F6] hover:text-[#16866A] transition"
           >
             How It Works
           </Link>
           <Link
             href="/lecturer/apply"
-            className="px-3.5 py-2 rounded-xl hover:bg-teal-50 text-teal-800 transition"
+            className="px-3.5 py-2 rounded-xl hover:bg-[#E8F5EF] text-[#16866A] font-bold transition"
           >
             For Lecturers
           </Link>
@@ -128,13 +128,13 @@ export function Navbar() {
             <div className="flex items-center gap-2">
               <Link
                 href="/sign-in"
-                className="px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-slate-900 transition"
+                className="px-3.5 py-2 text-xs font-bold text-[#172B27] hover:text-[#16866A] transition"
               >
                 Sign In
               </Link>
               <Link
                 href="/sign-up"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#147D78] hover:bg-[#116965] px-4 py-2 text-xs font-bold text-white shadow-sm transition"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#16866A] hover:bg-[#116B55] px-4 py-2 text-xs font-bold text-white shadow-sm transition"
               >
                 <span>Create Account</span>
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -148,16 +148,16 @@ export function Navbar() {
                     ? "/lecturer/dashboard?tab=publications"
                     : "/student/library"
                 }
-                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 px-3.5 py-2 text-xs font-bold text-slate-700 transition"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-[#E2ECE7] bg-[#F8FAF9] hover:bg-[#EDF4F0] px-3.5 py-2 text-xs font-bold text-[#172B27] transition"
               >
                 {authenticatedUser.role === "lecturer" ? (
                   <>
-                    <UploadCloud className="h-3.5 w-3.5 text-teal-700" />
+                    <UploadCloud className="h-3.5 w-3.5 text-[#16866A]" />
                     <span>My Publications</span>
                   </>
                 ) : (
                   <>
-                    <Library className="h-3.5 w-3.5 text-teal-700" />
+                    <Library className="h-3.5 w-3.5 text-[#16866A]" />
                     <span>My Library</span>
                   </>
                 )}
@@ -171,16 +171,16 @@ export function Navbar() {
                     ? "/admin/dashboard"
                     : "/student/dashboard"
                 }
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#142B45] hover:bg-[#1A3859] px-4 py-2 text-xs font-bold text-white transition shadow-sm"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#172B27] hover:bg-[#116B55] px-4 py-2 text-xs font-bold text-white transition shadow-sm"
               >
-                <UserCheck className="h-3.5 w-3.5 text-[#E9B949]" />
+                <UserCheck className="h-3.5 w-3.5 text-[#A3E5D0]" />
                 <span>Dashboard</span>
               </Link>
 
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="p-2 text-slate-400 hover:text-red-600 transition"
+                className="p-2 text-[#89958F] hover:text-red-600 transition"
                 title="Sign Out"
               >
                 <LogOut className="h-4 w-4" />
@@ -190,13 +190,13 @@ export function Navbar() {
             <div className="flex items-center gap-2">
               <Link
                 href="/sign-in"
-                className="px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-slate-900 transition"
+                className="px-3.5 py-2 text-xs font-bold text-[#172B27] hover:text-[#16866A] transition"
               >
                 Sign In
               </Link>
               <Link
                 href="/sign-up"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#147D78] hover:bg-[#116965] px-4 py-2 text-xs font-bold text-white shadow-sm transition"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#16866A] hover:bg-[#116B55] px-4 py-2 text-xs font-bold text-white shadow-sm transition"
               >
                 <span>Create Account</span>
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -220,45 +220,45 @@ export function Navbar() {
 
       {/* Lightweight Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-slate-200 bg-white px-4 py-4 space-y-3 shadow-lg">
-          <div className="flex flex-col space-y-1 text-xs font-bold text-slate-800">
+        <div className="md:hidden border-b border-[#E2ECE7] bg-white px-4 py-4 space-y-3 shadow-lg">
+          <div className="flex flex-col space-y-1 text-xs font-semibold text-[#172B27]">
             <Link
               href="/catalogue"
               onClick={() => setMobileMenuOpen(false)}
-              className="py-2.5 px-3 rounded-lg hover:bg-slate-100"
+              className="py-2.5 px-3 rounded-lg hover:bg-[#F4F7F6]"
             >
               Explore Materials
             </Link>
             <Link
               href="/#how-it-works"
               onClick={() => setMobileMenuOpen(false)}
-              className="py-2.5 px-3 rounded-lg hover:bg-slate-100"
+              className="py-2.5 px-3 rounded-lg hover:bg-[#F4F7F6]"
             >
               How It Works
             </Link>
             <Link
               href="/lecturer/apply"
               onClick={() => setMobileMenuOpen(false)}
-              className="py-2.5 px-3 rounded-lg hover:bg-slate-100 text-teal-800"
+              className="py-2.5 px-3 rounded-lg hover:bg-[#E8F5EF] text-[#16866A] font-bold"
             >
               For Lecturers
             </Link>
           </div>
 
-          <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
+          <div className="pt-2 border-t border-[#E2ECE7] flex flex-col gap-2">
             {pathname === "/" ? (
               <div className="grid grid-cols-2 gap-2">
                 <Link
                   href="/sign-in"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-center py-2.5 rounded-xl border border-slate-300 text-slate-800 text-xs font-bold hover:bg-slate-50"
+                  className="text-center py-2.5 rounded-xl border border-[#E2ECE7] text-[#172B27] text-xs font-bold hover:bg-[#F4F7F6]"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/sign-up"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-center py-2.5 rounded-xl bg-[#147D78] text-white text-xs font-bold hover:bg-[#116965]"
+                  className="text-center py-2.5 rounded-xl bg-[#16866A] text-white text-xs font-bold hover:bg-[#116B55]"
                 >
                   Create Account
                 </Link>
@@ -268,7 +268,7 @@ export function Navbar() {
                 <Link
                   href={authenticatedUser.role === "lecturer" ? "/lecturer/dashboard" : "/student/dashboard"}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2.5 rounded-xl bg-[#142B45] text-white text-xs font-bold"
+                  className="w-full text-center py-2.5 rounded-xl bg-[#172B27] text-white text-xs font-bold"
                 >
                   Go to Dashboard
                 </Link>
@@ -285,14 +285,14 @@ export function Navbar() {
                 <Link
                   href="/sign-in"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-center py-2.5 rounded-xl border border-slate-300 text-slate-800 text-xs font-bold hover:bg-slate-50"
+                  className="text-center py-2.5 rounded-xl border border-[#E2ECE7] text-[#172B27] text-xs font-bold hover:bg-[#F4F7F6]"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/sign-up"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-center py-2.5 rounded-xl bg-[#147D78] text-white text-xs font-bold hover:bg-[#116965]"
+                  className="text-center py-2.5 rounded-xl bg-[#16866A] text-white text-xs font-bold hover:bg-[#116965]"
                 >
                   Create Account
                 </Link>
@@ -316,48 +316,48 @@ export function Footer() {
   }
 
   return (
-    <footer className="border-t border-slate-200 bg-white text-slate-700 mt-16">
+    <footer className="border-t border-[#E2ECE7] bg-white text-[#64736D] mt-16">
       <div className="container mx-auto px-4 sm:px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-8">
           {/* Brand & Mission (md:col-span-5) */}
           <div className="md:col-span-5 space-y-3">
-            <div className="flex items-center gap-2.5 text-[#142B45] font-extrabold text-base">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#142B45] text-[#E9B949]">
+            <div className="flex items-center gap-2.5 text-[#172B27] font-extrabold text-base">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#16866A] text-white">
                 <GraduationCap className="h-5 w-5" />
               </div>
               <span>SomaUG Academic</span>
             </div>
-            <p className="text-xs text-slate-600 leading-relaxed max-w-sm">
+            <p className="text-xs text-[#64736D] leading-relaxed max-w-sm">
               Study notes and revision guides authored by course lecturers and tutors. Preview sample pages before paying with mobile money.
             </p>
-            <div className="text-xs text-slate-500 pt-1 font-medium">
+            <div className="text-xs text-[#89958F] pt-1 font-medium">
               Pay with mobile money (MTN or Airtel)
             </div>
           </div>
 
           {/* Quick Links (md:col-span-3) */}
           <div className="md:col-span-3 space-y-2.5">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#172B27]">
               Quick Links
             </h3>
-            <ul className="space-y-2 text-xs text-slate-600 font-medium">
+            <ul className="space-y-2 text-xs text-[#64736D] font-medium">
               <li>
-                <Link href="/catalogue" className="hover:text-teal-700 transition">
+                <Link href="/catalogue" className="hover:text-[#16866A] transition">
                   Explore Materials
                 </Link>
               </li>
               <li>
-                <Link href="/#how-it-works" className="hover:text-teal-700 transition">
+                <Link href="/#how-it-works" className="hover:text-[#16866A] transition">
                   How It Works
                 </Link>
               </li>
               <li>
-                <Link href="/lecturer/apply" className="hover:text-teal-700 transition">
+                <Link href="/lecturer/apply" className="hover:text-[#16866A] transition">
                   For Lecturers
                 </Link>
               </li>
               <li>
-                <Link href="/d" className="hover:text-teal-700 transition">
+                <Link href="/d" className="hover:text-[#16866A] transition">
                   Scan Document QR
                 </Link>
               </li>
@@ -366,32 +366,32 @@ export function Footer() {
 
           {/* Policies & Support (md:col-span-4) */}
           <div className="md:col-span-4 space-y-2.5">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#172B27]">
               Policies &amp; Support
             </h3>
-            <ul className="space-y-2 text-xs text-slate-600 font-medium">
+            <ul className="space-y-2 text-xs text-[#64736D] font-medium">
               <li>
-                <Link href="/terms" className="hover:text-teal-700 transition">
+                <Link href="/terms" className="hover:text-[#16866A] transition">
                   Terms of Use
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="hover:text-teal-700 transition">
+                <Link href="/privacy" className="hover:text-[#16866A] transition">
                   Privacy Policy (Uganda DPPA 2019)
                 </Link>
               </li>
               <li>
-                <Link href="/copyright" className="hover:text-teal-700 transition">
+                <Link href="/copyright" className="hover:text-[#16866A] transition">
                   Copyright &amp; 48-Hour Takedown Policy
                 </Link>
               </li>
               <li>
-                <Link href="/refunds" className="hover:text-teal-700 transition">
+                <Link href="/refunds" className="hover:text-[#16866A] transition">
                   24-Hour Refund Policy
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-teal-700 transition">
+                <Link href="/contact" className="hover:text-[#16866A] transition">
                   Contact Support (WhatsApp &amp; Email)
                 </Link>
               </li>
@@ -400,11 +400,11 @@ export function Footer() {
         </div>
 
         {/* Mandatory Independent Platform Disclaimer */}
-        <div className="border-t border-slate-200 pt-6 space-y-3">
-          <p className="text-xs leading-relaxed text-slate-500 text-center max-w-4xl mx-auto">
+        <div className="border-t border-[#E2ECE7] pt-6 space-y-3">
+          <p className="text-xs leading-relaxed text-[#89958F] text-center max-w-4xl mx-auto">
             {SITE_COPY.footer.disclaimer}
           </p>
-          <div className="text-center text-xs text-slate-400">
+          <div className="text-center text-xs text-[#89958F]">
             {SITE_COPY.footer.copyright}
           </div>
         </div>
