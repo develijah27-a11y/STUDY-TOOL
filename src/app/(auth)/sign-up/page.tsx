@@ -209,8 +209,9 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          <div className="relative z-10 pt-6 mt-6 border-t border-white/10 text-xs text-slate-400">
-            🔒 Encrypted communication · Data handled under Uganda DPPA 2019.
+          <div className="relative z-10 pt-6 mt-6 border-t border-white/10 text-xs text-slate-400 flex items-center gap-1.5">
+            <ShieldCheck className="h-3.5 w-3.5 text-teal-400 shrink-0" />
+            <span>Encrypted communication · Data handled under Uganda DPPA 2019.</span>
           </div>
         </div>
 

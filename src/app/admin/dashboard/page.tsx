@@ -41,6 +41,7 @@ import {
   Calendar,
   GraduationCap,
   Award,
+  X,
 } from "lucide-react";
 
 interface AccountSummary {
@@ -610,8 +611,9 @@ export default function AdminDashboardPage() {
               <ShieldCheck className="h-3.5 w-3.5" />
               <span>Admin Control Desk</span>
             </div>
-            <span className="text-xs text-slate-300 font-mono hidden sm:inline">
-              ● System Active · {users.length} Registered Accounts
+            <span className="text-xs text-slate-300 font-mono hidden sm:inline flex items-center">
+              <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 mr-1.5" />
+              System Active · {users.length} Registered Accounts
             </span>
           </div>
           <h1 className="text-2xl font-black tracking-tight mt-1.5">Platform Administration</h1>
@@ -648,9 +650,9 @@ export default function AdminDashboardPage() {
           <button
             type="button"
             onClick={() => setStatusBanner(null)}
-            className="text-slate-400 hover:text-white font-bold ml-4"
+            className="text-slate-400 hover:text-white transition ml-4"
           >
-            ✕
+            <X className="h-4 w-4" />
           </button>
         </div>
       )}
