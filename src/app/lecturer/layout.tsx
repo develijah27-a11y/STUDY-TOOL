@@ -176,20 +176,20 @@ function LecturerLayoutContent({
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col md:flex-row">
-      {/* Desktop Sidebar (Left Fixed 64) */}
-      <aside className="hidden md:flex flex-col w-64 bg-[#142B45] text-white border-r border-slate-800 shrink-0 min-h-screen sticky top-0 h-screen">
+    <div className="h-[100dvh] max-h-[100dvh] bg-[#F4F6F2] flex flex-col md:flex-row overflow-hidden">
+      {/* Desktop Sidebar (Left Fixed 64 with Independent Scroll) */}
+      <aside className="hidden md:flex flex-col w-64 bg-[#153F35] text-white border-r border-[#1E4E42] shrink-0 h-full max-h-full overflow-hidden">
         {/* Brand Header */}
-        <div className="p-5 border-b border-slate-800">
+        <div className="p-5 border-b border-[#1E4E42] shrink-0">
           <Link href="/lecturer/dashboard" className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#147D78] text-[#E9B949] font-black shadow-md border border-teal-500/30">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#23836B] text-[#D6A957] font-black shadow-md border border-[#23836B]/40">
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
               <span className="block text-base font-extrabold tracking-tight text-white leading-tight">
-                Soma<span className="text-[#E9B949]">UG</span>
+                Soma<span className="text-[#D6A957]">UG</span>
               </span>
-              <span className="block text-[10px] font-semibold text-slate-300">
+              <span className="block text-[10px] font-semibold text-[#E9F1EB]/80">
                 Lecturer Workspace
               </span>
             </div>
@@ -197,23 +197,23 @@ function LecturerLayoutContent({
         </div>
 
         {/* Quick Earnings Balance Card */}
-        <div className="px-4 py-3 mx-3 my-3 rounded-xl bg-white/10 border border-white/10 space-y-1">
-          <span className="text-[10px] uppercase font-bold text-slate-300 tracking-wider block">
+        <div className="px-4 py-3 mx-3 my-3 rounded-xl bg-white/10 border border-white/10 space-y-1 shrink-0">
+          <span className="text-[10px] uppercase font-bold text-[#E9F1EB]/80 tracking-wider block">
             Available Earnings
           </span>
-          <div className="text-xl font-black text-[#E9B949]">
+          <div className="text-xl font-black text-[#D6A957]">
             {formatUGX(earningsBalance)}
           </div>
           <Link
             href="/lecturer/dashboard?tab=earnings"
-            className="block text-[11px] text-teal-300 hover:text-teal-200 font-bold pt-0.5"
+            className="block text-[11px] text-[#E9F1EB] hover:text-[#D6A957] font-bold pt-0.5"
           >
             Withdraw to MoMo →
           </Link>
         </div>
 
-        {/* Navigation Items */}
-        <nav className="flex-1 px-3 py-1 space-y-1 overflow-y-auto">
+        {/* Navigation Items (Independent Scrolling) */}
+        <nav className="flex-1 min-h-0 px-3 py-1 space-y-1 dashboard-sidebar-scroll overscroll-contain">
           {navItems.map((item) => {
             const Icon = item.icon;
 
@@ -222,12 +222,12 @@ function LecturerLayoutContent({
                 key={item.label}
                 href={item.href}
                 className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${item.isActive
-                  ? "bg-[#147D78] text-white shadow-sm"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  ? "bg-[#23836B] text-white shadow-sm"
+                  : "text-[#E9F1EB]/80 hover:bg-white/10 hover:text-white"
                   }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Icon className={`h-4 w-4 ${item.isActive ? "text-amber-300" : "text-slate-400"}`} />
+                  <Icon className={`h-4 w-4 ${item.isActive ? "text-[#D6A957]" : "text-[#E9F1EB]/60"}`} />
                   <span>{item.label}</span>
                 </div>
               </Link>
@@ -236,13 +236,13 @@ function LecturerLayoutContent({
         </nav>
 
         {/* Bottom User Card & Sign Out */}
-        <div className="p-3 border-t border-slate-800 bg-[#0e1f32]">
+        <div className="p-3 border-t border-[#1E4E42] bg-[#12362E] shrink-0">
           <div className="flex items-center justify-between">
             <div className="truncate mr-2">
               <span className="block text-xs font-extrabold text-white truncate">
                 {lecturer.fullName}
               </span>
-              <span className="block text-[10px] text-slate-400 truncate">
+              <span className="block text-[10px] text-[#E9F1EB]/70 truncate">
                 {lecturer.department || lecturer.institutionName}
               </span>
             </div>
@@ -260,18 +260,18 @@ function LecturerLayoutContent({
       </aside>
 
       {/* Mobile Top Header */}
-      <div className="md:hidden sticky top-0 z-40 bg-[#142B45] text-white border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+      <div className="md:hidden sticky top-0 z-40 bg-[#153F35] text-white border-b border-[#1E4E42] px-4 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-1.5 rounded-lg border border-white/20 text-slate-200 hover:bg-white/10"
+            className="p-1.5 rounded-lg border border-white/20 text-[#E9F1EB] hover:bg-white/10"
             aria-label="Toggle Navigation"
           >
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
           <Link href="/lecturer/dashboard" className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#147D78] text-amber-400">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#23836B] text-[#D6A957]">
               <GraduationCap className="h-4 w-4" />
             </div>
             <span className="text-sm font-extrabold tracking-tight">Lecturer Workspace</span>
@@ -281,7 +281,7 @@ function LecturerLayoutContent({
         <div className="flex items-center gap-2">
           <Link
             href="/lecturer/dashboard?tab=earnings"
-            className="px-2.5 py-1 rounded-lg bg-amber-400/20 border border-amber-400/40 text-[11px] font-bold text-amber-300"
+            className="px-2.5 py-1 rounded-lg bg-[#23836B]/30 border border-[#23836B]/50 text-[11px] font-bold text-[#D6A957]"
           >
             {formatUGX(earningsBalance)}
           </Link>
@@ -299,16 +299,16 @@ function LecturerLayoutContent({
       {/* Mobile Slide-out Drawer */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm md:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <div
-            className="w-72 bg-[#142B45] text-white h-full flex flex-col p-5 space-y-4"
+            className="w-72 bg-[#153F35] text-white h-full flex flex-col p-5 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center justify-between border-b border-[#1E4E42] pb-3">
               <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-lg bg-[#147D78] text-amber-400 flex items-center justify-center font-bold">
+                <div className="h-8 w-8 rounded-lg bg-[#23836B] text-[#D6A957] flex items-center justify-center font-bold">
                   <GraduationCap className="h-5 w-5" />
                 </div>
                 <span className="font-extrabold text-sm">Lecturer Workspace</span>
@@ -316,22 +316,22 @@ function LecturerLayoutContent({
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1 text-slate-400 hover:text-white"
+                className="p-1 text-[#E9F1EB]/70 hover:text-white"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <div className="p-3 rounded-xl bg-white/10 space-y-1">
-              <span className="text-[10px] uppercase font-bold text-slate-300 tracking-wider">
+              <span className="text-[10px] uppercase font-bold text-[#E9F1EB]/80 tracking-wider">
                 Available Earnings
               </span>
-              <div className="text-lg font-black text-amber-400">
+              <div className="text-lg font-black text-[#D6A957]">
                 {formatUGX(earningsBalance)}
               </div>
             </div>
 
-            <nav className="flex-1 space-y-1 overflow-y-auto">
+            <nav className="flex-1 space-y-1 dashboard-sidebar-scroll overscroll-contain min-h-0">
               {navItems.map((item) => {
                 const Icon = item.icon;
 
@@ -341,8 +341,8 @@ function LecturerLayoutContent({
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-bold transition ${item.isActive
-                      ? "bg-[#147D78] text-white"
-                      : "text-slate-300 hover:bg-white/10 hover:text-white"
+                      ? "bg-[#23836B] text-white"
+                      : "text-[#E9F1EB]/80 hover:bg-white/10 hover:text-white"
                       }`}
                   >
                     <div className="flex items-center gap-3">
@@ -354,7 +354,7 @@ function LecturerLayoutContent({
               })}
             </nav>
 
-            <div className="pt-3 border-t border-slate-800">
+            <div className="pt-3 border-t border-[#1E4E42]">
               <button
                 type="button"
                 onClick={handleSignOut}
@@ -368,8 +368,8 @@ function LecturerLayoutContent({
         </div>
       )}
 
-      {/* Main Content Pane */}
-      <main className="flex-1 overflow-x-hidden pb-16 md:pb-8">
+      {/* Main Content Pane (Independent Scrolling) */}
+      <main className="dashboard-main-scroll overscroll-contain overflow-x-hidden pb-16 md:pb-8">
         {children}
       </main>
     </div>

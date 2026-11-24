@@ -127,20 +127,20 @@ export default function StudentLayout({
   const isReaderPage = pathname.startsWith("/student/read/");
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] flex flex-col md:flex-row">
-      {/* Desktop Sidebar (Left Fixed 64) */}
-      <aside className="hidden md:flex flex-col w-64 bg-[#142B45] text-white border-r border-slate-800 shrink-0 min-h-screen sticky top-0 h-screen">
+    <div className="h-[100dvh] max-h-[100dvh] bg-[#F4F6F2] flex flex-col md:flex-row overflow-hidden">
+      {/* Desktop Sidebar (Left Fixed 64 with Independent Scroll) */}
+      <aside className="hidden md:flex flex-col w-64 bg-[#153F35] text-white border-r border-[#1E4E42] shrink-0 h-full max-h-full overflow-hidden">
         {/* Brand Header */}
-        <div className="p-6 border-b border-slate-800">
+        <div className="p-5 border-b border-[#1E4E42] shrink-0">
           <Link href="/student/dashboard" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400 text-[#142B45] font-black shadow-md">
-              <GraduationCap className="h-6 w-6" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#23836B] text-white font-black shadow-md">
+              <GraduationCap className="h-6 w-6 text-[#D6A957]" />
             </div>
             <div>
               <span className="block text-base font-extrabold tracking-tight text-white leading-tight">
-                Soma<span className="text-amber-400">UG</span>
+                Soma<span className="text-[#D6A957]">UG</span>
               </span>
-              <span className="block text-[11px] font-semibold text-teal-300">
+              <span className="block text-[11px] font-semibold text-[#E9F1EB]/80">
                 Student Workspace
               </span>
             </div>
@@ -148,24 +148,24 @@ export default function StudentLayout({
         </div>
 
         {/* Quick Wallet Glance */}
-        <div className="px-4 py-3 mx-4 my-4 rounded-xl bg-white/10 border border-white/10 backdrop-blur-sm space-y-1">
-          <div className="flex items-center justify-between text-[11px] text-slate-300 font-bold uppercase tracking-wider">
+        <div className="px-4 py-3 mx-3 my-3 rounded-xl bg-white/10 border border-white/10 space-y-1 shrink-0">
+          <div className="flex items-center justify-between text-[11px] text-[#E9F1EB]/80 font-bold uppercase tracking-wider">
             <span>Spendable Balance</span>
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+            <ShieldCheck className="h-3.5 w-3.5 text-[#23836B]" />
           </div>
-          <div className="text-xl font-black text-amber-400">
+          <div className="text-xl font-black text-[#D6A957]">
             {formatUGX(walletBalance)}
           </div>
           <Link
             href="/student/wallet"
-            className="block text-[11px] text-teal-300 hover:text-teal-200 font-bold pt-0.5"
+            className="block text-[11px] text-[#E9F1EB] hover:text-[#D6A957] font-bold pt-0.5"
           >
             + Top up via MoMo →
           </Link>
         </div>
 
-        {/* Navigation Items */}
-        <nav className="flex-1 px-4 py-2 space-y-4 overflow-y-auto">
+        {/* Navigation Items (Independent Scrolling) */}
+        <nav className="flex-1 min-h-0 px-3 py-2 space-y-4 dashboard-sidebar-scroll overscroll-contain">
           <div className="space-y-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -179,11 +179,11 @@ export default function StudentLayout({
                   href={item.href}
                   className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold transition ${
                     isActive
-                      ? "bg-[#147D78] text-white shadow-sm"
-                      : "text-slate-300 hover:bg-white/10 hover:text-white"
+                      ? "bg-[#23836B] text-white shadow-sm"
+                      : "text-[#E9F1EB]/80 hover:bg-white/10 hover:text-white"
                   }`}
                 >
-                  <Icon className={`h-4 w-4 ${isActive ? "text-amber-300" : "text-slate-400"}`} />
+                  <Icon className={`h-4 w-4 ${isActive ? "text-[#D6A957]" : "text-[#E9F1EB]/60"}`} />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -193,35 +193,35 @@ export default function StudentLayout({
           {/* Quick Document Access in Sidebar */}
           <div className="rounded-xl bg-white/5 border border-white/10 p-3 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-200 flex items-center gap-1.5">
-                <QrCode className="h-3.5 w-3.5 text-teal-300" />
+              <span className="text-[11px] font-bold text-[#E9F1EB] flex items-center gap-1.5">
+                <QrCode className="h-3.5 w-3.5 text-[#D6A957]" />
                 Quick Document Access
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 leading-tight">
+            <p className="text-[10px] text-[#E9F1EB]/70 leading-tight">
               Scan QR or enter document code to open study materials instantly.
             </p>
             <Link
               href="/d"
-              className="flex items-center justify-between rounded-lg bg-teal-800/40 hover:bg-teal-700/50 border border-teal-500/30 px-2.5 py-1.5 text-[11px] font-bold text-white transition group"
+              className="flex items-center justify-between rounded-lg bg-[#23836B]/30 hover:bg-[#23836B]/50 border border-[#23836B]/40 px-2.5 py-1.5 text-[11px] font-bold text-white transition group"
             >
               <span className="flex items-center gap-1.5">
-                <Camera className="h-3 w-3 text-amber-300" />
+                <Camera className="h-3 w-3 text-[#D6A957]" />
                 Scan QR / Enter Code
               </span>
-              <ArrowRight className="h-3 w-3 text-amber-300 group-hover:translate-x-0.5 transition" />
+              <ArrowRight className="h-3 w-3 text-[#D6A957] group-hover:translate-x-0.5 transition" />
             </Link>
           </div>
         </nav>
 
         {/* Bottom User Card & Sign Out */}
-        <div className="p-4 border-t border-slate-800 bg-[#0e1f32]">
+        <div className="p-4 border-t border-[#1E4E42] bg-[#12362E] shrink-0">
           <div className="flex items-center justify-between">
             <div className="truncate mr-2">
               <span className="block text-xs font-extrabold text-white truncate">
                 {student.fullName}
               </span>
-              <span className="block text-[10px] text-slate-400 truncate">
+              <span className="block text-[10px] text-[#E9F1EB]/70 truncate">
                 {student.email || student.institutionName}
               </span>
             </div>
@@ -239,19 +239,19 @@ export default function StudentLayout({
       </aside>
 
       {/* Mobile Top Header */}
-      <div className="md:hidden sticky top-0 z-40 bg-[#142B45] text-white border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+      <div className="md:hidden sticky top-0 z-40 bg-[#153F35] text-white border-b border-[#1E4E42] px-4 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-1.5 rounded-lg border border-white/20 text-slate-200 hover:bg-white/10"
+            className="p-1.5 rounded-lg border border-white/20 text-[#E9F1EB] hover:bg-white/10"
             aria-label="Toggle Navigation"
           >
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
           <Link href="/student/dashboard" className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-400 text-[#142B45]">
-              <GraduationCap className="h-4 w-4" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#23836B] text-white">
+              <GraduationCap className="h-4 w-4 text-[#D6A957]" />
             </div>
             <span className="text-sm font-extrabold tracking-tight">SomaUG</span>
           </Link>
@@ -260,7 +260,7 @@ export default function StudentLayout({
         <div className="flex items-center gap-2">
           <Link
             href="/student/wallet"
-            className="px-2.5 py-1 rounded-lg bg-amber-400/20 border border-amber-400/40 text-[11px] font-bold text-amber-300"
+            className="px-2.5 py-1 rounded-lg bg-[#23836B]/30 border border-[#23836B]/50 text-[11px] font-bold text-[#D6A957]"
           >
             {formatUGX(walletBalance)}
           </Link>
@@ -278,39 +278,39 @@ export default function StudentLayout({
       {/* Mobile Slide-out Drawer */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm md:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <div
-            className="w-72 bg-[#142B45] text-white h-full flex flex-col p-5 space-y-4"
+            className="w-72 bg-[#153F35] text-white h-full flex flex-col p-5 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center justify-between border-b border-[#1E4E42] pb-3">
               <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-lg bg-amber-400 text-[#142B45] flex items-center justify-center font-bold">
-                  <GraduationCap className="h-5 w-5" />
+                <div className="h-8 w-8 rounded-lg bg-[#23836B] text-white flex items-center justify-center font-bold">
+                  <GraduationCap className="h-5 w-5 text-[#D6A957]" />
                 </div>
                 <span className="font-extrabold text-sm">Student Workspace</span>
               </div>
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1 text-slate-400 hover:text-white"
+                className="p-1 text-[#E9F1EB]/70 hover:text-white"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <div className="p-3 rounded-xl bg-white/10 space-y-1">
-              <span className="text-[10px] uppercase font-bold text-slate-300 tracking-wider">
+              <span className="text-[10px] uppercase font-bold text-[#E9F1EB]/80 tracking-wider">
                 Spendable Balance
               </span>
-              <div className="text-lg font-black text-amber-400">
+              <div className="text-lg font-black text-[#D6A957]">
                 {formatUGX(walletBalance)}
               </div>
             </div>
 
-            <nav className="flex-1 space-y-3 overflow-y-auto">
+            <nav className="flex-1 space-y-3 dashboard-sidebar-scroll overscroll-contain min-h-0">
               <div className="space-y-1">
                 {navItems.map((item) => {
                   const Icon = item.icon;
@@ -325,8 +325,8 @@ export default function StudentLayout({
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold transition ${
                         isActive
-                          ? "bg-[#147D78] text-white"
-                          : "text-slate-300 hover:bg-white/10 hover:text-white"
+                          ? "bg-[#23836B] text-white"
+                          : "text-[#E9F1EB]/80 hover:bg-white/10 hover:text-white"
                       }`}
                     >
                       <Icon className="h-4 w-4" />
@@ -338,26 +338,26 @@ export default function StudentLayout({
 
               {/* Mobile Quick Document Access */}
               <div className="rounded-xl bg-white/5 border border-white/10 p-3 space-y-1.5">
-                <span className="text-[11px] font-bold text-slate-200 flex items-center gap-1.5">
-                  <QrCode className="h-3.5 w-3.5 text-teal-300" />
+                <span className="text-[11px] font-bold text-[#E9F1EB] flex items-center gap-1.5">
+                  <QrCode className="h-3.5 w-3.5 text-[#D6A957]" />
                   Quick Document Access
                 </span>
-                <p className="text-[10px] text-slate-400">Scan QR or enter document code</p>
+                <p className="text-[10px] text-[#E9F1EB]/70">Scan QR or enter document code</p>
                 <Link
                   href="/d"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between rounded-lg bg-teal-800/40 border border-teal-500/30 px-2.5 py-1.5 text-[11px] font-bold text-white"
+                  className="flex items-center justify-between rounded-lg bg-[#23836B]/30 border border-[#23836B]/40 px-2.5 py-1.5 text-[11px] font-bold text-white"
                 >
                   <span className="flex items-center gap-1.5">
-                    <Camera className="h-3 w-3 text-amber-300" />
+                    <Camera className="h-3 w-3 text-[#D6A957]" />
                     Scan QR / Enter Code
                   </span>
-                  <ArrowRight className="h-3 w-3 text-amber-300" />
+                  <ArrowRight className="h-3 w-3 text-[#D6A957]" />
                 </Link>
               </div>
             </nav>
 
-            <div className="pt-3 border-t border-slate-800">
+            <div className="pt-3 border-t border-[#1E4E42]">
               <button
                 type="button"
                 onClick={handleSignOut}
@@ -371,8 +371,8 @@ export default function StudentLayout({
         </div>
       )}
 
-      {/* Main Content Pane */}
-      <main className="flex-1 overflow-x-hidden pb-20 md:pb-8">
+      {/* Main Content Pane (Independent Scrolling) */}
+      <main className="dashboard-main-scroll overscroll-contain overflow-x-hidden pb-20 md:pb-8">
         {children}
       </main>
 
@@ -380,7 +380,7 @@ export default function StudentLayout({
       {!isReaderPage && (
         <nav
           aria-label="Student Mobile Navigation"
-          className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 md:hidden safe-area-inset-bottom"
+          className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E3E9E4] md:hidden safe-area-inset-bottom"
         >
           <div className="grid grid-cols-5 h-16 max-w-lg mx-auto">
             {navItems.map((item) => {
@@ -395,14 +395,14 @@ export default function StudentLayout({
                   href={item.href}
                   className={`flex flex-col items-center justify-center gap-1 transition ${
                     isActive
-                      ? "text-[#147D78] font-bold"
-                      : "text-slate-500 hover:text-slate-900 font-medium"
+                      ? "text-[#23836B] font-bold"
+                      : "text-[#738078] hover:text-[#183D32] font-medium"
                   }`}
                 >
                   <Icon className={`h-5 w-5 ${isActive ? "stroke-[2.5]" : "stroke-2"}`} />
                   <span className="text-[11px] leading-none">{item.label}</span>
                   {isActive && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#147D78] mt-0.5" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#23836B] mt-0.5" />
                   )}
                 </Link>
               );

@@ -374,10 +374,10 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0B1220] flex items-center justify-center text-slate-100">
+      <div className="min-h-screen bg-[#102923] flex items-center justify-center text-[#E9F1EB]">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#14B8A6] border-t-transparent" />
-          <div className="text-sm font-semibold tracking-wider text-slate-300">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#23836B] border-t-transparent" />
+          <div className="text-sm font-semibold tracking-wider text-[#E9F1EB]/90">
             CONNECTING TO SOMAUG ADMINISTRATIVE DESK...
           </div>
         </div>
@@ -386,7 +386,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B1220] text-[#F1F5F9] flex flex-col antialiased">
+    <div className="h-[100dvh] max-h-[100dvh] bg-[#102923] text-[#F1F5F9] flex flex-col antialiased overflow-hidden">
       {/* Toast Notification */}
       {toastMessage && (
         <div
@@ -454,18 +454,18 @@ export default function AdminDashboardPage() {
       )}
 
       {/* Top Navigation Bar */}
-      <header className="h-16 bg-[#111C2E] border-b border-[#263449] sticky top-0 z-40 px-4 sm:px-6 flex items-center justify-between">
+      <header className="h-16 bg-[#153F35] border-b border-[#1E4E42] shrink-0 z-40 px-4 sm:px-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="lg:hidden p-2 rounded-lg bg-[#172438] text-slate-300 hover:text-white"
+            className="lg:hidden p-2 rounded-lg bg-[#183D32] text-[#E9F1EB] hover:text-white"
           >
             <Menu className="h-5 w-5" />
           </button>
 
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-bold text-slate-400 hidden sm:inline">
+            <span className="font-mono text-xs font-bold text-[#E9F1EB]/60 hidden sm:inline">
               SomaUG /
             </span>
             <span className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
@@ -476,13 +476,13 @@ export default function AdminDashboardPage() {
 
         {/* Global Search Bar */}
         <div className="hidden md:flex items-center relative w-72 lg:w-96">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3 pointer-events-none" />
+          <Search className="h-4 w-4 text-[#89958F] absolute left-3 pointer-events-none" />
           <input
             type="text"
             value={globalSearch}
             onChange={(e) => setGlobalSearch(e.target.value)}
             placeholder="Search students, lecturers, notes, or IDs..."
-            className="w-full bg-[#172438] border border-[#263449] rounded-xl pl-9 pr-4 py-1.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#14B8A6] transition"
+            className="w-full bg-[#183D32] border border-[#1E4E42] rounded-xl pl-9 pr-4 py-1.5 text-xs text-white placeholder-[#89958F] focus:outline-none focus:border-[#23836B] transition"
           />
         </div>
 
@@ -492,20 +492,20 @@ export default function AdminDashboardPage() {
             type="button"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="p-2 rounded-lg bg-[#172438] hover:bg-[#263449] text-slate-300 hover:text-white transition"
+            className="p-2 rounded-lg bg-[#183D32] hover:bg-[#1E4E42] text-[#E9F1EB] hover:text-white transition"
             title="Refresh Ledger and System Records"
           >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-[#14B8A6]" : ""}`} />
+            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin text-[#23836B]" : ""}`} />
           </button>
 
           {/* Persona / Role Switcher Pill */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#172438] border border-[#263449]">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#183D32] border border-[#1E4E42]">
             <div className="h-2 w-2 rounded-full bg-emerald-400" />
             <div className="text-left hidden sm:block">
               <div className="text-xs font-bold text-white leading-tight">
                 {currentAdminId === "develijah27@gmail.com" ? "Elijah Hannington" : currentAdminId}
               </div>
-              <div className="text-[10px] text-[#14B8A6] font-mono uppercase">
+              <div className="text-[10px] text-[#23836B] font-mono uppercase font-bold">
                 {currentUserRole}
               </div>
             </div>
@@ -513,7 +513,7 @@ export default function AdminDashboardPage() {
 
           <Link
             href="/"
-            className="text-xs font-bold text-slate-400 hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-[#172438] transition hidden lg:inline-flex items-center gap-1.5"
+            className="text-xs font-bold text-[#E9F1EB]/70 hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-[#183D32] transition hidden lg:inline-flex items-center gap-1.5"
           >
             <span>Live Site</span>
             <ExternalLink className="h-3.5 w-3.5" />
@@ -521,23 +521,23 @@ export default function AdminDashboardPage() {
         </div>
       </header>
 
-      {/* Main Body Shell */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* Main Body Shell (Independent Sidebar and Workspace Scrolling) */}
+      <div className="flex-1 min-h-0 flex overflow-hidden">
         {/* Sidebar Navigation */}
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#111C2E] border-r border-[#263449] flex flex-col justify-between transform transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#153F35] border-r border-[#1E4E42] flex flex-col justify-between h-full max-h-full overflow-hidden transform transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 shrink-0 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-0 -translate-x-full"
           }`}
         >
           {/* Sidebar Top: Logo */}
-          <div className="p-4 border-b border-[#263449] flex items-center justify-between">
+          <div className="p-4 border-b border-[#1E4E42] flex items-center justify-between shrink-0">
             <Link href="/admin/dashboard" className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-[#2563EB] to-[#14B8A6] flex items-center justify-center font-black text-white text-base shadow-md">
+              <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-[#153F35] to-[#23836B] flex items-center justify-center font-black text-[#D6A957] text-base shadow-md border border-[#23836B]/40">
                 S
               </div>
               <div>
                 <div className="text-xs font-black tracking-wide text-white">SOMAUG ACADEMIC</div>
-                <div className="text-[10px] font-mono text-[#94A3B8]">Admin Console v2.0</div>
+                <div className="text-[10px] font-mono text-[#D6A957]">Admin Console v2.0</div>
               </div>
             </Link>
             <button
@@ -548,11 +548,11 @@ export default function AdminDashboardPage() {
             </button>
           </div>
 
-          {/* Navigation Groups */}
-          <nav className="flex-1 overflow-y-auto p-3 space-y-5">
+          {/* Navigation Groups (Independent Scrolling) */}
+          <nav className="flex-1 min-h-0 dashboard-sidebar-scroll overscroll-contain p-3 space-y-5">
             {navGroups.map((grp, gIdx) => (
               <div key={gIdx} className="space-y-1">
-                <div className="px-3 text-[10px] font-mono font-bold tracking-wider text-[#94A3B8]">
+                <div className="px-3 text-[10px] font-mono font-bold tracking-wider text-[#D6A957]">
                   {grp.group}
                 </div>
                 {grp.items.map((item) => {
@@ -567,16 +567,16 @@ export default function AdminDashboardPage() {
                       }}
                       className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition ${
                         isActive
-                          ? "bg-[#172438] text-[#14B8A6] border border-[#263449] shadow-sm"
-                          : "text-slate-300 hover:bg-[#172438]/50 hover:text-white"
+                          ? "bg-[#23836B] text-white border border-[#23836B]/60 shadow-sm"
+                          : "text-[#E9F1EB]/80 hover:bg-white/10 hover:text-white"
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
-                        <Icon className={`h-4 w-4 ${isActive ? "text-[#14B8A6]" : "text-slate-400"}`} />
+                        <Icon className={`h-4 w-4 ${isActive ? "text-[#D6A957]" : "text-[#E9F1EB]/60"}`} />
                         <span>{item.label}</span>
                       </div>
                       {item.id === "lecturers" && kpis && kpis.pendingVerifications > 0 && (
-                        <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#D6A957]/20 text-[#D6A957] border border-[#D6A957]/30">
                           {kpis.pendingVerifications}
                         </span>
                       )}
@@ -593,15 +593,15 @@ export default function AdminDashboardPage() {
           </nav>
 
           {/* Sidebar Footer: Role & Identity */}
-          <div className="p-3 border-t border-[#263449] space-y-2">
-            <div className="p-2.5 rounded-xl bg-[#172438] border border-[#263449] text-xs space-y-1">
-              <div className="text-[10px] text-slate-400 uppercase font-mono">Operator Persona</div>
+          <div className="p-3 border-t border-[#1E4E42] space-y-2 shrink-0 bg-[#12362E]">
+            <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-xs space-y-1">
+              <div className="text-[10px] text-[#E9F1EB]/70 uppercase font-mono">Operator Persona</div>
               <div className="font-bold text-white truncate">{currentAdminId}</div>
               <div className="flex items-center justify-between pt-1">
                 <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
                   Double-Entry Mode
                 </span>
-                <span className="text-[10px] font-mono text-slate-400">UGX Ledger</span>
+                <span className="text-[10px] font-mono text-[#E9F1EB]/60">UGX Ledger</span>
               </div>
             </div>
           </div>
@@ -615,8 +615,8 @@ export default function AdminDashboardPage() {
           />
         )}
 
-        {/* Main Workspace Area */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+        {/* Main Workspace Area (Independent Scrolling) */}
+        <main className="flex-1 min-h-0 dashboard-main-scroll overscroll-contain p-4 sm:p-6 lg:p-8 space-y-6">
           {/* ========================================================================= */}
           {/* 1. OVERVIEW DASHBOARD */}
           {/* ========================================================================= */}
