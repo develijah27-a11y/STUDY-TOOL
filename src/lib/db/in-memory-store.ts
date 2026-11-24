@@ -616,18 +616,51 @@ class MarketplaceStore {
         createdAt: now,
         updatedAt: now,
       },
+      {
+        id: "user-lec-hannington",
+        email: "elijahhannington8@gmail.com",
+        fullName: "Hannington (Lecturer)",
+        phoneNumber: "256770000000",
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: "user-stu-daniel",
+        email: "daniellle@gmail.com",
+        fullName: "Lukungiri Daniel",
+        phoneNumber: "256750000000",
+        createdAt: now,
+        updatedAt: now,
+      },
     ];
 
     this.userRoles.set("user-student-1", ["student"]);
     this.userRoles.set("user-student-2", ["student"]);
+    this.userRoles.set("user-stu-daniel", ["student"]);
     this.userRoles.set("user-lecturer-1", ["lecturer"]);
     this.userRoles.set("user-lecturer-2", ["lecturer"]);
+    this.userRoles.set("user-lec-hannington", ["lecturer"]);
     this.userRoles.set("user-lecturer-pending", ["lecturer"]);
     this.userRoles.set("user-admin-1", ["admin"]);
     this.userRoles.set("user-admin-develijah", ["admin"]);
 
     // 6. Lecturer Profiles
     this.lecturerProfiles = [
+      {
+        id: "lec-hannington",
+        userId: "user-lec-hannington",
+        fullName: "Hannington (Lecturer)",
+        institutionId: "inst-mak",
+        department: "Department of Software Engineering (CoCIS)",
+        teachingRole: "Senior Lecturer",
+        institutionalEmail: "elijahhannington8@gmail.com",
+        verificationEvidenceUrl: "private://verifications/mak-staff-hannington.pdf",
+        verificationStatus: "approved",
+        reviewedBy: "user-admin-develijah",
+        reviewedAt: now,
+        createdAt: now,
+        updatedAt: now,
+      },
       {
         id: "lec-1",
         userId: "user-lecturer-1",

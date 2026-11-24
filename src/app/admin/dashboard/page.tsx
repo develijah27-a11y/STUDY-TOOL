@@ -34,6 +34,13 @@ import {
   Database,
   Cpu,
   Layers,
+  ChevronDown,
+  ChevronUp,
+  Building,
+  Phone,
+  Calendar,
+  GraduationCap,
+  Award,
 } from "lucide-react";
 
 interface AccountSummary {
@@ -77,7 +84,17 @@ interface RegisteredUserItem {
   role: "student" | "lecturer" | "admin";
   verificationStatus?: string;
   institutionId?: string;
+  faculty?: string;
   department?: string;
+  programmeId?: string;
+  academicYear?: number;
+  semester?: number;
+  activeCourseUnits?: string[];
+  teachingRole?: string;
+  staffId?: string;
+  coursesTaught?: string[];
+  payoutMobileNumber?: string;
+  payoutMobileNetwork?: "MTN" | "AIRTEL";
   createdAt: string;
 }
 
@@ -198,6 +215,7 @@ export default function AdminDashboardPage() {
   const [userSearch, setUserSearch] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("all");
   const [docSearch, setDocSearch] = useState("");
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
 
   // DevTools State: MoMo Simulator
   const [momoTargetUserId, setMomoTargetUserId] = useState("user-student-1");
@@ -541,13 +559,29 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const copyText = (txt: string) => {
+    if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(txt);
+      setStatusBanner(`Copied to clipboard: ${txt}`);
+    }
+  };
+
+  const getUserWallet = (userId: string) => {
+    return wallets.find((w) => w.userId === userId || w.id === `wallet-stu-${userId}`);
+  };
+
   const filteredUsers = users.filter((u) => {
     const matchRole = userRoleFilter === "all" || u.role === userRoleFilter;
+    const q = userSearch.toLowerCase().trim();
     const matchSearch =
-      !userSearch.trim() ||
-      u.fullName.toLowerCase().includes(userSearch.toLowerCase()) ||
-      u.email.toLowerCase().includes(userSearch.toLowerCase()) ||
-      (u.department && u.department.toLowerCase().includes(userSearch.toLowerCase()));
+      !q ||
+      u.fullName.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      u.id.toLowerCase().includes(q) ||
+      (u.department && u.department.toLowerCase().includes(q)) ||
+      (u.faculty && u.faculty.toLowerCase().includes(q)) ||
+      (u.staffId && u.staffId.toLowerCase().includes(q)) ||
+      (u.payoutMobileNumber && u.payoutMobileNumber.includes(q));
     return matchRole && matchSearch;
   });
 
@@ -571,11 +605,16 @@ export default function AdminDashboardPage() {
       {/* Top Header */}
       <div className="rounded-2xl bg-[#142B45] text-white p-6 shadow-md border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/20 text-teal-300 px-3 py-0.5 text-xs font-bold border border-teal-500/30">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            <span>Admin Control Desk</span>
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/20 text-teal-300 px-3 py-0.5 text-xs font-bold border border-teal-500/30">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              <span>Admin Control Desk</span>
+            </div>
+            <span className="text-xs text-slate-300 font-mono hidden sm:inline">
+              ● System Active · {users.length} Registered Accounts
+            </span>
           </div>
-          <h1 className="text-2xl font-black tracking-tight mt-1">Platform Administration</h1>
+          <h1 className="text-2xl font-black tracking-tight mt-1.5">Platform Administration</h1>
         </div>
 
         <div className="flex items-center gap-2 self-start md:self-auto">
@@ -714,7 +753,7 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Tab 2: Developer Desk (NEW) */}
+      {/* Tab 2: Developer Desk */}
       {activeTab === "devtools" && (
         <div className="space-y-6">
           {/* System Diagnostics Cards */}
@@ -776,7 +815,7 @@ export default function AdminDashboardPage() {
               <div>
                 <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                   <LogIn className="h-4 w-4 text-teal-600" />
-                  <span>Role Switcher & Session Impersonator</span>
+                  <span>Role Switcher &amp; Session Impersonator</span>
                 </h3>
               </div>
               <span className="text-xs font-mono text-slate-400">1-click token injection</span>
@@ -786,12 +825,12 @@ export default function AdminDashboardPage() {
               <button
                 type="button"
                 disabled={impersonateLoading}
-                onClick={() => handleImpersonate("user-student-1")}
+                onClick={() => handleImpersonate("user-stu-daniel")}
                 className="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-teal-500 hover:bg-teal-50/50 transition text-left group"
               >
                 <div>
-                  <div className="text-xs font-bold text-slate-900 group-hover:text-teal-700">Grace Namukasa</div>
-                  <div className="text-xs text-slate-500">BSSE Student • Mak</div>
+                  <div className="text-xs font-bold text-slate-900 group-hover:text-teal-700">Lukungiri Daniel</div>
+                  <div className="text-xs text-slate-500">Student • Mak CoCIS</div>
                 </div>
                 <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-600" />
               </button>
@@ -799,11 +838,11 @@ export default function AdminDashboardPage() {
               <button
                 type="button"
                 disabled={impersonateLoading}
-                onClick={() => handleImpersonate("user-lecturer-1")}
+                onClick={() => handleImpersonate("user-lec-hannington")}
                 className="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-teal-500 hover:bg-teal-50/50 transition text-left group"
               >
                 <div>
-                  <div className="text-xs font-bold text-slate-900 group-hover:text-teal-700">Assoc. Prof. Okello</div>
+                  <div className="text-xs font-bold text-slate-900 group-hover:text-teal-700">Hannington (Lecturer)</div>
                   <div className="text-xs text-slate-500">Verified Lecturer • Mak</div>
                 </div>
                 <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-600" />
@@ -996,7 +1035,7 @@ export default function AdminDashboardPage() {
               <div>
                 <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                   <Database className="h-4 w-4 text-slate-700" />
-                  <span>Live Store & Ledger Inspector</span>
+                  <span>Live Store &amp; Ledger Inspector</span>
                 </h3>
               </div>
 
@@ -1222,29 +1261,50 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Tab 4: User Directory */}
+      {/* Tab 4: User Directory (REAL USERS & FULL DETAILS) */}
       {activeTab === "users" && (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <h3 className="text-sm font-bold text-slate-900">User Directory</h3>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Search name or email..."
-                value={userSearch}
-                onChange={(e) => setUserSearch(e.target.value)}
-                className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs outline-none"
-              />
-              <select
-                value={userRoleFilter}
-                onChange={(e) => setUserRoleFilter(e.target.value)}
-                className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs outline-none font-bold"
-              >
-                <option value="all">All Roles</option>
-                <option value="student">Student</option>
-                <option value="lecturer">Lecturer</option>
-                <option value="admin">Admin</option>
-              </select>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">User Directory</h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Real accounts from authentication store &amp; profiles ({users.length} registered).
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search name, email, dept, phone..."
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  className="rounded-xl border border-slate-300 pl-8 pr-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-teal-500 w-56 sm:w-64"
+                />
+              </div>
+
+              <div className="flex rounded-xl border border-slate-200 overflow-hidden text-xs">
+                {[
+                  { id: "all", label: `All (${users.length})` },
+                  { id: "student", label: `Students (${users.filter((u) => u.role === "student").length})` },
+                  { id: "lecturer", label: `Lecturers (${users.filter((u) => u.role === "lecturer").length})` },
+                  { id: "admin", label: `Admins (${users.filter((u) => u.role === "admin").length})` },
+                ].map((rf) => (
+                  <button
+                    key={rf.id}
+                    type="button"
+                    onClick={() => setUserRoleFilter(rf.id)}
+                    className={`px-3 py-1.5 font-bold transition ${
+                      userRoleFilter === rf.id
+                        ? "bg-[#142B45] text-white"
+                        : "bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    {rf.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -1252,48 +1312,281 @@ export default function AdminDashboardPage() {
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-slate-200 text-slate-500 font-bold">
-                  <th className="pb-2">User</th>
-                  <th className="pb-2">Role</th>
-                  <th className="pb-2">Verification</th>
-                  <th className="pb-2 text-right">Actions</th>
+                  <th className="pb-2.5">User &amp; Academic Affiliation</th>
+                  <th className="pb-2.5">Role</th>
+                  <th className="pb-2.5">Verification</th>
+                  <th className="pb-2.5">Wallet Spendable</th>
+                  <th className="pb-2.5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredUsers.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-50">
-                    <td className="py-2.5">
-                      <div className="font-bold text-slate-900">{u.fullName}</div>
-                      <div className="text-slate-500 font-mono">{u.email}</div>
-                    </td>
-                    <td className="py-2.5">
-                      <span className="capitalize font-bold text-slate-800">{u.role}</span>
-                    </td>
-                    <td className="py-2.5">
-                      <span className="capitalize text-slate-600">{u.verificationStatus || "verified"}</span>
-                    </td>
-                    <td className="py-2.5 text-right space-x-1.5">
-                      <button
-                        type="button"
-                        onClick={() => handleImpersonate(u.id)}
-                        className="rounded-lg bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-800 px-2 py-1 text-xs font-bold transition"
-                      >
-                        Impersonate
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleUpdateUser(
-                            u.id,
-                            u.role === "student" ? "lecturer" : u.role === "lecturer" ? "admin" : "student"
-                          )
-                        }
-                        className="rounded-lg border border-slate-200 hover:bg-slate-100 px-2 py-1 text-xs font-bold text-slate-700 transition"
-                      >
-                        Toggle Role
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {filteredUsers.map((u) => {
+                  const isExpanded = expandedUserId === u.id;
+                  const wallet = getUserWallet(u.id);
+
+                  return (
+                    <React.Fragment key={u.id}>
+                      <tr className={`hover:bg-slate-50 transition ${isExpanded ? "bg-teal-50/30" : ""}`}>
+                        <td className="py-3">
+                          <div className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                            <span>{u.fullName}</span>
+                            {u.role === "admin" && (
+                              <span className="rounded bg-purple-100 text-purple-800 px-1.5 py-0.2 text-xs font-bold">
+                                Admin
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-slate-500 font-mono text-xs">{u.email}</div>
+                          {(u.faculty || u.department) && (
+                            <div className="text-slate-400 text-xs mt-0.5">
+                              {u.faculty ? `${u.faculty} · ` : ""}
+                              {u.department}
+                            </div>
+                          )}
+                        </td>
+
+                        <td className="py-3">
+                          <span
+                            className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold capitalize ${
+                              u.role === "admin"
+                                ? "bg-purple-100 text-purple-800 border border-purple-200"
+                                : u.role === "lecturer"
+                                ? "bg-blue-100 text-blue-800 border border-blue-200"
+                                : "bg-teal-100 text-teal-800 border border-teal-200"
+                            }`}
+                          >
+                            {u.role}
+                          </span>
+                        </td>
+
+                        <td className="py-3">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold capitalize ${
+                              u.verificationStatus === "verified"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : u.verificationStatus === "suspended"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-amber-100 text-amber-800"
+                            }`}
+                          >
+                            {u.verificationStatus === "verified" ? (
+                              <CheckCircle2 className="h-3 w-3" />
+                            ) : (
+                              <Clock className="h-3 w-3" />
+                            )}
+                            <span>{u.verificationStatus || "verified"}</span>
+                          </span>
+                        </td>
+
+                        <td className="py-3 font-mono font-bold text-slate-800">
+                          {wallet ? (
+                            <span className={wallet.spendableBalanceUGX > 0 ? "text-emerald-600" : "text-slate-500"}>
+                              {formatUGX(wallet.spendableBalanceUGX)}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400">0 UGX</span>
+                          )}
+                        </td>
+
+                        <td className="py-3 text-right space-x-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setExpandedUserId(isExpanded ? null : u.id)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-2.5 py-1 text-xs font-bold text-slate-700 transition"
+                          >
+                            <span>{isExpanded ? "Hide" : "Details"}</span>
+                            {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleImpersonate(u.id)}
+                            className="inline-flex items-center gap-1 rounded-lg bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-800 px-2.5 py-1 text-xs font-bold transition"
+                          >
+                            <LogIn className="h-3 w-3" />
+                            <span>Impersonate</span>
+                          </button>
+                        </td>
+                      </tr>
+
+                      {/* Expandable Rich User Details Panel */}
+                      {isExpanded && (
+                        <tr className="bg-slate-50/70 border-y border-slate-200">
+                          <td colSpan={5} className="p-4 space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              {/* 1. Academic & Institutional Identity */}
+                              <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2">
+                                <div className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1.5">
+                                  <GraduationCap className="h-3.5 w-3.5 text-teal-600" />
+                                  <span>Academic Identity</span>
+                                </div>
+                                <div className="space-y-1.5 text-xs text-slate-700">
+                                  <div>
+                                    <span className="text-slate-400">Institution: </span>
+                                    <span className="font-semibold text-slate-900">
+                                      {u.institutionId === "inst-mak"
+                                        ? "Makerere University"
+                                        : u.institutionId === "inst-kyu"
+                                        ? "Kyambogo University"
+                                        : u.institutionId || "Makerere University"}
+                                    </span>
+                                  </div>
+                                  {u.faculty && (
+                                    <div>
+                                      <span className="text-slate-400">Faculty: </span>
+                                      <span className="font-semibold text-slate-900">{u.faculty}</span>
+                                    </div>
+                                  )}
+                                  {u.department && (
+                                    <div>
+                                      <span className="text-slate-400">Department: </span>
+                                      <span className="font-semibold text-slate-900">{u.department}</span>
+                                    </div>
+                                  )}
+                                  {u.teachingRole && (
+                                    <div>
+                                      <span className="text-slate-400">Teaching Role: </span>
+                                      <span className="font-semibold text-slate-900">{u.teachingRole}</span>
+                                    </div>
+                                  )}
+                                  {u.staffId && (
+                                    <div>
+                                      <span className="text-slate-400">Staff ID: </span>
+                                      <span className="font-mono font-bold text-slate-900">{u.staffId}</span>
+                                    </div>
+                                  )}
+                                  {u.academicYear && (
+                                    <div>
+                                      <span className="text-slate-400">Study Level: </span>
+                                      <span className="font-semibold text-slate-900">
+                                        Year {u.academicYear} · Semester {u.semester || 1}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {(u.activeCourseUnits || u.coursesTaught) && (
+                                    <div className="pt-1">
+                                      <span className="text-slate-400 block mb-1">
+                                        {u.role === "lecturer" ? "Courses Taught:" : "Active Course Units:"}
+                                      </span>
+                                      <div className="flex flex-wrap gap-1">
+                                        {(u.coursesTaught || u.activeCourseUnits || []).map((code) => (
+                                          <span
+                                            key={code}
+                                            className="font-mono text-xs font-bold bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded"
+                                          >
+                                            {code}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* 2. Mobile Money & Wallet Profile */}
+                              <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2">
+                                <div className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1.5">
+                                  <CreditCard className="h-3.5 w-3.5 text-emerald-600" />
+                                  <span>Payment &amp; Wallet Profile</span>
+                                </div>
+                                <div className="space-y-1.5 text-xs text-slate-700">
+                                  <div>
+                                    <span className="text-slate-400">Mobile Money: </span>
+                                    <span className="font-mono font-bold text-slate-900">
+                                      {u.payoutMobileNumber || "Not recorded"}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-400">Network: </span>
+                                    <span className="font-bold text-slate-800">
+                                      {u.payoutMobileNetwork || "MTN / Airtel"}
+                                    </span>
+                                  </div>
+                                  <div className="pt-1 border-t border-slate-100 mt-2">
+                                    <span className="text-slate-400">Spendable Wallet: </span>
+                                    <span className="font-mono font-bold text-emerald-600 text-sm">
+                                      {wallet ? formatUGX(wallet.spendableBalanceUGX) : "0 UGX"}
+                                    </span>
+                                  </div>
+                                  {wallet && wallet.reservedBalanceUGX > 0 && (
+                                    <div>
+                                      <span className="text-slate-400">Reserved Payout: </span>
+                                      <span className="font-mono font-bold text-amber-600">
+                                        {formatUGX(wallet.reservedBalanceUGX)}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* 3. Account Actions & Identifiers */}
+                              <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2">
+                                <div className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1.5">
+                                  <Sliders className="h-3.5 w-3.5 text-purple-600" />
+                                  <span>Account Controls</span>
+                                </div>
+                                <div className="space-y-2 text-xs">
+                                  <div>
+                                    <span className="text-slate-400 block mb-0.5">Account ID:</span>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-mono text-xs text-slate-700 truncate max-w-[180px]">
+                                        {u.id}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => copyText(u.id)}
+                                        className="text-slate-400 hover:text-slate-700"
+                                      >
+                                        <Copy className="h-3 w-3" />
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <span className="text-slate-400 block mb-0.5">Created At:</span>
+                                    <span className="font-mono text-slate-600">{formatDate(u.createdAt)}</span>
+                                  </div>
+
+                                  <div className="pt-2 border-t border-slate-100 flex flex-wrap gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleUpdateUser(
+                                          u.id,
+                                          u.role === "student" ? "lecturer" : u.role === "lecturer" ? "admin" : "student"
+                                        )
+                                      }
+                                      className="rounded bg-slate-100 hover:bg-slate-200 text-slate-800 px-2 py-1 text-xs font-bold transition"
+                                    >
+                                      Switch Role
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleUpdateUser(
+                                          u.id,
+                                          undefined,
+                                          u.verificationStatus === "verified" ? "suspended" : "verified"
+                                        )
+                                      }
+                                      className={`rounded px-2 py-1 text-xs font-bold transition ${
+                                        u.verificationStatus === "verified"
+                                          ? "bg-red-50 hover:bg-red-100 text-red-700"
+                                          : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700"
+                                      }`}
+                                    >
+                                      {u.verificationStatus === "verified" ? "Suspend" : "Verify"}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -1379,7 +1672,7 @@ export default function AdminDashboardPage() {
       {activeTab === "refunds" && (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-900">Orders & Refunds Ledger</h3>
+            <h3 className="text-sm font-bold text-slate-900">Orders &amp; Refunds Ledger</h3>
             <span className="text-xs font-mono text-slate-500">{orders.length} Orders</span>
           </div>
 

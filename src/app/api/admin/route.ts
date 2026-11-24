@@ -3,6 +3,7 @@ import { dbStore } from "@/lib/db/in-memory-store";
 import { WalletAndLedgerService } from "@/lib/financial/wallet-service";
 import { AuthorizationGuard, UserAuthContext } from "@/lib/auth/roles";
 import { getAllUsers, updateUserVerification, UserVerificationStatus, findUserById, createSessionToken } from "@/lib/auth/user-store";
+import { createAdminClient } from "@/lib/supabase/server";
 
 function verifyAdminCaller(callerId: string): { allowed: boolean; context: UserAuthContext } {
   let roles = dbStore.userRoles.get(callerId) || [];
@@ -50,6 +51,51 @@ export async function GET(req: NextRequest) {
 
   const reconciliation = WalletAndLedgerService.generateReconciliationReport();
 
+  const localUsers = getAllUsers();
+  const allUsersMap = new Map<string, any>();
+  for (const u of localUsers) {
+    allUsersMap.set(u.email.toLowerCase(), { ...u });
+  }
+
+  try {
+    const adminSupabase = createAdminClient();
+    const { data: userList } = await adminSupabase.auth.admin.listUsers();
+    if (userList?.users) {
+      for (const sbUser of userList.users) {
+        const email = sbUser.email?.toLowerCase();
+        if (!email) continue;
+        const meta = sbUser.user_metadata || {};
+        const existing = allUsersMap.get(email);
+        const merged = {
+          id: existing?.id || sbUser.id,
+          email: sbUser.email || "",
+          fullName: meta.full_name || meta.name || existing?.fullName || email.split("@")[0],
+          role: (meta.role as any) || existing?.role || "student",
+          verificationStatus:
+            meta.verification_status ||
+            existing?.verificationStatus ||
+            (meta.role === "admin" ? "verified" : "registered"),
+          institutionId: meta.institution_id || meta.institutionId || existing?.institutionId || "inst-mak",
+          faculty: meta.faculty || existing?.faculty,
+          department: meta.department || existing?.department,
+          programmeId: meta.programme_id || meta.programmeId || existing?.programmeId,
+          academicYear: meta.academic_year || meta.academicYear || existing?.academicYear,
+          semester: meta.semester || existing?.semester,
+          teachingRole: meta.teaching_role || meta.teachingRole || existing?.teachingRole,
+          staffId: meta.staff_id || meta.staffId || existing?.staffId,
+          payoutMobileNumber: meta.payout_mobile_number || meta.payoutMobileNumber || existing?.payoutMobileNumber,
+          payoutMobileNetwork: meta.payout_mobile_network || meta.payoutMobileNetwork || existing?.payoutMobileNetwork,
+          createdAt: sbUser.created_at || existing?.createdAt || new Date().toISOString(),
+        };
+        allUsersMap.set(email, merged);
+      }
+    }
+  } catch (err) {
+    console.warn("Supabase user fetch note:", err);
+  }
+
+  const mergedUsers = Array.from(allUsersMap.values());
+
   const systemDiagnostics = {
     nodeEnv: process.env.NODE_ENV || "development",
     nodeVersion: process.version,
@@ -61,7 +107,7 @@ export async function GET(req: NextRequest) {
     totalLedgerEntries: dbStore.ledgerEntries.length,
     totalWallets: dbStore.walletAccounts.length,
     totalDocuments: dbStore.documents.length,
-    totalUsers: getAllUsers().length,
+    totalUsers: mergedUsers.length,
     totalOrders: dbStore.orders.length,
     totalAuditLogs: dbStore.auditLogs.length,
     timestamp: new Date().toISOString(),
@@ -76,7 +122,7 @@ export async function GET(req: NextRequest) {
     refunds: dbStore.refunds,
     auditLogs: dbStore.auditLogs,
     settings: dbStore.settings,
-    registeredUsers: getAllUsers(),
+    registeredUsers: mergedUsers,
     reconciliation,
     systemDiagnostics,
     ledgerEntries: dbStore.ledgerEntries.slice(0, 100),
