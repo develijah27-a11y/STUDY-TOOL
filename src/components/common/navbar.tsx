@@ -83,40 +83,40 @@ export function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[#E2ECE7] bg-white/95 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full border-b border-emerald-100 bg-white/95 backdrop-blur-md shadow-xs">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#16866A] text-white shadow-sm">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-[#059669] to-[#0D9488] text-white shadow-md shadow-emerald-500/20">
             <GraduationCap className="h-5 w-5" />
           </div>
           <div>
-            <span className="block text-base font-extrabold tracking-tight text-[#172B27] leading-none">
-              Soma<span className="text-[#16866A]">UG</span> Academic
+            <span className="block text-base font-black tracking-tight text-slate-900 leading-none">
+              Soma<span className="text-emerald-600">UG</span> Academic
             </span>
-            <span className="block text-[11px] font-semibold text-[#64736D] mt-0.5">
+            <span className="block text-[11px] font-bold text-emerald-800/80 mt-0.5">
               Course Study Materials
             </span>
           </div>
         </Link>
 
         {/* Desktop Primary Navigation */}
-        <nav className="hidden md:flex items-center gap-1 text-xs font-semibold text-[#64736D]">
+        <nav className="hidden md:flex items-center gap-1.5 text-xs font-bold text-slate-700">
           <Link
             href="/catalogue"
-            className="px-3.5 py-2 rounded-xl hover:bg-[#F4F7F6] hover:text-[#16866A] transition"
+            className="px-3.5 py-2 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition"
           >
             Explore Materials
           </Link>
           <Link
             href="/#how-it-works"
-            className="px-3.5 py-2 rounded-xl hover:bg-[#F4F7F6] hover:text-[#16866A] transition"
+            className="px-3.5 py-2 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 transition"
           >
             How It Works
           </Link>
           <Link
             href="/lecturer/apply"
-            className="px-3.5 py-2 rounded-xl hover:bg-[#E8F5EF] text-[#16866A] font-bold transition"
+            className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold border border-emerald-200/80 transition"
           >
             For Lecturers
           </Link>
@@ -128,13 +128,13 @@ export function Navbar() {
             <div className="flex items-center gap-2">
               <Link
                 href="/sign-in"
-                className="px-3.5 py-2 text-xs font-bold text-[#172B27] hover:text-[#16866A] transition"
+                className="px-3.5 py-2 text-xs font-bold text-slate-800 hover:text-emerald-600 transition"
               >
                 Sign In
               </Link>
               <Link
                 href="/sign-up"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#16866A] hover:bg-[#116B55] px-4 py-2 text-xs font-bold text-white shadow-sm transition"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 px-4 py-2 text-xs font-black text-white shadow-md shadow-emerald-600/25 transition"
               >
                 <span>Create Account</span>
                 <ArrowRight className="h-3.5 w-3.5" />
