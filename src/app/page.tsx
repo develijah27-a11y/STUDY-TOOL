@@ -36,7 +36,40 @@ export default function HomePage() {
   const [submittingRequest, setSubmittingRequest] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
-  // Native, lightweight scroll reveal observer (Respects prefers-reduced-motion)
+  // Real-time smooth scroll position and scroll progress tracking
+  const [scrollY, setScrollY] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentY = window.scrollY;
+          const totalHeight =
+            document.documentElement.scrollHeight - window.innerHeight;
+          const progress =
+            totalHeight > 0
+              ? Math.min(1, Math.max(0, currentY / totalHeight))
+              : 0;
+
+          setScrollY(currentY);
+          setScrollProgress(progress);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Native IntersectionObserver for fluid staggered element and word entry
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -60,7 +93,7 @@ export default function HomePage() {
           }
         });
       },
-      { threshold: 0.12, rootMargin: "0px 0px -30px 0px" }
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
     );
 
     elements.forEach((el) => observer.observe(el));
@@ -104,7 +137,7 @@ export default function HomePage() {
     },
   ];
 
-  // Genuine Academic Categories (No fake graphs, candlesticks, or artificial diagrams)
+  // Genuine Academic Categories
   const academicCategories = [
     {
       code: "TECH-CS",
@@ -163,23 +196,45 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="space-y-16 sm:space-y-24 pb-20 bg-[#F8FAF9] text-[#172B27]">
-      {/* 1. Hero Section - Bright, Light-First Academic Atmosphere */}
-      <section className="bg-gradient-to-b from-white via-[#F8FAF9] to-[#F4F7F6] pt-12 sm:pt-20 pb-16 sm:pb-24 border-b border-[#E2ECE7]">
+    <div className="relative space-y-16 sm:space-y-24 pb-20 bg-[#F8FAF9] text-[#172B27] overflow-x-hidden">
+      {/* Real-time Top Scroll Progress Bar */}
+      <div
+        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#16866A] to-[#116B55] z-50 origin-left pointer-events-none transition-transform duration-75"
+        style={{ transform: `scaleX(${scrollProgress})` }}
+      />
+
+      {/* 1. Hero Section - Bright, Light-First Academic Atmosphere with Moving Words */}
+      <section className="relative bg-gradient-to-b from-white via-[#F8FAF9] to-[#F4F7F6] pt-12 sm:pt-20 pb-16 sm:pb-24 border-b border-[#E2ECE7]">
         <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
             {/* Left Content Column */}
-            <div className="lg:col-span-7 space-y-6 text-center lg:text-left reveal-element">
-              <div className="inline-flex items-center gap-2 rounded-full bg-[#E8F5EF] border border-[#CDE5DA] px-3.5 py-1 text-xs font-semibold text-[#16866A] shadow-sm">
+            <div className="lg:col-span-7 space-y-6 text-center lg:text-left reveal-element revealed">
+              <div
+                className="inline-flex items-center gap-2 rounded-full bg-[#E8F5EF] border border-[#CDE5DA] px-3.5 py-1 text-xs font-semibold text-[#16866A] shadow-sm transition-transform duration-300"
+                style={{ transform: `translateY(${Math.min(10, scrollY * 0.03)}px)` }}
+              >
                 <Sparkles className="h-3.5 w-3.5 text-[#16866A]" />
                 <span>Uganda Higher Education Academic Exchange</span>
               </div>
 
-              <h1 className="text-3xl sm:text-5xl lg:text-[54px] font-extrabold tracking-tight text-[#172B27] leading-[1.18]">
-                Authentic university notes, directly from your lecturers.
+              {/* Animated Moving Words Headline */}
+              <h1
+                className="text-3xl sm:text-5xl lg:text-[54px] font-extrabold tracking-tight text-[#172B27] leading-[1.18] transition-transform duration-300"
+                style={{ transform: `translateY(${Math.min(18, scrollY * 0.06)}px)` }}
+              >
+                <span className="word-reveal delay-1">Authentic</span>{" "}
+                <span className="word-reveal delay-2">university</span>{" "}
+                <span className="word-reveal delay-3">notes,</span>{" "}
+                <span className="word-reveal delay-4 text-[#16866A]">directly</span>{" "}
+                <span className="word-reveal delay-5">from</span>{" "}
+                <span className="word-reveal delay-6">your</span>{" "}
+                <span className="word-reveal delay-7">lecturers.</span>
               </h1>
 
-              <p className="text-base sm:text-lg text-[#64736D] max-w-xl mx-auto lg:mx-0 leading-relaxed font-normal">
+              <p
+                className="text-base sm:text-lg text-[#64736D] max-w-xl mx-auto lg:mx-0 leading-relaxed font-normal transition-transform duration-300"
+                style={{ transform: `translateY(${Math.min(12, scrollY * 0.04)}px)` }}
+              >
                 Access faculty-authored lecture summaries, revision guides, and past examination papers. Preview chapters for free and unlock instantly with MTN or Airtel Mobile Money.
               </p>
 
@@ -256,8 +311,11 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Column: IMAGE 1 (hero-students.jpg) - Diverse students studying in library */}
-            <div className="lg:col-span-5 reveal-element">
+            {/* Right Column: IMAGE 1 (hero-students.jpg) - Subtle Scroll Parallax */}
+            <div
+              className="lg:col-span-5 reveal-element revealed transition-transform duration-500 ease-out"
+              style={{ transform: `translateY(${Math.min(30, scrollY * 0.07)}px)` }}
+            >
               <div className="relative rounded-3xl overflow-hidden border-4 border-white shadow-xl bg-white group">
                 <div className="relative h-[360px] sm:h-[420px] w-full">
                   <Image
@@ -268,11 +326,10 @@ export default function HomePage() {
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover object-center transform group-hover:scale-105 transition-transform duration-700 ease-out"
                   />
-                  {/* Subtle soft bottom gradient for clear readability */}
                   <div className="absolute inset-0 bg-gradient-to-t from-[#172B27]/85 via-[#172B27]/20 to-transparent" />
                 </div>
 
-                {/* Clear Floating Caption Overlay */}
+                {/* Floating Caption Overlay */}
                 <div className="absolute bottom-4 left-4 right-4 rounded-2xl bg-white/95 border border-[#E2ECE7] p-3.5 backdrop-blur-md shadow-lg flex items-center justify-between">
                   <div className="space-y-0.5">
                     <div className="text-xs font-bold text-[#172B27] flex items-center gap-1.5">
@@ -293,7 +350,68 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. Key Metrics Bar - Clean, Subtle & Trustworthy */}
+      {/* 2. Kinetic Moving Words Ribbons - Reacts Smoothly as Someone Scrolls */}
+      <section className="w-full overflow-hidden py-4 bg-gradient-to-r from-[#F4F7F6] via-[#E8F5EF] to-[#F4F7F6] border-y border-[#E2ECE7] select-none">
+        {/* Ribbon 1: Moving Words stream scrolling left and accelerating with user scroll */}
+        <div
+          className="flex whitespace-nowrap text-xs font-mono font-bold tracking-wider text-[#172B27] py-1 transition-transform duration-100 ease-out"
+          style={{ transform: `translateX(${-((scrollY * 0.45) % 1200)}px)` }}
+        >
+          <div className="flex gap-8 shrink-0 animate-marquee-left">
+            <span>• AUTHENTIC LECTURE OUTLINES</span>
+            <span className="text-[#16866A]">• MAKERERE UNIVERSITY</span>
+            <span>• KYAMBOGO UNIVERSITY</span>
+            <span className="text-[#16866A]">• MUBS COMMERCE</span>
+            <span>• MUST HEALTH SCIENCES</span>
+            <span className="text-[#16866A]">• CEDAT ENGINEERING</span>
+            <span>• ZERO-DATA OFFLINE ACCESS</span>
+            <span className="text-[#16866A]">• INSTANT MTN &amp; AIRTEL MOBILE MONEY</span>
+            <span>• VERIFIED DEPARTMENT LECTURERS</span>
+            <span className="text-[#16866A]">• EXAM REVISION PACKS</span>
+          </div>
+          <div className="flex gap-8 shrink-0 animate-marquee-left" aria-hidden="true">
+            <span>• AUTHENTIC LECTURE OUTLINES</span>
+            <span className="text-[#16866A]">• MAKERERE UNIVERSITY</span>
+            <span>• KYAMBOGO UNIVERSITY</span>
+            <span className="text-[#16866A]">• MUBS COMMERCE</span>
+            <span>• MUST HEALTH SCIENCES</span>
+            <span className="text-[#16866A]">• CEDAT ENGINEERING</span>
+            <span>• ZERO-DATA OFFLINE ACCESS</span>
+            <span className="text-[#16866A]">• INSTANT MTN &amp; AIRTEL MOBILE MONEY</span>
+            <span>• VERIFIED DEPARTMENT LECTURERS</span>
+            <span className="text-[#16866A]">• EXAM REVISION PACKS</span>
+          </div>
+        </div>
+
+        {/* Ribbon 2: Moving Units stream scrolling right and accelerating with user scroll */}
+        <div
+          className="flex whitespace-nowrap text-xs font-mono font-semibold text-[#64736D] py-1 border-t border-[#E2ECE7]/70 pt-2 transition-transform duration-100 ease-out"
+          style={{ transform: `translateX(${((scrollY * 0.35) % 1200)}px)` }}
+        >
+          <div className="flex gap-8 shrink-0 animate-marquee-right">
+            <span className="text-[#16866A]">✦ BBA 1204 FINANCIAL MANAGEMENT</span>
+            <span>✦ CSC 1100 COMPUTER SYSTEMS</span>
+            <span className="text-[#16866A]">✦ MEC 2101 ENGINEERING MECHANICS</span>
+            <span>✦ LAW 1101 CONSTITUTIONAL LAW</span>
+            <span className="text-[#16866A]">✦ ACC 2102 AUDITING &amp; ASSURANCE</span>
+            <span>✦ ENG 1102 THERMODYNAMICS</span>
+            <span className="text-[#16866A]">✦ FREE MULTI-PAGE CHAPTER PREVIEWS</span>
+            <span>✦ 100% OFFLINE ENCRYPTED CACHE</span>
+          </div>
+          <div className="flex gap-8 shrink-0 animate-marquee-right" aria-hidden="true">
+            <span className="text-[#16866A]">✦ BBA 1204 FINANCIAL MANAGEMENT</span>
+            <span>✦ CSC 1100 COMPUTER SYSTEMS</span>
+            <span className="text-[#16866A]">✦ MEC 2101 ENGINEERING MECHANICS</span>
+            <span>✦ LAW 1101 CONSTITUTIONAL LAW</span>
+            <span className="text-[#16866A]">✦ ACC 2102 AUDITING &amp; ASSURANCE</span>
+            <span>✦ ENG 1102 THERMODYNAMICS</span>
+            <span className="text-[#16866A]">✦ FREE MULTI-PAGE CHAPTER PREVIEWS</span>
+            <span>✦ 100% OFFLINE ENCRYPTED CACHE</span>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Key Metrics Bar */}
       <section className="container mx-auto px-4 sm:px-6 max-w-6xl">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 reveal-element">
           <div className="rounded-2xl border border-[#E2ECE7] bg-white p-5 text-center shadow-2xs hover:border-[#16866A]/40 transition">
@@ -315,16 +433,22 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. Academic Category Cards - Genuine Academic Discovery (No Artificial Diagrams) */}
+      {/* 4. Academic Category Cards - Moving Words on Scroll */}
       <section className="container mx-auto px-4 sm:px-6 max-w-6xl" id="academic-disciplines">
         <div className="text-center max-w-lg mx-auto mb-10 space-y-2 reveal-element">
           <div className="inline-flex items-center gap-2 rounded-full bg-[#E8F5EF] px-3.5 py-1 text-xs font-semibold text-[#16866A] border border-[#CDE5DA] shadow-2xs">
             <Layers className="h-3.5 w-3.5 text-[#16866A]" />
             <span>ACADEMIC DISCIPLINES</span>
           </div>
+
+          {/* Staggered Moving Words Title */}
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#172B27]">
-            Explore Faculty Course Materials
+            <span className="word-reveal delay-1">Explore</span>{" "}
+            <span className="word-reveal delay-2">Faculty</span>{" "}
+            <span className="word-reveal delay-3 text-[#16866A]">Course</span>{" "}
+            <span className="word-reveal delay-4">Materials</span>
           </h2>
+
           <p className="text-xs sm:text-sm text-[#64736D] max-w-md mx-auto leading-relaxed">
             Browse examination-focused lecture summaries and course units aligned with higher education syllabi across Uganda.
           </p>
@@ -340,10 +464,9 @@ export default function HomePage() {
                 className="group relative flex flex-col justify-between rounded-2xl border border-[#E2ECE7] bg-white p-6 shadow-2xs hover:shadow-md hover:border-[#16866A] transition-all duration-300 reveal-element"
               >
                 <div>
-                  {/* Category Header */}
                   <div className="flex items-center justify-between gap-2 mb-4">
                     <div className="flex items-center gap-2">
-                      <div className="h-10 w-10 rounded-xl bg-[#E8F5EF] text-[#16866A] flex items-center justify-center shrink-0 border border-[#CDE5DA]">
+                      <div className="h-10 w-10 rounded-xl bg-[#E8F5EF] text-[#16866A] flex items-center justify-center shrink-0 border border-[#CDE5DA] group-hover:scale-105 transition-transform">
                         <IconComponent className="h-5 w-5" />
                       </div>
                       <div>
@@ -357,7 +480,6 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  {/* Title and Real Academic Summary */}
                   <h3 className="text-base font-bold text-[#172B27] group-hover:text-[#16866A] transition-colors leading-snug">
                     {cat.title}
                   </h3>
@@ -366,12 +488,11 @@ export default function HomePage() {
                   </p>
                 </div>
 
-                {/* Footer Micro-Action */}
                 <div className="pt-4 mt-5 border-t border-[#E2ECE7] flex items-center justify-between text-xs">
                   <span className="font-medium text-[#89958F] group-hover:text-[#172B27] transition-colors">
                     Browse Course Units
                   </span>
-                  <span className="inline-flex items-center gap-1 font-bold text-[#16866A] group-hover:translate-x-1 transition-transform duration-200">
+                  <span className="inline-flex items-center gap-1 font-bold text-[#16866A] group-hover:translate-x-1.5 transition-transform duration-200">
                     <span>View Notes</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </span>
@@ -382,11 +503,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. Feature Section with IMAGE 2 (students-library.jpg) - Verified Faculty & Authentic Materials */}
+      {/* 5. Feature Section with IMAGE 2 (students-library.jpg) - Verified Faculty */}
       <section className="container mx-auto px-4 sm:px-6 max-w-6xl" id="how-it-works">
         <div className="rounded-3xl border border-[#E2ECE7] bg-white p-6 sm:p-10 shadow-sm reveal-element">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            {/* Left Column: IMAGE 2 (students-library.jpg) */}
+            {/* Left Column: IMAGE 2 (students-library.jpg) with Subtle Scroll Parallax */}
             <div className="lg:col-span-5 order-2 lg:order-1">
               <div className="relative rounded-2xl overflow-hidden border-4 border-[#F8FAF9] shadow-md group">
                 <div className="relative h-[320px] sm:h-[380px] w-full">
@@ -411,7 +532,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Column: Explaining Verified Academic Content */}
+            {/* Right Column: Moving Words Section Headline */}
             <div className="lg:col-span-7 space-y-5 order-1 lg:order-2">
               <div className="inline-flex items-center gap-2 rounded-full bg-[#E8F5EF] px-3.5 py-1 text-xs font-semibold text-[#16866A] border border-[#CDE5DA]">
                 <Award className="h-3.5 w-3.5 text-[#16866A]" />
@@ -419,7 +540,14 @@ export default function HomePage() {
               </div>
 
               <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#172B27] leading-tight">
-                Authentic course notes authored by your departmental lecturers.
+                <span className="word-reveal delay-1">Authentic</span>{" "}
+                <span className="word-reveal delay-2">course</span>{" "}
+                <span className="word-reveal delay-3">notes</span>{" "}
+                <span className="word-reveal delay-4 text-[#16866A]">authored</span>{" "}
+                <span className="word-reveal delay-5">by</span>{" "}
+                <span className="word-reveal delay-6">your</span>{" "}
+                <span className="word-reveal delay-7">departmental</span>{" "}
+                <span className="word-reveal delay-8">lecturers.</span>
               </h2>
 
               <p className="text-sm text-[#64736D] leading-relaxed">
@@ -478,7 +606,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. Feature Section with IMAGE 3 (study-group.jpg) - Zero-Data Offline Reading & Annotations */}
+      {/* 6. Feature Section with IMAGE 3 (study-group.jpg) - Zero-Data Offline Reading */}
       <section className="container mx-auto px-4 sm:px-6 max-w-6xl">
         <div className="rounded-3xl border border-[#E2ECE7] bg-white p-6 sm:p-10 shadow-sm reveal-element">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
@@ -489,8 +617,17 @@ export default function HomePage() {
                 <span>CAMPUS WI-FI &amp; OFFLINE ACCESS</span>
               </div>
 
+              {/* Moving Words Heading */}
               <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#172B27] leading-tight">
-                Study anywhere with Zero-Data offline reading and revision tools.
+                <span className="word-reveal delay-1">Study</span>{" "}
+                <span className="word-reveal delay-2">anywhere</span>{" "}
+                <span className="word-reveal delay-3">with</span>{" "}
+                <span className="word-reveal delay-4 text-[#16866A]">Zero-Data</span>{" "}
+                <span className="word-reveal delay-5">offline</span>{" "}
+                <span className="word-reveal delay-6">reading</span>{" "}
+                <span className="word-reveal delay-7">and</span>{" "}
+                <span className="word-reveal delay-8">revision</span>{" "}
+                <span className="word-reveal delay-9">tools.</span>
               </h2>
 
               <p className="text-sm text-[#64736D] leading-relaxed">
@@ -558,7 +695,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 6. Academic Community & Peer Tutors Desk */}
+      {/* 7. Academic Community & Peer Tutors Desk */}
       <section className="container mx-auto px-4 sm:px-6 max-w-6xl">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 reveal-element">
           <Link
@@ -578,7 +715,7 @@ export default function HomePage() {
                 </p>
               </div>
             </div>
-            <ArrowRight className="h-4 w-4 text-[#89958F] group-hover:text-[#16866A] group-hover:translate-x-1 transition shrink-0" />
+            <ArrowRight className="h-4 w-4 text-[#89958F] group-hover:text-[#16866A] group-hover:translate-x-1.5 transition shrink-0" />
           </Link>
 
           <Link
@@ -598,12 +735,12 @@ export default function HomePage() {
                 </p>
               </div>
             </div>
-            <ArrowRight className="h-4 w-4 text-[#89958F] group-hover:text-[#16866A] group-hover:translate-x-1 transition shrink-0" />
+            <ArrowRight className="h-4 w-4 text-[#89958F] group-hover:text-[#16866A] group-hover:translate-x-1.5 transition shrink-0" />
           </Link>
         </div>
       </section>
 
-      {/* 7. Course Unit Request Desk - Light, Clean & Accessible */}
+      {/* 8. Course Unit Request Desk */}
       <section className="container mx-auto px-4 sm:px-6 max-w-4xl">
         <div className="rounded-3xl bg-white text-[#172B27] p-7 sm:p-10 shadow-sm border border-[#CDE5DA] reveal-element">
           <div className="text-center max-w-md mx-auto mb-6 space-y-1.5">
@@ -684,7 +821,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 8. Frequently Asked Questions */}
+      {/* 9. Frequently Asked Questions */}
       <section className="container mx-auto px-4 sm:px-6 max-w-3xl">
         <div className="text-center max-w-sm mx-auto mb-8 space-y-1 reveal-element">
           <h2 className="text-xl sm:text-2xl font-extrabold text-[#172B27]">
