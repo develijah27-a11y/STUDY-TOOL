@@ -388,7 +388,7 @@ export default function HomePage() {
             Featured Study Materials
           </h2>
           <p className="text-xs text-slate-500">
-            Actual previews of lecture notes, syllabus summaries, and judicial case references.
+            Actual previews of lecture notes, syllabus summaries, and examination solutions.
           </p>
         </div>
 
@@ -599,36 +599,36 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. Core Platform Features - Clean, Razor-Sharp Panels */}
+      {/* 5. Core Platform Features - Clean, High-Impact Showcase */}
       <section className="container mx-auto px-4 sm:px-6 max-w-6xl">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-2.5 shadow-sm hover:border-teal-200 transition">
-            <div className="h-10 w-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center">
-              <Download className="h-5 w-5" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-3 shadow-sm hover:border-teal-300 hover:shadow-md transition">
+            <div className="flex items-center gap-3.5">
+              <div className="h-12 w-12 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 border border-teal-100">
+                <Download className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Zero-Data Offline Reading</h3>
+                <span className="text-xs font-mono font-semibold text-teal-700">Encrypted Local Storage</span>
+              </div>
             </div>
-            <h3 className="text-sm font-bold text-slate-900">Zero-Data Offline Reading</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed pt-1">
               Download notes once on campus Wi-Fi. Access study materials anywhere without active data bundles.
             </p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-2.5 shadow-sm hover:border-amber-200 transition">
-            <div className="h-10 w-10 rounded-xl bg-amber-50 text-[#E9B949] flex items-center justify-center">
-              <Highlighter className="h-5 w-5" />
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-3 shadow-sm hover:border-amber-300 hover:shadow-md transition">
+            <div className="flex items-center gap-3.5">
+              <div className="h-12 w-12 rounded-xl bg-amber-50 text-[#E9B949] flex items-center justify-center shrink-0 border border-amber-100">
+                <Highlighter className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Active Highlighting &amp; Notes</h3>
+                <span className="text-xs font-mono font-semibold text-amber-700">Revision Workspace</span>
+              </div>
             </div>
-            <h3 className="text-sm font-bold text-slate-900">Active Highlighting &amp; Notes</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed pt-1">
               Color-code examination concepts, tag definitions, and save personal margin summaries directly on each page.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-2.5 shadow-sm hover:border-emerald-200 transition">
-            <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
-              <Smartphone className="h-5 w-5" />
-            </div>
-            <h3 className="text-sm font-bold text-slate-900">Pay-Per-Document MoMo</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Pay solely for the course units you take via MTN or Airtel. No recurring monthly subscription fees.
             </p>
           </div>
         </div>
@@ -797,9 +797,8 @@ export default function HomePage() {
                 >
                   <span>{item.q}</span>
                   <ChevronDown
-                    className={`h-4 w-4 text-slate-400 transition-transform ${
-                      isOpen ? "rotate-180 text-teal-700" : ""
-                    }`}
+                    className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? "rotate-180 text-teal-700" : ""
+                      }`}
                   />
                 </button>
                 {isOpen && (

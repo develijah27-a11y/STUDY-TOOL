@@ -124,7 +124,23 @@ export function Navbar() {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-2.5">
-          {authenticatedUser ? (
+          {pathname === "/" ? (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/sign-in"
+                className="px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-slate-900 transition"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/sign-up"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#147D78] hover:bg-[#116965] px-4 py-2 text-xs font-bold text-white shadow-sm transition"
+              >
+                <span>Create Account</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          ) : authenticatedUser ? (
             <div className="flex items-center gap-2">
               <Link
                 href={
@@ -182,7 +198,7 @@ export function Navbar() {
                 href="/sign-up"
                 className="inline-flex items-center gap-1.5 rounded-xl bg-[#147D78] hover:bg-[#116965] px-4 py-2 text-xs font-bold text-white shadow-sm transition"
               >
-                <span>Get Started</span>
+                <span>Create Account</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
@@ -230,7 +246,24 @@ export function Navbar() {
           </div>
 
           <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
-            {authenticatedUser ? (
+            {pathname === "/" ? (
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  href="/sign-in"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-center py-2.5 rounded-xl border border-slate-300 text-slate-800 text-xs font-bold hover:bg-slate-50"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/sign-up"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-center py-2.5 rounded-xl bg-[#147D78] text-white text-xs font-bold hover:bg-[#116965]"
+                >
+                  Create Account
+                </Link>
+              </div>
+            ) : authenticatedUser ? (
               <>
                 <Link
                   href={authenticatedUser.role === "lecturer" ? "/lecturer/dashboard" : "/student/dashboard"}
@@ -261,7 +294,7 @@ export function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className="text-center py-2.5 rounded-xl bg-[#147D78] text-white text-xs font-bold hover:bg-[#116965]"
                 >
-                  Get Started
+                  Create Account
                 </Link>
               </div>
             )}
