@@ -2,11 +2,29 @@ import { NextRequest, NextResponse } from "next/server";
 import { dbStore } from "@/lib/db/in-memory-store";
 import { WalletAndLedgerService } from "@/lib/financial/wallet-service";
 import { AuthorizationGuard, UserAuthContext } from "@/lib/auth/roles";
-import { getAllUsers, updateUserVerification, UserVerificationStatus } from "@/lib/auth/user-store";
+import { getAllUsers, updateUserVerification, UserVerificationStatus, findUserById, createSessionToken } from "@/lib/auth/user-store";
 
 function verifyAdminCaller(callerId: string): { allowed: boolean; context: UserAuthContext } {
-  const roles = dbStore.userRoles.get(callerId) || [];
-  const profile = dbStore.profiles.find((p) => p.id === callerId);
+  let roles = dbStore.userRoles.get(callerId) || [];
+  let profile = dbStore.profiles.find((p) => p.id === callerId);
+  
+  if (roles.length === 0) {
+    const reg = getAllUsers().find((u) => u.id === callerId || u.email === callerId);
+    if (reg && (reg.role === "admin" || (reg.role as string) === "co_admin")) {
+      roles = [reg.role];
+      if (!profile) {
+        profile = {
+          id: reg.id,
+          email: reg.email,
+          fullName: reg.fullName,
+          phoneNumber: "",
+          createdAt: reg.createdAt,
+          updatedAt: reg.createdAt,
+        };
+      }
+    }
+  }
+
   const context: UserAuthContext = {
     userId: callerId,
     email: profile?.email || "",
@@ -20,7 +38,7 @@ function verifyAdminCaller(callerId: string): { allowed: boolean; context: UserA
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const callerId = searchParams.get("adminId") || "user-admin-1";
+  const callerId = searchParams.get("adminId") || "user-admin-develijah";
   const check = verifyAdminCaller(callerId);
 
   if (!check.allowed) {
@@ -31,6 +49,23 @@ export async function GET(req: NextRequest) {
   }
 
   const reconciliation = WalletAndLedgerService.generateReconciliationReport();
+
+  const systemDiagnostics = {
+    nodeEnv: process.env.NODE_ENV || "development",
+    nodeVersion: process.version,
+    uptimeSeconds: Math.round(process.uptime()),
+    memoryUsageMB: Math.round(process.memoryUsage().rss / (1024 * 1024)),
+    supabaseConfigured: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY),
+    marzpayConfigured: Boolean(process.env.MARZPAY_API_KEY || process.env.MARZPAY_SANDBOX === "true"),
+    totalAccounts: dbStore.ledgerAccounts.length,
+    totalLedgerEntries: dbStore.ledgerEntries.length,
+    totalWallets: dbStore.walletAccounts.length,
+    totalDocuments: dbStore.documents.length,
+    totalUsers: getAllUsers().length,
+    totalOrders: dbStore.orders.length,
+    totalAuditLogs: dbStore.auditLogs.length,
+    timestamp: new Date().toISOString(),
+  };
 
   return NextResponse.json({
     lecturerProfiles: dbStore.lecturerProfiles,
@@ -43,6 +78,10 @@ export async function GET(req: NextRequest) {
     settings: dbStore.settings,
     registeredUsers: getAllUsers(),
     reconciliation,
+    systemDiagnostics,
+    ledgerEntries: dbStore.ledgerEntries.slice(0, 100),
+    wallets: dbStore.walletAccounts,
+    depositAttempts: dbStore.depositAttempts.slice(0, 100),
   });
 }
 
@@ -230,6 +269,148 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, document: doc });
       }
       return NextResponse.json({ error: "DOCUMENT_NOT_FOUND" }, { status: 404 });
+    }
+
+    if (action === "simulate_momo_deposit") {
+      const { studentId, amountUGX, phoneNumber, provider } = body;
+      const amt = Math.max(1000, Number(amountUGX) || 10000);
+      const prov = provider === "AIRTEL" ? "AIRTEL" : "MTN";
+      const phone = phoneNumber || (prov === "AIRTEL" ? "256750000001" : "256770000001");
+      const targetStudent = studentId || "user-student-1";
+
+      const initRes = await WalletAndLedgerService.initiateDeposit({
+        studentId: targetStudent,
+        amountUGX: amt,
+        phoneNumber: phone,
+      });
+
+      if (!initRes.success || !initRes.deposit) {
+        return NextResponse.json({ error: initRes.error || "Deposit initiation failed" }, { status: 400 });
+      }
+
+      const confirmRes = WalletAndLedgerService.confirmDepositWebhook({
+        eventId: `evt-dev-${Date.now()}`,
+        reference: initRes.deposit.reference,
+        provider: initRes.deposit.provider as "MTN" | "AIRTEL",
+        status: "SUCCESSFUL",
+        amountUGX: amt,
+      });
+
+      dbStore.auditLogs.unshift({
+        id: `aud-${Date.now()}`,
+        actorId: callerId,
+        action: "DEV_SIMULATE_MOMO_DEPOSIT",
+        targetType: "wallet",
+        targetId: targetStudent,
+        metadata: { amountUGX: amt, provider: initRes.deposit.provider, phone },
+        createdAt: now,
+      });
+
+      return NextResponse.json({
+        success: confirmRes.success,
+        alreadyProcessed: confirmRes.alreadyProcessed,
+        newBalanceUGX: confirmRes.newBalanceUGX,
+        deposit: initRes.deposit,
+      });
+    }
+
+    if (action === "seed_test_document") {
+      const title = body.title || "CSC 3102: Distributed Systems Architecture";
+      const courseCode = body.courseCode || "CSC 3102";
+      const priceUGX = Math.max(0, Number(body.priceUGX) || 5000);
+      const docId = `doc-dev-${Date.now()}`;
+      const newDoc = {
+        id: docId,
+        accessCode: `${courseCode.replace(/\s+/g, "")}-${Date.now().toString().slice(-4)}`,
+        lecturerId: "lec-1",
+        title,
+        description: body.description || "Generated developer test study document for checkout & reader verification.",
+        institutionId: "inst-mak",
+        programmeId: "prog-bsse",
+        courseUnitId: "course-csc2101",
+        documentType: (body.documentType as any) || "lecture_notes",
+        priceUGX,
+        pageCount: Number(body.pageCount) || 32,
+        fileSizeBytes: 1845000,
+        currentVersion: 1,
+        status: "published",
+        topics: ["Distributed Systems", "Consensus", "Raft", "P2P"],
+        allowedPreviewPages: [1, 2, 3],
+        storageKey: `docs/dev-${docId}.pdf`,
+        checksumSha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        viewsCount: 1,
+        salesCount: 0,
+        ratingAverage: 5.0,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      dbStore.documents.unshift(newDoc as any);
+      dbStore.auditLogs.unshift({
+        id: `aud-${Date.now()}`,
+        actorId: callerId,
+        action: "DEV_SEED_TEST_DOCUMENT",
+        targetType: "document",
+        targetId: docId,
+        metadata: { title, courseCode, priceUGX },
+        createdAt: now,
+      });
+
+      return NextResponse.json({ success: true, document: newDoc });
+    }
+
+    if (action === "impersonate_user") {
+      const targetUser = findUserById(body.targetUserId) || getAllUsers().find((u) => u.email === body.email || u.id === body.targetUserId);
+      if (!targetUser) {
+        return NextResponse.json({ error: "USER_NOT_FOUND" }, { status: 404 });
+      }
+
+      const token = createSessionToken(targetUser);
+      const redirectUrl =
+        targetUser.role === "admin"
+          ? "/admin/dashboard"
+          : targetUser.role === "lecturer"
+          ? "/lecturer/dashboard"
+          : "/student/dashboard";
+
+      const response = NextResponse.json({
+        success: true,
+        user: {
+          id: targetUser.id,
+          email: targetUser.email,
+          fullName: targetUser.fullName,
+          role: targetUser.role,
+          roles: [targetUser.role],
+        },
+        token,
+        redirectUrl,
+      });
+
+      response.cookies.set({
+        name: "somaug_session",
+        value: token,
+        httpOnly: true,
+        path: "/",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 30,
+      });
+
+      return response;
+    }
+
+    if (action === "reset_store_data") {
+      dbStore.resetAndSeed();
+      dbStore.auditLogs.unshift({
+        id: `aud-${Date.now()}`,
+        actorId: callerId,
+        action: "DEV_RESET_DATABASE_STORE",
+        targetType: "system",
+        targetId: "in_memory_store",
+        metadata: { callerId },
+        createdAt: now,
+      });
+
+      return NextResponse.json({ success: true, message: "Store reset to initial baseline state." });
     }
 
     return NextResponse.json({ error: "UNKNOWN_ADMIN_ACTION" }, { status: 400 });

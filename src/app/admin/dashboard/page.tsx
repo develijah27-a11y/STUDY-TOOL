@@ -22,6 +22,18 @@ import {
   Clock,
   Ban,
   ArrowRight,
+  Terminal,
+  Code2,
+  Zap,
+  Play,
+  Copy,
+  LogIn,
+  CreditCard,
+  FilePlus,
+  Trash2,
+  Database,
+  Cpu,
+  Layers,
 } from "lucide-react";
 
 interface AccountSummary {
@@ -73,7 +85,7 @@ interface DocumentItem {
   id: string;
   title: string;
   courseCode: string;
-  courseName: string;
+  courseName?: string;
   priceUGX: number;
   status: string;
   lecturerName?: string;
@@ -109,6 +121,52 @@ interface AuditItem {
   action: string;
   targetType: string;
   targetId: string;
+  metadata?: any;
+  createdAt: string;
+}
+
+interface SystemDiagnostics {
+  nodeEnv: string;
+  nodeVersion: string;
+  uptimeSeconds: number;
+  memoryUsageMB: number;
+  supabaseConfigured: boolean;
+  marzpayConfigured: boolean;
+  totalAccounts: number;
+  totalLedgerEntries: number;
+  totalWallets: number;
+  totalDocuments: number;
+  totalUsers: number;
+  totalOrders: number;
+  totalAuditLogs: number;
+  timestamp: string;
+}
+
+interface LedgerEntryItem {
+  id: string;
+  transactionId: string;
+  accountId: string;
+  debitUGX: number;
+  creditUGX: number;
+  createdAt: string;
+}
+
+interface WalletItem {
+  id: string;
+  userId: string;
+  walletType: string;
+  spendableBalanceUGX: number;
+  reservedBalanceUGX: number;
+}
+
+interface DepositAttemptItem {
+  id: string;
+  reference: string;
+  studentId: string;
+  amountUGX: number;
+  provider: string;
+  phoneNumber: string;
+  status: string;
   createdAt: string;
 }
 
@@ -120,25 +178,68 @@ export default function AdminDashboardPage() {
   const [reports, setReports] = useState<ContentReportItem[]>([]);
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditItem[]>([]);
+  const [diagnostics, setDiagnostics] = useState<SystemDiagnostics | null>(null);
+  const [ledgerEntries, setLedgerEntries] = useState<LedgerEntryItem[]>([]);
+  const [wallets, setWallets] = useState<WalletItem[]>([]);
+  const [depositAttempts, setDepositAttempts] = useState<DepositAttemptItem[]>([]);
+
   const [commissionPercent, setCommissionPercent] = useState(15);
   const [minPayoutUGX, setMinPayoutUGX] = useState(10000);
   const [statusBanner, setStatusBanner] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Active Tab: overview | verification | users | documents | refunds | moderation | audit | settings
+  // Active Tab
   const [activeTab, setActiveTab] = useState<
-    "overview" | "verification" | "users" | "documents" | "refunds" | "moderation" | "audit" | "settings"
+    "overview" | "devtools" | "verification" | "users" | "documents" | "refunds" | "moderation" | "audit" | "settings"
   >("overview");
 
+  // Filters & Search
   const [auditSearch, setAuditSearch] = useState("");
   const [userSearch, setUserSearch] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("all");
   const [docSearch, setDocSearch] = useState("");
 
+  // DevTools State: MoMo Simulator
+  const [momoTargetUserId, setMomoTargetUserId] = useState("user-student-1");
+  const [momoAmountUGX, setMomoAmountUGX] = useState(25000);
+  const [momoProvider, setMomoProvider] = useState<"MTN" | "AIRTEL">("MTN");
+  const [momoPhone, setMomoPhone] = useState("256770000001");
+  const [momoLoading, setMomoLoading] = useState(false);
+
+  // DevTools State: Seed Document
+  const [seedTitle, setSeedTitle] = useState("CSC 3102: Distributed Systems Architecture");
+  const [seedCourseCode, setSeedCourseCode] = useState("CSC 3102");
+  const [seedPriceUGX, setSeedPriceUGX] = useState(5000);
+  const [seedDocType, setSeedDocType] = useState("lecture_notes");
+  const [seedPageCount, setSeedPageCount] = useState(36);
+  const [seedLoading, setSeedLoading] = useState(false);
+
+  // DevTools State: Impersonation & Reset
+  const [impersonateTarget, setImpersonateTarget] = useState("user-student-1");
+  const [impersonateLoading, setImpersonateLoading] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [rawViewType, setRawViewType] = useState<"diagnostics" | "wallets" | "ledger" | "deposits" | "users">("diagnostics");
+  const [copiedKey, setCopiedKey] = useState(false);
+
+  const getAdminCallerId = useCallback((): string => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("somaug_user_session");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.id) return parsed.id;
+        }
+      } catch {}
+    }
+    return "user-admin-develijah";
+  }, []);
+
   const loadAdminData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin?adminId=user-admin-1");
+      const callerId = getAdminCallerId();
+      const res = await fetch(`/api/admin?adminId=${encodeURIComponent(callerId)}`);
       if (res.ok) {
         const data = await res.json();
         setRecon(data.reconciliation);
@@ -148,6 +249,10 @@ export default function AdminDashboardPage() {
         setReports(data.reports || []);
         setOrders(data.orders || []);
         setAuditLogs(data.auditLogs || []);
+        setDiagnostics(data.systemDiagnostics || null);
+        setLedgerEntries(data.ledgerEntries || []);
+        setWallets(data.wallets || []);
+        setDepositAttempts(data.depositAttempts || []);
         setCommissionPercent(data.settings?.commissionPercent ?? 15);
         setMinPayoutUGX(data.settings?.minLecturerPayoutUGX ?? 10000);
       }
@@ -156,12 +261,13 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [getAdminCallerId]);
 
   useEffect(() => {
     loadAdminData();
   }, [loadAdminData]);
 
+  // Lecturer Review Action
   const handleReviewLecturer = async (lecturerId: string, decision: "approve" | "reject" | "suspend") => {
     try {
       const res = await fetch("/api/admin", {
@@ -169,10 +275,10 @@ export default function AdminDashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "review_lecturer",
-          adminId: "user-admin-1",
+          adminId: getAdminCallerId(),
           lecturerId,
           decision,
-          rejectionReason: decision === "reject" ? "Insufficient department verification" : undefined,
+          rejectionReason: decision === "reject" ? "Department verification failed" : undefined,
         }),
       });
       if (res.ok) {
@@ -184,6 +290,7 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // User Profile Update Action
   const handleUpdateUser = async (targetUserId: string, role?: string, verificationStatus?: string) => {
     try {
       const res = await fetch("/api/admin", {
@@ -191,7 +298,7 @@ export default function AdminDashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "update_user",
-          adminId: "user-admin-1",
+          adminId: getAdminCallerId(),
           targetUserId,
           role,
           verificationStatus,
@@ -206,6 +313,7 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Document Review Action
   const handleReviewDocument = async (documentId: string, status: string) => {
     try {
       const res = await fetch("/api/admin", {
@@ -213,7 +321,7 @@ export default function AdminDashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "review_document",
-          adminId: "user-admin-1",
+          adminId: getAdminCallerId(),
           documentId,
           status,
         }),
@@ -227,6 +335,7 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Refund Action
   const handleProcessRefund = async (orderId: string) => {
     try {
       const res = await fetch("/api/admin", {
@@ -234,23 +343,24 @@ export default function AdminDashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "process_refund",
-          adminId: "user-admin-1",
+          adminId: getAdminCallerId(),
           orderId,
-          reason: "Administrator approved refund",
+          reason: "Administrator refund approval",
         }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setStatusBanner(`Order refunded. Compensating ledger transaction posted.`);
+        setStatusBanner("Order refunded. Compensating ledger transaction posted.");
         await loadAdminData();
       } else {
-        setStatusBanner(`Refund blocked: ${data.error}`);
+        setStatusBanner(`Refund blocked: ${data.error || "Unknown error"}`);
       }
     } catch (err) {
       console.error(err);
     }
   };
 
+  // Content Report Moderation
   const handleModerateReport = async (reportId: string, decision: "takedown" | "dismiss") => {
     try {
       const res = await fetch("/api/admin", {
@@ -258,13 +368,14 @@ export default function AdminDashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "moderate_report",
-          adminId: "user-admin-1",
+          adminId: getAdminCallerId(),
           reportId,
           decision,
+          resolutionNotes: `Admin ${decision}`,
         }),
       });
       if (res.ok) {
-        setStatusBanner(`Report resolved (${decision}).`);
+        setStatusBanner(`Report resolved: ${decision}.`);
         await loadAdminData();
       }
     } catch (err) {
@@ -272,6 +383,7 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Platform Policies
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -280,7 +392,7 @@ export default function AdminDashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "update_settings",
-          adminId: "user-admin-1",
+          adminId: getAdminCallerId(),
           commissionPercent: Number(commissionPercent),
           minLecturerPayoutUGX: Number(minPayoutUGX),
         }),
@@ -291,6 +403,141 @@ export default function AdminDashboardPage() {
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  // DevTools: Impersonation
+  const handleImpersonate = async (targetUserId: string) => {
+    setImpersonateLoading(true);
+    try {
+      const res = await fetch("/api/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "impersonate_user",
+          adminId: getAdminCallerId(),
+          targetUserId,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (typeof window !== "undefined" && data.user) {
+          localStorage.setItem("somaug_user_session", JSON.stringify(data.user));
+          window.location.href = data.redirectUrl || "/student/dashboard";
+        }
+      } else {
+        setStatusBanner(`Impersonation failed: ${data.error || "Failed"}`);
+      }
+    } catch (err) {
+      console.error(err);
+      setStatusBanner("Impersonation request failed");
+    } finally {
+      setImpersonateLoading(false);
+    }
+  };
+
+  // DevTools: Simulate MoMo Deposit
+  const handleSimulateMoMo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMomoLoading(true);
+    try {
+      const res = await fetch("/api/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "simulate_momo_deposit",
+          adminId: getAdminCallerId(),
+          studentId: momoTargetUserId,
+          amountUGX: Number(momoAmountUGX),
+          phoneNumber: momoPhone,
+          provider: momoProvider,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setStatusBanner(`Simulated ${momoProvider} deposit of ${formatUGX(momoAmountUGX)} credited to wallet.`);
+        await loadAdminData();
+      } else {
+        setStatusBanner(`Simulation failed: ${data.error || "Failed"}`);
+      }
+    } catch (err) {
+      console.error(err);
+      setStatusBanner("Deposit simulation request failed");
+    } finally {
+      setMomoLoading(false);
+    }
+  };
+
+  // DevTools: Seed Test Document
+  const handleSeedDocument = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSeedLoading(true);
+    try {
+      const res = await fetch("/api/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "seed_test_document",
+          adminId: getAdminCallerId(),
+          title: seedTitle,
+          courseCode: seedCourseCode,
+          priceUGX: Number(seedPriceUGX),
+          documentType: seedDocType,
+          pageCount: Number(seedPageCount),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setStatusBanner(`Test publication "${seedTitle}" injected and published.`);
+        await loadAdminData();
+      } else {
+        setStatusBanner(`Seed failed: ${data.error || "Failed"}`);
+      }
+    } catch (err) {
+      console.error(err);
+      setStatusBanner("Document seeding request failed");
+    } finally {
+      setSeedLoading(false);
+    }
+  };
+
+  // DevTools: Reset Database Store
+  const handleResetStore = async () => {
+    if (!confirmReset) {
+      setConfirmReset(true);
+      return;
+    }
+    setResetLoading(true);
+    try {
+      const res = await fetch("/api/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "reset_store_data",
+          adminId: getAdminCallerId(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setStatusBanner("In-memory store reset to baseline state.");
+        setConfirmReset(false);
+        await loadAdminData();
+      } else {
+        setStatusBanner(`Reset failed: ${data.error || "Failed"}`);
+      }
+    } catch (err) {
+      console.error(err);
+      setStatusBanner("Store reset failed");
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const copyStoreJson = (data: any) => {
+    if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+      setCopiedKey(true);
+      setTimeout(() => setCopiedKey(false), 2000);
     }
   };
 
@@ -331,15 +578,25 @@ export default function AdminDashboardPage() {
           <h1 className="text-2xl font-black tracking-tight mt-1">Platform Administration</h1>
         </div>
 
-        <button
-          type="button"
-          onClick={loadAdminData}
-          disabled={loading}
-          className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2 text-xs font-bold text-white transition self-start md:self-auto"
-        >
-          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          <span>Refresh Data</span>
-        </button>
+        <div className="flex items-center gap-2 self-start md:self-auto">
+          <button
+            type="button"
+            onClick={() => setActiveTab("devtools")}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white px-3.5 py-2 text-xs font-bold transition shadow-sm"
+          >
+            <Terminal className="h-3.5 w-3.5" />
+            <span>Dev Desk</span>
+          </button>
+          <button
+            type="button"
+            onClick={loadAdminData}
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 px-3.5 py-2 text-xs font-bold text-white transition"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       {/* Action Banner */}
@@ -363,6 +620,7 @@ export default function AdminDashboardPage() {
       <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
         {[
           { id: "overview", label: "Overview & Ledger", icon: Scale },
+          { id: "devtools", label: "Developer Desk", icon: Terminal, highlight: true },
           { id: "verification", label: `Lecturer Approvals (${lecturers.filter((l) => l.verificationStatus !== "approved").length})`, icon: UserCheck },
           { id: "users", label: `Users (${users.length})`, icon: Users },
           { id: "documents", label: `Documents (${documents.length})`, icon: FileText },
@@ -381,6 +639,8 @@ export default function AdminDashboardPage() {
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition ${
                 isActive
                   ? "bg-[#142B45] text-white shadow-sm"
+                  : tab.highlight
+                  ? "bg-teal-50 text-teal-800 border border-teal-200 hover:bg-teal-100"
                   : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
               }`}
             >
@@ -418,312 +678,539 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-          {/* Accounts Summary Table */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
-            <h3 className="text-sm font-bold text-slate-900">Chart of Accounts</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-slate-200 text-slate-500 font-bold">
-                    <th className="pb-2">Code</th>
-                    <th className="pb-2">Account Name</th>
-                    <th className="pb-2">Type</th>
-                    <th className="pb-2 text-right">Balance</th>
-                    <th className="pb-2 text-right">Postings</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {recon?.accountSummaries.map((acc) => (
-                    <tr key={acc.code} className="hover:bg-slate-50">
-                      <td className="py-2.5 font-mono font-bold text-slate-900">{acc.code}</td>
-                      <td className="py-2.5 font-semibold text-slate-800">{acc.name}</td>
-                      <td className="py-2.5 capitalize text-slate-500">{acc.type}</td>
-                      <td className="py-2.5 text-right font-mono font-bold text-slate-900">{formatUGX(acc.balanceUGX)}</td>
-                      <td className="py-2.5 text-right font-mono text-slate-500">{acc.entryCount}</td>
+          {/* Account Balances Table */}
+          {recon && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+              <h3 className="text-sm font-bold text-slate-900">Chart of Accounts</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-500 font-bold">
+                      <th className="pb-2">Account</th>
+                      <th className="pb-2">Type</th>
+                      <th className="pb-2 text-right">Balance</th>
+                      <th className="pb-2 text-right">Entries</th>
                     </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {recon.accountSummaries.map((acc) => (
+                      <tr key={acc.code} className="hover:bg-slate-50">
+                        <td className="py-2.5 font-medium text-slate-900">
+                          <span className="font-mono text-slate-400 mr-2">{acc.code}</span>
+                          {acc.name}
+                        </td>
+                        <td className="py-2.5 text-slate-500 capitalize">{acc.type}</td>
+                        <td className="py-2.5 text-right font-mono font-bold text-slate-900">
+                          {formatUGX(acc.balanceUGX)}
+                        </td>
+                        <td className="py-2.5 text-right font-mono text-slate-500">{acc.entryCount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab 2: Developer Desk (NEW) */}
+      {activeTab === "devtools" && (
+        <div className="space-y-6">
+          {/* System Diagnostics Cards */}
+          {diagnostics && (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-1">
+                <div className="flex items-center justify-between text-slate-400">
+                  <span className="text-xs font-bold uppercase">Node Env</span>
+                  <Cpu className="h-3.5 w-3.5" />
+                </div>
+                <div className="text-sm font-black font-mono text-slate-800">{diagnostics.nodeEnv}</div>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-1">
+                <div className="flex items-center justify-between text-slate-400">
+                  <span className="text-xs font-bold uppercase">Uptime</span>
+                  <Clock className="h-3.5 w-3.5" />
+                </div>
+                <div className="text-sm font-black font-mono text-slate-800">
+                  {Math.floor(diagnostics.uptimeSeconds / 60)}m {diagnostics.uptimeSeconds % 60}s
+                </div>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-1">
+                <div className="flex items-center justify-between text-slate-400">
+                  <span className="text-xs font-bold uppercase">Memory RSS</span>
+                  <Database className="h-3.5 w-3.5" />
+                </div>
+                <div className="text-sm font-black font-mono text-slate-800">{diagnostics.memoryUsageMB} MB</div>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-1">
+                <div className="flex items-center justify-between text-slate-400">
+                  <span className="text-xs font-bold uppercase">Supabase</span>
+                  <Layers className="h-3.5 w-3.5" />
+                </div>
+                <div className="text-sm font-bold text-emerald-600 flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  <span>{diagnostics.supabaseConfigured ? "Connected" : "Mock"}</span>
+                </div>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-1">
+                <div className="flex items-center justify-between text-slate-400">
+                  <span className="text-xs font-bold uppercase">Ledger Entries</span>
+                  <Scale className="h-3.5 w-3.5" />
+                </div>
+                <div className="text-sm font-black font-mono text-slate-800">{diagnostics.totalLedgerEntries}</div>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-1">
+                <div className="flex items-center justify-between text-slate-400">
+                  <span className="text-xs font-bold uppercase">Registered Users</span>
+                  <Users className="h-3.5 w-3.5" />
+                </div>
+                <div className="text-sm font-black font-mono text-slate-800">{diagnostics.totalUsers}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Quick Impersonation Hub */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <LogIn className="h-4 w-4 text-teal-600" />
+                  <span>Role Switcher & Session Impersonator</span>
+                </h3>
+              </div>
+              <span className="text-xs font-mono text-slate-400">1-click token injection</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <button
+                type="button"
+                disabled={impersonateLoading}
+                onClick={() => handleImpersonate("user-student-1")}
+                className="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-teal-500 hover:bg-teal-50/50 transition text-left group"
+              >
+                <div>
+                  <div className="text-xs font-bold text-slate-900 group-hover:text-teal-700">Grace Namukasa</div>
+                  <div className="text-xs text-slate-500">BSSE Student • Mak</div>
+                </div>
+                <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-600" />
+              </button>
+
+              <button
+                type="button"
+                disabled={impersonateLoading}
+                onClick={() => handleImpersonate("user-lecturer-1")}
+                className="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-teal-500 hover:bg-teal-50/50 transition text-left group"
+              >
+                <div>
+                  <div className="text-xs font-bold text-slate-900 group-hover:text-teal-700">Assoc. Prof. Okello</div>
+                  <div className="text-xs text-slate-500">Verified Lecturer • Mak</div>
+                </div>
+                <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-teal-600" />
+              </button>
+
+              <div className="flex items-center gap-2">
+                <select
+                  value={impersonateTarget}
+                  onChange={(e) => setImpersonateTarget(e.target.value)}
+                  className="flex-1 rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-medium outline-none"
+                >
+                  {users.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.fullName} ({u.role})
+                    </option>
                   ))}
-                </tbody>
-              </table>
+                </select>
+                <button
+                  type="button"
+                  disabled={impersonateLoading}
+                  onClick={() => handleImpersonate(impersonateTarget)}
+                  className="rounded-xl bg-[#142B45] hover:bg-[#1A3859] text-white px-3 py-2.5 text-xs font-bold transition"
+                >
+                  Switch
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Tools: MoMo Simulator & Test Doc Inserter */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* MoMo Simulator Form */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-emerald-600" />
+                  <span>Mobile Money Deposit Simulator</span>
+                </h3>
+                <span className="text-xs font-mono text-emerald-600 font-bold">Zero-Discrepancy</span>
+              </div>
+
+              <form onSubmit={handleSimulateMoMo} className="space-y-3 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Target Student</label>
+                  <select
+                    value={momoTargetUserId}
+                    onChange={(e) => setMomoTargetUserId(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-medium outline-none"
+                  >
+                    {users
+                      .filter((u) => u.role === "student")
+                      .map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.fullName} ({u.email})
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Amount (UGX)</label>
+                    <input
+                      type="number"
+                      min={1000}
+                      step={5000}
+                      value={momoAmountUGX}
+                      onChange={(e) => setMomoAmountUGX(Number(e.target.value))}
+                      className="w-full rounded-xl border border-slate-300 px-3 py-2 font-mono outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Network</label>
+                    <select
+                      value={momoProvider}
+                      onChange={(e) => setMomoProvider(e.target.value as any)}
+                      className="w-full rounded-xl border border-slate-300 px-3 py-2 outline-none font-bold"
+                    >
+                      <option value="MTN">MTN MoMo</option>
+                      <option value="AIRTEL">Airtel Money</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Phone Number</label>
+                  <input
+                    type="text"
+                    value={momoPhone}
+                    onChange={(e) => setMomoPhone(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 font-mono outline-none"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={momoLoading}
+                  className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 font-bold transition flex items-center justify-center gap-2 shadow"
+                >
+                  <Zap className="h-4 w-4" />
+                  <span>{momoLoading ? "Processing..." : `Credit Wallet with ${formatUGX(momoAmountUGX)}`}</span>
+                </button>
+              </form>
+            </div>
+
+            {/* Test Document Generator */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <FilePlus className="h-4 w-4 text-blue-600" />
+                  <span>Test Publication Generator</span>
+                </h3>
+                <span className="text-xs font-mono text-blue-600 font-bold">Auto-Publish</span>
+              </div>
+
+              <form onSubmit={handleSeedDocument} className="space-y-3 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Publication Title</label>
+                  <input
+                    type="text"
+                    value={seedTitle}
+                    onChange={(e) => setSeedTitle(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 font-medium outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Course Code</label>
+                    <input
+                      type="text"
+                      value={seedCourseCode}
+                      onChange={(e) => setSeedCourseCode(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 px-3 py-2 font-mono outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Price (UGX)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      step={1000}
+                      value={seedPriceUGX}
+                      onChange={(e) => setSeedPriceUGX(Number(e.target.value))}
+                      className="w-full rounded-xl border border-slate-300 px-3 py-2 font-mono outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Document Type</label>
+                    <select
+                      value={seedDocType}
+                      onChange={(e) => setSeedDocType(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 px-3 py-2 outline-none"
+                    >
+                      <option value="lecture_notes">Lecture Notes</option>
+                      <option value="past_paper">Solved Past Paper</option>
+                      <option value="coursework_guide">Coursework Guide</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Pages</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={seedPageCount}
+                      onChange={(e) => setSeedPageCount(Number(e.target.value))}
+                      className="w-full rounded-xl border border-slate-300 px-3 py-2 font-mono outline-none"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={seedLoading}
+                  className="w-full rounded-xl bg-[#142B45] hover:bg-[#1A3859] text-white py-2.5 font-bold transition flex items-center justify-center gap-2 shadow"
+                >
+                  <Play className="h-4 w-4" />
+                  <span>{seedLoading ? "Seeding..." : "Inject Test Publication"}</span>
+                </button>
+              </form>
+            </div>
+          </div>
+
+          {/* Raw Store & Ledger Inspector */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <Database className="h-4 w-4 text-slate-700" />
+                  <span>Live Store & Ledger Inspector</span>
+                </h3>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs">
+                  {(["diagnostics", "wallets", "ledger", "deposits", "users"] as const).map((vt) => (
+                    <button
+                      key={vt}
+                      type="button"
+                      onClick={() => setRawViewType(vt)}
+                      className={`px-2.5 py-1 capitalize font-medium ${
+                        rawViewType === vt ? "bg-slate-900 text-white font-bold" : "bg-white text-slate-600 hover:bg-slate-50"
+                      }`}
+                    >
+                      {vt}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const payload =
+                      rawViewType === "diagnostics"
+                        ? diagnostics
+                        : rawViewType === "wallets"
+                        ? wallets
+                        : rawViewType === "ledger"
+                        ? ledgerEntries
+                        : rawViewType === "deposits"
+                        ? depositAttempts
+                        : users;
+                    copyStoreJson(payload);
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  <span>{copiedKey ? "Copied" : "Copy JSON"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Content view */}
+            {rawViewType === "ledger" ? (
+              <div className="overflow-x-auto max-h-72">
+                <table className="w-full text-left text-xs font-mono">
+                  <thead className="sticky top-0 bg-slate-50 border-b border-slate-200 text-slate-600">
+                    <tr>
+                      <th className="py-1.5 px-2">Tx ID</th>
+                      <th className="py-1.5 px-2">Account</th>
+                      <th className="py-1.5 px-2 text-right">Debit</th>
+                      <th className="py-1.5 px-2 text-right">Credit</th>
+                      <th className="py-1.5 px-2 text-right">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {ledgerEntries.slice(0, 25).map((e) => (
+                      <tr key={e.id} className="hover:bg-slate-50">
+                        <td className="py-1.5 px-2 text-slate-500">{e.transactionId}</td>
+                        <td className="py-1.5 px-2 font-bold text-slate-800">{e.accountId}</td>
+                        <td className="py-1.5 px-2 text-right text-emerald-600">{formatUGX(e.debitUGX)}</td>
+                        <td className="py-1.5 px-2 text-right text-slate-900">{formatUGX(e.creditUGX)}</td>
+                        <td className="py-1.5 px-2 text-right text-slate-400">{formatDate(e.createdAt)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : rawViewType === "wallets" ? (
+              <div className="overflow-x-auto max-h-72">
+                <table className="w-full text-left text-xs font-mono">
+                  <thead className="sticky top-0 bg-slate-50 border-b border-slate-200 text-slate-600">
+                    <tr>
+                      <th className="py-1.5 px-2">User ID</th>
+                      <th className="py-1.5 px-2">Type</th>
+                      <th className="py-1.5 px-2 text-right">Spendable</th>
+                      <th className="py-1.5 px-2 text-right">Reserved</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {wallets.map((w) => (
+                      <tr key={w.id} className="hover:bg-slate-50">
+                        <td className="py-1.5 px-2 text-slate-700 font-bold">{w.userId}</td>
+                        <td className="py-1.5 px-2 capitalize text-slate-500">{w.walletType}</td>
+                        <td className="py-1.5 px-2 text-right font-bold text-emerald-600">
+                          {formatUGX(w.spendableBalanceUGX)}
+                        </td>
+                        <td className="py-1.5 px-2 text-right text-slate-400">{formatUGX(w.reservedBalanceUGX)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <pre className="rounded-xl bg-slate-900 text-slate-200 p-4 font-mono text-xs overflow-x-auto max-h-72">
+                {JSON.stringify(
+                  rawViewType === "diagnostics"
+                    ? diagnostics
+                    : rawViewType === "deposits"
+                    ? depositAttempts
+                    : users,
+                  null,
+                  2
+                )}
+              </pre>
+            )}
+          </div>
+
+          {/* Database Reset Action Card */}
+          <div className="rounded-2xl border border-red-200 bg-red-50/60 p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-bold text-red-900 flex items-center gap-1.5">
+                  <Trash2 className="h-4 w-4" />
+                  <span>Reset Store to Baseline</span>
+                </h4>
+                <p className="text-xs text-red-700 mt-0.5">
+                  Re-initializes in-memory dbStore with default seed documents, ledger entries, and accounts. Preserves admin credentials.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {confirmReset && (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmReset(false)}
+                    className="rounded-xl bg-white border border-slate-300 text-slate-700 px-3 py-1.5 text-xs font-bold"
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button
+                  type="button"
+                  disabled={resetLoading}
+                  onClick={handleResetStore}
+                  className="rounded-xl bg-red-600 hover:bg-red-700 text-white px-4 py-2 text-xs font-bold transition shadow"
+                >
+                  {confirmReset ? "Confirm Reset" : "Reset Data"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Tab 2: Lecturer Approvals */}
+      {/* Tab 3: Lecturer Verification Applications */}
       {activeTab === "verification" && (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-          <h3 className="text-sm font-bold text-slate-900">Lecturer Applications</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900">Lecturer Applications</h3>
+            <span className="text-xs font-mono text-slate-500">{lecturers.length} Total</span>
+          </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-slate-200 text-slate-500 font-bold">
-                  <th className="pb-2">Educator</th>
+                  <th className="pb-2">Lecturer</th>
                   <th className="pb-2">Department</th>
                   <th className="pb-2">Role</th>
                   <th className="pb-2">Status</th>
-                  <th className="pb-2 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {lecturers.map((lec) => {
-                  const isApproved = lec.verificationStatus === "approved";
-                  return (
-                    <tr key={lec.id} className="hover:bg-slate-50">
-                      <td className="py-3">
-                        <span className="font-bold text-slate-900 block">{lec.fullName}</span>
-                        <span className="text-slate-500 font-mono text-xs">{lec.institutionalEmail || "No email"}</span>
-                      </td>
-                      <td className="py-3 text-slate-700">{lec.department}</td>
-                      <td className="py-3 text-slate-700">{lec.teachingRole}</td>
-                      <td className="py-3">
-                        <span
-                          className={`font-bold px-2 py-0.5 rounded-full text-xs ${
-                            isApproved
-                              ? "bg-emerald-100 text-emerald-800"
-                              : lec.verificationStatus === "rejected"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-amber-100 text-amber-800"
-                          }`}
-                        >
-                          {lec.verificationStatus}
-                        </span>
-                      </td>
-                      <td className="py-3 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {!isApproved && (
-                            <button
-                              type="button"
-                              onClick={() => handleReviewLecturer(lec.id, "approve")}
-                              className="rounded-lg bg-[#147D78] hover:bg-[#116965] text-white px-2.5 py-1 text-xs font-bold transition"
-                            >
-                              Approve
-                            </button>
-                          )}
-                          {isApproved && (
-                            <button
-                              type="button"
-                              onClick={() => handleReviewLecturer(lec.id, "suspend")}
-                              className="rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 px-2.5 py-1 text-xs font-bold transition"
-                            >
-                              Suspend
-                            </button>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => handleReviewLecturer(lec.id, "reject")}
-                            className="rounded-lg bg-red-100 hover:bg-red-200 text-red-800 px-2.5 py-1 text-xs font-bold transition"
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Tab 3: User Management */}
-      {activeTab === "users" && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <h3 className="text-sm font-bold text-slate-900">User Directory</h3>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={userSearch}
-                onChange={(e) => setUserSearch(e.target.value)}
-                placeholder="Search user..."
-                className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs outline-none"
-              />
-              <select
-                value={userRoleFilter}
-                onChange={(e) => setUserRoleFilter(e.target.value)}
-                className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-medium"
-              >
-                <option value="all">All Roles</option>
-                <option value="student">Students</option>
-                <option value="lecturer">Lecturers</option>
-                <option value="admin">Admins</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-500 font-bold">
-                  <th className="pb-2">User</th>
-                  <th className="pb-2">Role</th>
-                  <th className="pb-2">Department / Info</th>
-                  <th className="pb-2">Status</th>
                   <th className="pb-2 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredUsers.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-50">
-                    <td className="py-2.5">
-                      <span className="font-bold text-slate-900 block">{u.fullName}</span>
-                      <span className="text-slate-500 font-mono text-xs">{u.email}</span>
+                {lecturers.map((lec) => (
+                  <tr key={lec.id} className="hover:bg-slate-50">
+                    <td className="py-3">
+                      <div className="font-bold text-slate-900">{lec.fullName}</div>
+                      <div className="text-slate-500 font-mono">{lec.institutionalEmail || lec.userId}</div>
                     </td>
-                    <td className="py-2.5 capitalize font-semibold text-slate-700">{u.role}</td>
-                    <td className="py-2.5 text-slate-600">{u.department || "General"}</td>
-                    <td className="py-2.5">
-                      <span className="rounded-full bg-slate-100 text-slate-700 px-2 py-0.5 text-xs font-bold">
-                        {u.verificationStatus || "registered"}
-                      </span>
-                    </td>
-                    <td className="py-2.5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {u.verificationStatus !== "verified" ? (
-                          <button
-                            type="button"
-                            onClick={() => handleUpdateUser(u.id, undefined, "verified")}
-                            className="rounded-lg bg-teal-100 text-teal-800 hover:bg-teal-200 px-2 py-1 text-xs font-bold transition"
-                          >
-                            Verify
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleUpdateUser(u.id, undefined, "suspended")}
-                            className="rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 px-2 py-1 text-xs font-bold transition"
-                          >
-                            Suspend
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Tab 4: Documents Review */}
-      {activeTab === "documents" && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <h3 className="text-sm font-bold text-slate-900">Publications Review</h3>
-            <input
-              type="text"
-              value={docSearch}
-              onChange={(e) => setDocSearch(e.target.value)}
-              placeholder="Search title or course code..."
-              className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs outline-none"
-            />
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-500 font-bold">
-                  <th className="pb-2">Course Code</th>
-                  <th className="pb-2">Title</th>
-                  <th className="pb-2">Price</th>
-                  <th className="pb-2">Status</th>
-                  <th className="pb-2 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredDocs.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-slate-50">
-                    <td className="py-2.5 font-mono font-bold text-slate-900">{doc.courseCode}</td>
-                    <td className="py-2.5 font-semibold text-slate-800">{doc.title}</td>
-                    <td className="py-2.5 font-mono text-slate-900">{formatUGX(doc.priceUGX)}</td>
-                    <td className="py-2.5">
+                    <td className="py-3 text-slate-700">{lec.department}</td>
+                    <td className="py-3 text-slate-600">{lec.teachingRole}</td>
+                    <td className="py-3">
                       <span
-                        className={`font-bold px-2 py-0.5 rounded-full text-xs ${
-                          doc.status === "published"
+                        className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                          lec.verificationStatus === "approved"
                             ? "bg-emerald-100 text-emerald-800"
-                            : doc.status === "takedown"
+                            : lec.verificationStatus === "rejected"
                             ? "bg-red-100 text-red-800"
-                            : "bg-slate-100 text-slate-700"
-                        }`}
-                      >
-                        {doc.status}
-                      </span>
-                    </td>
-                    <td className="py-2.5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {doc.status !== "published" && (
-                          <button
-                            type="button"
-                            onClick={() => handleReviewDocument(doc.id, "published")}
-                            className="rounded-lg bg-teal-100 text-teal-800 hover:bg-teal-200 px-2 py-1 text-xs font-bold transition"
-                          >
-                            Publish
-                          </button>
-                        )}
-                        {doc.status !== "takedown" && (
-                          <button
-                            type="button"
-                            onClick={() => handleReviewDocument(doc.id, "takedown")}
-                            className="rounded-lg bg-red-100 text-red-800 hover:bg-red-200 px-2 py-1 text-xs font-bold transition"
-                          >
-                            Takedown
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Tab 5: Refunds */}
-      {activeTab === "refunds" && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-          <h3 className="text-sm font-bold text-slate-900">Student Purchases &amp; Refunds</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-500 font-bold">
-                  <th className="pb-2">Order</th>
-                  <th className="pb-2">Amount</th>
-                  <th className="pb-2">Status</th>
-                  <th className="pb-2 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {orders.map((o) => (
-                  <tr key={o.id} className="hover:bg-slate-50">
-                    <td className="py-2.5">
-                      <span className="font-mono font-bold text-slate-900 block">{o.orderNumber}</span>
-                      <span className="text-slate-500 text-xs">{o.receiptReference}</span>
-                    </td>
-                    <td className="py-2.5 font-mono font-bold text-slate-900">{formatUGX(o.grossAmountUGX)}</td>
-                    <td className="py-2.5">
-                      <span
-                        className={`font-bold px-2 py-0.5 rounded-full text-xs ${
-                          o.status === "completed"
-                            ? "bg-emerald-100 text-emerald-800"
-                            : o.status === "refunded"
+                            : lec.verificationStatus === "suspended"
                             ? "bg-amber-100 text-amber-800"
-                            : "bg-slate-100 text-slate-700"
+                            : "bg-blue-100 text-blue-800"
                         }`}
                       >
-                        {o.status}
+                        {lec.verificationStatus}
                       </span>
                     </td>
-                    <td className="py-2.5 text-right">
-                      {o.status === "completed" && (
+                    <td className="py-3 text-right space-x-1.5">
+                      {lec.verificationStatus !== "approved" && (
                         <button
                           type="button"
-                          onClick={() => handleProcessRefund(o.id)}
-                          className="rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 px-2.5 py-1 text-xs font-bold transition"
+                          onClick={() => handleReviewLecturer(lec.id, "approve")}
+                          className="rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 text-xs font-bold transition"
                         >
-                          Execute Refund
+                          Approve
+                        </button>
+                      )}
+                      {lec.verificationStatus !== "suspended" && (
+                        <button
+                          type="button"
+                          onClick={() => handleReviewLecturer(lec.id, "suspend")}
+                          className="rounded-lg bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1 text-xs font-bold transition"
+                        >
+                          Suspend
+                        </button>
+                      )}
+                      {lec.verificationStatus !== "rejected" && (
+                        <button
+                          type="button"
+                          onClick={() => handleReviewLecturer(lec.id, "reject")}
+                          className="rounded-lg bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 text-xs font-bold transition"
+                        >
+                          Reject
                         </button>
                       )}
                     </td>
@@ -735,48 +1222,149 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Tab 6: Moderation */}
-      {activeTab === "moderation" && (
+      {/* Tab 4: User Directory */}
+      {activeTab === "users" && (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-          <h3 className="text-sm font-bold text-slate-900">Content Moderation Reports</h3>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <h3 className="text-sm font-bold text-slate-900">User Directory</h3>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Search name or email..."
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs outline-none"
+              />
+              <select
+                value={userRoleFilter}
+                onChange={(e) => setUserRoleFilter(e.target.value)}
+                className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs outline-none font-bold"
+              >
+                <option value="all">All Roles</option>
+                <option value="student">Student</option>
+                <option value="lecturer">Lecturer</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-slate-200 text-slate-500 font-bold">
-                  <th className="pb-2">Category</th>
-                  <th className="pb-2">Details</th>
+                  <th className="pb-2">User</th>
+                  <th className="pb-2">Role</th>
+                  <th className="pb-2">Verification</th>
+                  <th className="pb-2 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredUsers.map((u) => (
+                  <tr key={u.id} className="hover:bg-slate-50">
+                    <td className="py-2.5">
+                      <div className="font-bold text-slate-900">{u.fullName}</div>
+                      <div className="text-slate-500 font-mono">{u.email}</div>
+                    </td>
+                    <td className="py-2.5">
+                      <span className="capitalize font-bold text-slate-800">{u.role}</span>
+                    </td>
+                    <td className="py-2.5">
+                      <span className="capitalize text-slate-600">{u.verificationStatus || "verified"}</span>
+                    </td>
+                    <td className="py-2.5 text-right space-x-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleImpersonate(u.id)}
+                        className="rounded-lg bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-800 px-2 py-1 text-xs font-bold transition"
+                      >
+                        Impersonate
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleUpdateUser(
+                            u.id,
+                            u.role === "student" ? "lecturer" : u.role === "lecturer" ? "admin" : "student"
+                          )
+                        }
+                        className="rounded-lg border border-slate-200 hover:bg-slate-100 px-2 py-1 text-xs font-bold text-slate-700 transition"
+                      >
+                        Toggle Role
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 5: Publications Review */}
+      {activeTab === "documents" && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <h3 className="text-sm font-bold text-slate-900">Publications Directory</h3>
+            <input
+              type="text"
+              placeholder="Search code or title..."
+              value={docSearch}
+              onChange={(e) => setDocSearch(e.target.value)}
+              className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs outline-none"
+            />
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-slate-200 text-slate-500 font-bold">
+                  <th className="pb-2">Document</th>
+                  <th className="pb-2">Price</th>
+                  <th className="pb-2">Pages</th>
                   <th className="pb-2">Status</th>
                   <th className="pb-2 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {reports.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-50">
-                    <td className="py-2.5 font-bold text-slate-900 capitalize">{r.category.replace("_", " ")}</td>
-                    <td className="py-2.5 text-slate-700 max-w-sm">{r.details}</td>
-                    <td className="py-2.5">
-                      <span className="font-bold px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-700">
-                        {r.status}
+                {filteredDocs.map((doc) => (
+                  <tr key={doc.id} className="hover:bg-slate-50">
+                    <td className="py-3">
+                      <div className="font-bold text-slate-900">{doc.title}</div>
+                      <div className="text-slate-500 font-mono">{doc.courseCode}</div>
+                    </td>
+                    <td className="py-3 font-mono font-bold text-slate-900">{formatUGX(doc.priceUGX)}</td>
+                    <td className="py-3 font-mono text-slate-500">{doc.pageCount} pgs</td>
+                    <td className="py-3">
+                      <span
+                        className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                          doc.status === "published"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : doc.status === "takedown"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-slate-100 text-slate-700"
+                        }`}
+                      >
+                        {doc.status}
                       </span>
                     </td>
-                    <td className="py-2.5 text-right">
-                      {r.status === "open" && (
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => handleModerateReport(r.id, "takedown")}
-                            className="rounded-lg bg-red-100 text-red-800 hover:bg-red-200 px-2 py-1 text-xs font-bold transition"
-                          >
-                            Takedown
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleModerateReport(r.id, "dismiss")}
-                            className="rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 px-2 py-1 text-xs font-bold transition"
-                          >
-                            Dismiss
-                          </button>
-                        </div>
+                    <td className="py-3 text-right space-x-1.5">
+                      {doc.status !== "published" && (
+                        <button
+                          type="button"
+                          onClick={() => handleReviewDocument(doc.id, "published")}
+                          className="rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 text-xs font-bold transition"
+                        >
+                          Publish
+                        </button>
+                      )}
+                      {doc.status !== "takedown" && (
+                        <button
+                          type="button"
+                          onClick={() => handleReviewDocument(doc.id, "takedown")}
+                          className="rounded-lg bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 text-xs font-bold transition"
+                        >
+                          Takedown
+                        </button>
                       )}
                     </td>
                   </tr>
@@ -787,16 +1375,139 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Tab 7: Audit Trail */}
+      {/* Tab 6: Refunds Ledger */}
+      {activeTab === "refunds" && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900">Orders & Refunds Ledger</h3>
+            <span className="text-xs font-mono text-slate-500">{orders.length} Orders</span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-slate-200 text-slate-500 font-bold">
+                  <th className="pb-2">Order #</th>
+                  <th className="pb-2">Student</th>
+                  <th className="pb-2">Gross</th>
+                  <th className="pb-2">Lecturer</th>
+                  <th className="pb-2">Fee</th>
+                  <th className="pb-2">Status</th>
+                  <th className="pb-2 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {orders.map((ord) => (
+                  <tr key={ord.id} className="hover:bg-slate-50">
+                    <td className="py-2.5 font-mono font-bold text-slate-900">{ord.orderNumber}</td>
+                    <td className="py-2.5 font-mono text-slate-600">{ord.studentId}</td>
+                    <td className="py-2.5 font-mono font-bold text-slate-900">{formatUGX(ord.grossAmountUGX)}</td>
+                    <td className="py-2.5 font-mono text-slate-600">{formatUGX(ord.lecturerEarningsUGX)}</td>
+                    <td className="py-2.5 font-mono text-slate-500">{formatUGX(ord.platformFeeUGX)}</td>
+                    <td className="py-2.5">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
+                          ord.status === "completed"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : ord.status === "refunded"
+                            ? "bg-amber-100 text-amber-800"
+                            : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {ord.status}
+                      </span>
+                    </td>
+                    <td className="py-2.5 text-right">
+                      {ord.status === "completed" && (
+                        <button
+                          type="button"
+                          onClick={() => handleProcessRefund(ord.id)}
+                          className="rounded-lg bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1 text-xs font-bold transition"
+                        >
+                          Refund
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 7: Moderation Reports */}
+      {activeTab === "moderation" && (
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900">Content Moderation</h3>
+            <span className="text-xs font-mono text-slate-500">{reports.length} Reports</span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-slate-200 text-slate-500 font-bold">
+                  <th className="pb-2">Document ID</th>
+                  <th className="pb-2">Category</th>
+                  <th className="pb-2">Details</th>
+                  <th className="pb-2">Status</th>
+                  <th className="pb-2 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {reports.map((rep) => (
+                  <tr key={rep.id} className="hover:bg-slate-50">
+                    <td className="py-2.5 font-mono font-bold text-slate-900">{rep.documentId}</td>
+                    <td className="py-2.5 capitalize text-slate-700">{rep.category}</td>
+                    <td className="py-2.5 text-slate-600">{rep.details}</td>
+                    <td className="py-2.5">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
+                          rep.status === "open" ? "bg-red-100 text-red-800" : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {rep.status}
+                      </span>
+                    </td>
+                    <td className="py-2.5 text-right space-x-1.5">
+                      {rep.status === "open" && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleModerateReport(rep.id, "takedown")}
+                            className="rounded-lg bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 text-xs font-bold transition"
+                          >
+                            Takedown
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleModerateReport(rep.id, "dismiss")}
+                            className="rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 px-2.5 py-1 text-xs font-bold transition"
+                          >
+                            Dismiss
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 8: Audit Log */}
       {activeTab === "audit" && (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="text-sm font-bold text-slate-900">Audit Logs</h3>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <h3 className="text-sm font-bold text-slate-900">Audit Trail</h3>
             <input
               type="text"
+              placeholder="Search action or actor..."
               value={auditSearch}
               onChange={(e) => setAuditSearch(e.target.value)}
-              placeholder="Search action..."
               className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs outline-none"
             />
           </div>
@@ -826,7 +1537,7 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Tab 8: Platform Settings */}
+      {/* Tab 9: Platform Policies */}
       {activeTab === "settings" && (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm max-w-lg space-y-4">
           <h3 className="text-sm font-bold text-slate-900">Platform Policies</h3>
