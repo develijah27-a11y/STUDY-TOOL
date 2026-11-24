@@ -11,7 +11,7 @@ function verifyAdminCaller(callerId: string): { allowed: boolean; context: UserA
   
   if (roles.length === 0) {
     const reg = getAllUsers().find((u) => u.id === callerId || u.email === callerId);
-    if (reg && (reg.role === "admin" || (reg.role as string) === "co_admin")) {
+    if (reg && (reg.role === "admin" || reg.role === "developer")) {
       roles = [reg.role];
       if (!profile) {
         profile = {
@@ -32,7 +32,7 @@ function verifyAdminCaller(callerId: string): { allowed: boolean; context: UserA
     roles,
   };
   return {
-    allowed: AuthorizationGuard.isAdmin(context),
+    allowed: AuthorizationGuard.hasAdminOrDevAccess(context),
     context,
   };
 }
@@ -128,6 +128,14 @@ export async function GET(req: NextRequest) {
     ledgerEntries: dbStore.ledgerEntries.slice(0, 100),
     wallets: dbStore.walletAccounts,
     depositAttempts: dbStore.depositAttempts.slice(0, 100),
+    institutions: dbStore.institutions,
+    programmes: dbStore.programmes,
+    courses: dbStore.courses,
+    collections: dbStore.collections,
+    notifications: dbStore.notifications,
+    supportTickets: dbStore.supportTickets,
+    announcements: dbStore.announcements,
+    websiteContent: dbStore.websiteContent,
   });
 }
 
@@ -146,6 +154,14 @@ export async function POST(req: NextRequest) {
 
     const { action } = body;
     const now = new Date().toISOString();
+
+    const financialActions = ["process_refund", "resolve_payout_item", "update_settings"];
+    if (financialActions.includes(action) && !check.context.roles.includes("admin")) {
+      return NextResponse.json(
+        { error: "FORBIDDEN: Financial operations and policy updates require explicit Administrator privileges." },
+        { status: 403 }
+      );
+    }
 
     if (action === "review_lecturer") {
       const lec = dbStore.lecturerProfiles.find((l) => l.id === body.lecturerId || l.userId === body.userId);
@@ -442,6 +458,122 @@ export async function POST(req: NextRequest) {
       });
 
       return response;
+    }
+
+    if (action === "add_institution") {
+      const { name, code, type, country, logoUrl } = body;
+      if (!name) return NextResponse.json({ error: "INSTITUTION_NAME_REQUIRED" }, { status: 400 });
+      const newInst = {
+        id: `inst-${Date.now()}`,
+        name: name.trim(),
+        code: (code || name.slice(0, 4)).toUpperCase().trim(),
+        type: type || "public_university",
+        country: country || "Uganda",
+        logoUrl: logoUrl || "",
+        createdAt: now,
+      };
+      dbStore.institutions.push(newInst as any);
+      dbStore.auditLogs.unshift({
+        id: `aud-${Date.now()}`,
+        actorId: callerId,
+        action: "ADD_INSTITUTION",
+        targetType: "institution",
+        targetId: newInst.id,
+        metadata: { name: newInst.name, code: newInst.code },
+        createdAt: now,
+      });
+      return NextResponse.json({ success: true, institution: newInst });
+    }
+
+    if (action === "add_course") {
+      const { code, title, programmeId, semester, academicYear } = body;
+      if (!code || !title) return NextResponse.json({ error: "COURSE_CODE_AND_TITLE_REQUIRED" }, { status: 400 });
+      const newCourse = {
+        id: `course-${Date.now()}`,
+        code: code.trim().toUpperCase(),
+        title: title.trim(),
+        programmeId: programmeId || "prog-bsse",
+        semester: Number(semester) || 1,
+        academicYear: Number(academicYear) || 1,
+        creditUnits: 4,
+        createdAt: now,
+      };
+      dbStore.courses.push(newCourse as any);
+      dbStore.auditLogs.unshift({
+        id: `aud-${Date.now()}`,
+        actorId: callerId,
+        action: "ADD_COURSE",
+        targetType: "course_unit",
+        targetId: newCourse.id,
+        metadata: { code: newCourse.code, title: newCourse.title },
+        createdAt: now,
+      });
+      return NextResponse.json({ success: true, course: newCourse });
+    }
+
+    if (action === "create_announcement") {
+      const { title, message, audience, priority, type } = body;
+      if (!title || !message) return NextResponse.json({ error: "TITLE_AND_MESSAGE_REQUIRED" }, { status: 400 });
+      const newAnn = {
+        id: `ann-${Date.now()}`,
+        title: title.trim(),
+        message: message.trim(),
+        audience: audience || "all",
+        priority: priority || "normal",
+        type: type || "platform",
+        publishedBy: callerId,
+        createdAt: now,
+      };
+      dbStore.announcements.unshift(newAnn as any);
+      dbStore.auditLogs.unshift({
+        id: `aud-${Date.now()}`,
+        actorId: callerId,
+        action: "CREATE_ANNOUNCEMENT",
+        targetType: "announcement",
+        targetId: newAnn.id,
+        metadata: { title: newAnn.title, audience: newAnn.audience },
+        createdAt: now,
+      });
+      return NextResponse.json({ success: true, announcement: newAnn });
+    }
+
+    if (action === "update_support_ticket") {
+      const { ticketId, status, resolutionNotes, assignedAdmin } = body;
+      const ticket = dbStore.supportTickets.find((t) => t.id === ticketId);
+      if (!ticket) return NextResponse.json({ error: "TICKET_NOT_FOUND" }, { status: 404 });
+      if (status) ticket.status = status;
+      if (resolutionNotes) ticket.resolutionNotes = resolutionNotes;
+      if (assignedAdmin) ticket.assignedAdmin = assignedAdmin;
+      ticket.updatedAt = now;
+      dbStore.auditLogs.unshift({
+        id: `aud-${Date.now()}`,
+        actorId: callerId,
+        action: `SUPPORT_TICKET_${ticket.status.toUpperCase()}`,
+        targetType: "support_ticket",
+        targetId: ticket.id,
+        metadata: { status: ticket.status, resolutionNotes },
+        createdAt: now,
+      });
+      return NextResponse.json({ success: true, ticket });
+    }
+
+    if (action === "update_website_content") {
+      const { heroTitle, heroSubtitle, contactEmail, supportPhone } = body;
+      if (heroTitle) dbStore.websiteContent.heroTitle = heroTitle;
+      if (heroSubtitle) dbStore.websiteContent.heroSubtitle = heroSubtitle;
+      if (contactEmail) dbStore.websiteContent.contactEmail = contactEmail;
+      if (supportPhone) dbStore.websiteContent.supportPhone = supportPhone;
+      dbStore.websiteContent.updatedAt = now;
+      dbStore.auditLogs.unshift({
+        id: `aud-${Date.now()}`,
+        actorId: callerId,
+        action: "UPDATE_WEBSITE_CONTENT",
+        targetType: "website_content",
+        targetId: "homepage",
+        metadata: { heroTitle, contactEmail },
+        createdAt: now,
+      });
+      return NextResponse.json({ success: true, websiteContent: dbStore.websiteContent });
     }
 
     if (action === "reset_store_data") {

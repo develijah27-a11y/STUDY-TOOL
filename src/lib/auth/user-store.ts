@@ -14,7 +14,7 @@ export interface RegisteredUser {
   email: string;
   passwordHash: string;
   fullName: string;
-  role: "student" | "lecturer" | "admin";
+  role: "student" | "lecturer" | "admin" | "developer";
   verificationStatus?: UserVerificationStatus;
   institutionId?: string;
   faculty?: string;
@@ -193,7 +193,7 @@ export function registerUser(data: {
   email: string;
   password: string;
   fullName: string;
-  role: "student" | "lecturer" | "admin";
+  role: "student" | "lecturer" | "admin" | "developer";
   verificationStatus?: UserVerificationStatus;
   institutionId?: string;
   faculty?: string;

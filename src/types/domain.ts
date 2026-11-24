@@ -1,8 +1,9 @@
 /**
- * Domain types for Uganda Academic Document Marketplace
+ * Domain types for Uganda Academic Document Marketplace.
+ * Platform recognizes strictly 4 roles: Student, Lecturer, Administrator, Developer.
  */
 
-export type UserRole = "visitor" | "student" | "lecturer" | "admin" | "co_admin";
+export type UserRole = "student" | "lecturer" | "admin" | "developer";
 
 export type LecturerVerificationStatus =
   | "draft"
@@ -182,6 +183,46 @@ export interface PersonalNote {
   };
   noteText: string;
   createdAt: string;
+  updatedAt: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  ticketNumber: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  category: "payment_issue" | "document_access" | "lecturer_verification" | "technical_bug" | "general";
+  subject: string;
+  message: string;
+  status: "open" | "in_progress" | "resolved" | "closed";
+  priority: "low" | "normal" | "high" | "urgent";
+  relatedEntityId?: string;
+  assignedAdmin?: string;
+  resolutionNotes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PlatformAnnouncement {
+  id: string;
+  title: string;
+  message: string;
+  audience: "all" | "students" | "lecturers" | "institution";
+  targetInstitutionId?: string;
+  priority: "normal" | "important" | "critical";
+  type: "platform" | "academic" | "maintenance" | "payment";
+  publishedBy: string;
+  createdAt: string;
+}
+
+export interface WebsiteContentConfig {
+  heroTitle: string;
+  heroSubtitle: string;
+  bannerNotice?: string;
+  featuredCourseCodes: string[];
+  contactEmail: string;
+  supportPhone: string;
   updatedAt: string;
 }
 

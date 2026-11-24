@@ -11,6 +11,9 @@ import {
   Bookmark,
   PersonalNote,
   UserRole,
+  SupportTicket,
+  PlatformAnnouncement,
+  WebsiteContentConfig,
 } from "@/types/domain";
 import {
   LedgerAccount,
@@ -100,10 +103,20 @@ class MarketplaceStore {
   refunds: RefundRecord[] = [];
   processedWebhooks: Set<string> = new Set();
 
-  // Administration & Moderation
+  // Administration, Moderation & Operations
   reports: ContentReport[] = [];
   auditLogs: AuditLogEntry[] = [];
   notifications: NotificationItem[] = [];
+  supportTickets: SupportTicket[] = [];
+  announcements: PlatformAnnouncement[] = [];
+  websiteContent: WebsiteContentConfig = {
+    heroTitle: "Authentic course notes from your lecturers.",
+    heroSubtitle: "Exam-focused revision notes and past papers. Free previews. Instant MTN and Airtel Mobile Money unlock.",
+    featuredCourseCodes: ["BBA 1204", "CSC 1100", "MEC 2101", "ACC 2102", "ENG 1102"],
+    contactEmail: "support@somaug.ac.ug",
+    supportPhone: "+256 770 000 001",
+    updatedAt: new Date().toISOString(),
+  };
   settings: PlatformSettings = {
     commissionPercent: 15,
     minDocumentPriceUGX: 500,
@@ -146,6 +159,8 @@ class MarketplaceStore {
     this.reports = [];
     this.auditLogs = [];
     this.notifications = [];
+    this.supportTickets = [];
+    this.announcements = [];
     this.settings = {
       commissionPercent: 15,
       minDocumentPriceUGX: 500,
@@ -1137,6 +1152,66 @@ class MarketplaceStore {
         message: "Your Makerere University lecturer profile is verified. You can now publish materials and receive weekly payouts.",
         category: "verification",
         isRead: true,
+        createdAt: now,
+      },
+    ];
+
+    // 12. Support & Complaints Tickets
+    this.supportTickets = [
+      {
+        id: "ticket-101",
+        ticketNumber: "TK-2026-081",
+        userId: "user-student-1",
+        userEmail: "grace.namukasa@somaug.ac.ug",
+        userName: "Grace Namukasa",
+        category: "payment_issue",
+        subject: "Airtel Money prompt delayed on CSC 2101 notes",
+        message: "I initiated a deposit of UGX 5,000 via Airtel Money 0750000001. The prompt took 2 minutes to pop up, but wallet was credited successfully.",
+        status: "resolved",
+        priority: "normal",
+        relatedEntityId: "ord-test-sample-01",
+        assignedAdmin: "develijah27@gmail.com",
+        resolutionNotes: "System confirms webhook event was processed and order entitlement granted automatically.",
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: "ticket-102",
+        ticketNumber: "TK-2026-082",
+        userId: "user-lecturer-2",
+        userEmail: "okello.david@kyu.ac.ug",
+        userName: "Dr. David Okello",
+        category: "lecturer_verification",
+        subject: "Departmental appointment letter attached for Kyambogo",
+        message: "Attached my formal appointment letter for Senior Lecturer in Department of Accounting and Finance. Please review my publishing status.",
+        status: "open",
+        priority: "high",
+        relatedEntityId: "lec-2",
+        createdAt: now,
+        updatedAt: now,
+      },
+    ];
+
+    // 13. Platform & Academic Announcements
+    this.announcements = [
+      {
+        id: "ann-1",
+        title: "Semester I Examination Revision Window Active",
+        message: "All verified lecturers across Makerere, Kyambogo, MUST, and MUBS are requested to publish verified past paper solutions and outline guides ahead of final assessments.",
+        audience: "all",
+        priority: "important",
+        type: "academic",
+        publishedBy: "Academic Board",
+        createdAt: now,
+      },
+      {
+        id: "ann-2",
+        title: "MTN & Airtel Direct Push Instant Settlement Live",
+        message: "Mobile money wallet deposits and purchases now execute with direct instantaneous webhook confirmation across Uganda networks.",
+        audience: "students",
+        priority: "normal",
+        type: "payment",
+        publishedBy: "Financial Operations",
         createdAt: now,
       },
     ];

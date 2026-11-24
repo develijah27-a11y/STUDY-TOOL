@@ -21,7 +21,15 @@ export class AuthorizationGuard {
   }
 
   static isAdmin(context: UserAuthContext): boolean {
-    return context.roles.includes("admin") || context.roles.includes("co_admin");
+    return context.roles.includes("admin");
+  }
+
+  static isDeveloper(context: UserAuthContext): boolean {
+    return context.roles.includes("developer");
+  }
+
+  static hasAdminOrDevAccess(context: UserAuthContext): boolean {
+    return context.roles.includes("admin") || context.roles.includes("developer");
   }
 
   static isApprovedLecturer(context: UserAuthContext): boolean {
