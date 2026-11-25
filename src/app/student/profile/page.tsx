@@ -11,18 +11,8 @@ import {
   History,
   Plus,
   X,
-  Zap,
-  HardDrive,
-  Activity,
   Trash2,
 } from "lucide-react";
-import {
-  DataSaverMode,
-  getDataSaverMode,
-  setDataSaverMode,
-} from "@/lib/performance/data-saver";
-import { offlineStorage, StorageEstimateResult } from "@/lib/offline/offline-storage";
-import { performanceMonitor, PerformanceSnapshot } from "@/lib/performance/metrics";
 
 export default function StudentAcademicProfilePage() {
   const [studentName, setStudentName] = useState("Student");
@@ -36,23 +26,6 @@ export default function StudentAcademicProfilePage() {
   ]);
   const [customCourseInput, setCustomCourseInput] = useState("");
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
-  const [dataSaverMode, setMode] = useState<DataSaverMode>("standard");
-  const [storageInfo, setStorageInfo] = useState<StorageEstimateResult | null>(null);
-  const [perfSnapshot, setPerfSnapshot] = useState<PerformanceSnapshot | null>(null);
-
-  useEffect(() => {
-    try {
-      setMode(getDataSaverMode());
-      offlineStorage.getStorageEstimate().then(setStorageInfo).catch(() => { });
-      setPerfSnapshot(performanceMonitor.getSnapshot());
-    } catch { }
-  }, []);
-
-  const handleModeChange = (mode: DataSaverMode) => {
-    setMode(mode);
-    setDataSaverMode(mode);
-  };
-
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -448,130 +421,6 @@ export default function StudentAcademicProfilePage() {
                 <BookOpen className="h-3 w-3" />
                 View Year 1 Materials
               </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Low-Data Mode Settings (Part A Section 2) */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
-                <Zap className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-sm font-extrabold text-slate-900">
-                  Data Saver Mode (Uganda Mobile Networks)
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Optimize SomaUG for slow 2G/3G connections and expensive mobile bundles.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-            {[
-              {
-                id: "standard" as DataSaverMode,
-                title: "Standard Mode",
-                desc: "Full quality imagery, animations, and standard prefetching.",
-              },
-              {
-                id: "data_saver" as DataSaverMode,
-                title: "Data Saver Mode",
-                desc: "Compact thumbnails, reduced decorative images, no autoplay, zero background downloads.",
-              },
-              {
-                id: "automatic" as DataSaverMode,
-                title: "Automatic Mode",
-                desc: "Activates automatically when Android Save-Data is enabled on your phone.",
-              },
-            ].map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => handleModeChange(opt.id)}
-                className={`text-left rounded-xl p-3.5 border transition ${dataSaverMode === opt.id
-                  ? "border-[#147D78] bg-teal-50/50 ring-1 ring-[#147D78]"
-                  : "border-slate-200 bg-white hover:bg-slate-50"
-                  }`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-slate-900">{opt.title}</span>
-                  {dataSaverMode === opt.id && (
-                    <CheckCircle2 className="h-4 w-4 text-[#147D78]" />
-                  )}
-                </div>
-                <p className="text-[11px] text-slate-500 leading-snug">{opt.desc}</p>
-              </button>
-            ))}
-          </div>
-
-          <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600">
-            <span>
-              Offline Storage Used:{" "}
-              <strong className="text-slate-900">
-                {((storageInfo?.usedBytes || 0) / (1024 * 1024)).toFixed(1)} MB
-              </strong>
-            </span>
-            <Link
-              href="/student/offline"
-              className="inline-flex items-center gap-1 font-bold text-[#147D78] hover:underline"
-            >
-              <HardDrive className="h-3.5 w-3.5" />
-              <span>Manage Encrypted Offline Storage →</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Performance Telemetry & Web Vitals Audit (Part A Section 3) */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
-              <Activity className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="text-sm font-extrabold text-slate-900">
-                Real-Time Performance Telemetry
-              </h3>
-              <p className="text-xs text-slate-500">
-                Device Core Web Vitals targets: LCP &le; 2.5s, INP &le; 200ms, CLS &le; 0.1
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 text-center">
-            <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">LCP</span>
-              <span className="text-sm font-extrabold text-[#142B45] block mt-0.5">
-                {perfSnapshot?.lcpMs !== null ? `${perfSnapshot?.lcpMs} ms` : "< 1.8 s (Pass)"}
-              </span>
-              <span className="text-[10px] text-emerald-600 font-semibold block mt-0.5">Target &le; 2.5s</span>
-            </div>
-
-            <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">INP</span>
-              <span className="text-sm font-extrabold text-[#142B45] block mt-0.5">
-                {perfSnapshot?.inpMs !== null ? `${perfSnapshot?.inpMs} ms` : "48 ms (Pass)"}
-              </span>
-              <span className="text-[10px] text-emerald-600 font-semibold block mt-0.5">Target &le; 200ms</span>
-            </div>
-
-            <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">CLS</span>
-              <span className="text-sm font-extrabold text-[#142B45] block mt-0.5">
-                {perfSnapshot ? perfSnapshot.clsScore.toFixed(3) : "0.012 (Pass)"}
-              </span>
-              <span className="text-[10px] text-emerald-600 font-semibold block mt-0.5">Target &le; 0.100</span>
-            </div>
-
-            <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">PDF Render</span>
-              <span className="text-sm font-extrabold text-[#142B45] block mt-0.5">
-                {perfSnapshot?.pdfFirstPageRenderMs !== null ? `${perfSnapshot?.pdfFirstPageRenderMs} ms` : "120 ms"}
-              </span>
-              <span className="text-[10px] text-teal-600 font-semibold block mt-0.5">Low-Memory</span>
             </div>
           </div>
         </div>
