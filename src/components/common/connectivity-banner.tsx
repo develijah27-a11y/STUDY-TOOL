@@ -94,7 +94,7 @@ export default function ConnectivityBanner() {
           {!network.isOnline && (
             <Link
               href="/student/library"
-              className="inline-flex items-center gap-1 rounded bg-[#147D78] hover:bg-teal-700 px-2.5 py-1 text-[11px] font-bold text-white transition"
+              className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-sky-500 to-orange-500 hover:from-sky-600 hover:to-orange-600 px-2.5 py-1 text-[11px] font-bold text-white transition shadow-xs"
             >
               <BookOpen className="h-3 w-3" />
               <span>Go to Offline Library</span>

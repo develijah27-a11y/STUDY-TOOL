@@ -13,18 +13,18 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 30% 12%;
 
-    /* Academic Navy */
-    --primary: 205 65% 15%;
-    --primary-foreground: 0 0% 98%;
+    /* Sky Blue Accent */
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Ochre / Warm Gold Accent */
-    --secondary: 38 92% 50%;
-    --secondary-foreground: 220 30% 12%;
+    /* Vibrant Orange Accent */
+    --secondary: 24 95% 53%;
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 210 20% 93%;
     --muted-foreground: 215 16% 47%;
 
-    --accent: 210 25% 90%;
+    --accent: 199 95% 95%;
     --accent-foreground: 220 30% 12%;
 
     --destructive: 0 84% 60%;
@@ -32,31 +32,33 @@
 
     --border: 214 20% 88%;
     --input: 214 20% 88%;
-    --ring: 205 65% 25%;
+    --ring: 199 89% 48%;
 
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 220 30% 8%;
+    --background: 222 47% 7%;
     --foreground: 210 20% 98%;
 
-    --card: 220 25% 11%;
+    --card: 222 47% 10%;
     --card-foreground: 210 20% 98%;
 
-    --popover: 220 25% 11%;
+    --popover: 222 47% 10%;
     --popover-foreground: 210 20% 98%;
 
-    --primary: 205 60% 55%;
+    /* Sky Blue Glow in Dark Mode */
+    --primary: 199 92% 60%;
     --primary-foreground: 220 30% 10%;
 
-    --secondary: 38 92% 50%;
-    --secondary-foreground: 220 30% 12%;
+    /* Vibrant Orange Glow in Dark Mode */
+    --secondary: 25 95% 61%;
+    --secondary-foreground: 220 30% 10%;
 
     --muted: 217 20% 18%;
     --muted-foreground: 215 20% 65%;
 
-    --accent: 217 20% 20%;
+    --accent: 199 50% 16%;
     --accent-foreground: 210 20% 98%;
 
     --destructive: 0 62% 30%;
@@ -64,7 +66,7 @@
 
     --border: 217 20% 20%;
     --input: 217 20% 20%;
-    --ring: 205 60% 55%;
+    --ring: 199 92% 60%;
   }
 }
 
@@ -73,7 +75,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans antialiased min-h-screen selection:bg-amber-200 selection:text-amber-900 leading-normal;
+    @apply bg-background text-foreground font-sans antialiased min-h-screen selection:bg-sky-500/30 selection:text-orange-600 dark:selection:text-orange-400 leading-normal;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight text-balance;

@@ -46,14 +46,14 @@ export function MobileBottomNav() {
     checkSession();
   }, [pathname]);
 
-  // Hide persistent bottom bar inside protected student/lecturer/admin routes (they render their own role-tailored layout nav)
+  // Hide persistent bottom bar inside protected dashboard routes or on the landing page for phones & tablets
   const isDashboardRoute = Boolean(
     pathname.startsWith("/student") ||
     pathname.startsWith("/lecturer") ||
     pathname.startsWith("/admin")
   );
 
-  if (isDashboardRoute) {
+  if (isDashboardRoute || pathname === "/") {
     return null;
   }
 
@@ -156,7 +156,7 @@ export function MobileBottomNav() {
   return (
     <nav
       aria-label="Mobile Bottom Navigation"
-      className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 md:hidden safe-area-inset-bottom"
+      className="fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 lg:hidden safe-area-inset-bottom"
     >
       <div className={`grid ${gridColsClass} h-16 max-w-lg mx-auto`}>
         {navItems.map((item) => {
@@ -167,14 +167,14 @@ export function MobileBottomNav() {
               href={item.href}
               className={`flex flex-col items-center justify-center gap-1 transition ${
                 item.isActive
-                  ? "text-[#147D78] font-bold"
-                  : "text-slate-500 hover:text-slate-900 font-medium"
+                  ? "text-sky-600 dark:text-sky-400 font-bold"
+                  : "text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 font-medium"
               }`}
             >
               <Icon className={`h-5 w-5 ${item.isActive ? "stroke-[2.5]" : "stroke-2"}`} />
               <span className="text-[11px] leading-none">{item.label}</span>
               {item.isActive && (
-                <span className="w-1.5 h-1.5 rounded-full bg-[#147D78] mt-0.5" />
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 mt-0.5" />
               )}
             </Link>
           );

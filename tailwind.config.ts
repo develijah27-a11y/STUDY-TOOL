@@ -53,23 +53,28 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Official Brand Identity Palette
+        // Official Brand Identity Palette (Sky Blue & Orange)
         brand: {
-          navy: "#142B45",
-          teal: "#147D78",
-          softWhite: "#F7F8FA",
+          sky: "#0EA5E9",
+          skyDark: "#0284C7",
+          skyLight: "#E0F2FE",
+          orange: "#F97316",
+          orangeDark: "#EA580C",
+          orangeLight: "#FFEDD5",
+          navy: "#0F172A",
+          softWhite: "#F8FAFC",
           pureWhite: "#FFFFFF",
-          charcoal: "#243244",
-          mutedGold: "#E9B949",
+          charcoal: "#1E293B",
         },
-        // Brand palette: Uganda Academic / Warm scholarly navy & gold/ochre & emerald
+        // Brand palette: Uganda Academic / Sky Blue & Radiant Orange
         academic: {
-          navy: "#142B45",
-          slate: "#243244",
-          teal: "#147D78",
-          amber: "#E9B949",
-          gold: "#E9B949",
-          green: "#147D78",
+          sky: "#0EA5E9",
+          orange: "#F97316",
+          navy: "#0F172A",
+          slate: "#334155",
+          amber: "#F59E0B",
+          gold: "#D97706",
+          green: "#10B981",
         },
       },
       borderRadius: {

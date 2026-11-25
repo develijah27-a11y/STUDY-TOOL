@@ -5,6 +5,7 @@ import { Navbar, Footer } from "@/components/common/navbar";
 import { MobileBottomNav } from "@/components/common/mobile-bottom-nav";
 import ConnectivityBanner from "@/components/common/connectivity-banner";
 import PwaRegistrar from "@/components/common/pwa-registrar";
+import InstallPrompt from "@/components/common/install-prompt";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,8 +27,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="flex min-h-screen flex-col bg-[#F7F8FA] text-[#243244] font-sans antialiased">
+      <body className="flex min-h-screen flex-col bg-[#F7F8FA] dark:bg-slate-950 text-[#243244] dark:text-slate-100 font-sans antialiased">
         <PwaRegistrar />
+        <InstallPrompt />
         <ConnectivityBanner />
         <Navbar />
         <main className="flex-1 pb-16 md:pb-0">{children}</main>
