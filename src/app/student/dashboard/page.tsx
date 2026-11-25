@@ -86,14 +86,39 @@ function getFormattedDate(): string {
   return new Date().toLocaleDateString("en-UG", options);
 }
 
+const INSTITUTION_MAP: Record<string, string> = {
+  "inst-mak": "Makerere University (MAK)",
+  "inst-kyu": "Kyambogo University (KYU)",
+  "inst-must": "Mbarara University of Science & Tech (MUST)",
+  "inst-ucu": "Uganda Christian University (UCU)",
+  "inst-mubs": "Makerere University Business School (MUBS)",
+  "inst-uict": "UICT Nakawa",
+  "inst-bribte": "Buganda Royal Institute (BRIBTE)",
+  "inst-kpm": "Kampala Polytechnic Mengo",
+};
+
+const PROGRAMME_MAP: Record<string, string> = {
+  "prog-bsse": "B.Sc. Software Engineering",
+  "prog-bcs": "B.Sc. Computer Science",
+  "prog-bit": "Bachelor of Information Technology",
+  "prog-bba": "Bachelor of Business Administration (BBA)",
+  "prog-bee": "B.Sc. Electrical Engineering",
+  "prog-bce": "B.Sc. Civil Engineering",
+  "prog-llb": "Bachelor of Laws (LLB)",
+  "prog-voc-elec": "National Cert. Electrical Installation",
+  "prog-voc-auto": "Automotive & Power Mechanics",
+};
+
 export default function StudentDashboardPage() {
   const router = useRouter();
   const [studentId, setStudentId] = useState("user-student-1");
   const [studentName, setStudentName] = useState("Student");
+  const [studentEmail, setStudentEmail] = useState("");
   const [institution, setInstitution] = useState("Makerere University (MAK)");
-  const [programme, setProgramme] = useState(
-    "Higher Education & Technical Studies"
-  );
+  const [programme, setProgramme] = useState("B.Sc. Software Engineering");
+  const [academicYear, setAcademicYear] = useState<number>(2);
+  const [semester, setSemester] = useState<number>(1);
+  const [activeCourseUnits, setActiveCourseUnits] = useState<string[]>(["CSC 2101", "BIT 1202"]);
   const [walletBalance, setWalletBalance] = useState(25000);
   const [reservedBalance, setReservedBalance] = useState(0);
   const [entitlements, setEntitlements] = useState<EntitlementItem[]>([]);
@@ -104,28 +129,60 @@ export default function StudentDashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // Initialize active student session
+  // Initialize active student session from authoritative database session
   useEffect(() => {
     let currentId = "user-student-1";
-    try {
-      const cached = localStorage.getItem("somaug_user_session");
-      if (cached) {
-        const u = JSON.parse(cached);
-        if (u.id) {
-          currentId = u.id;
-          setStudentId(u.id);
-        }
-        if (u.fullName) setStudentName(u.fullName);
-        if (u.institutionId === "inst-bribte") setInstitution("Buganda Royal Institute (BRIBTE)");
-        else if (u.institutionId === "inst-kyu") setInstitution("Kyambogo University (KYU)");
-        else if (u.institutionId === "inst-uict") setInstitution("UICT Nakawa");
-        else if (u.institutionId === "inst-kpm") setInstitution("Kampala Polytechnic Mengo");
-      }
-    } catch {}
 
     async function loadDashboard() {
       setLoading(true);
       try {
+        // 1. Fetch authenticated student profile from database
+        try {
+          const profileRes = await fetch("/api/auth/profile");
+          if (profileRes.ok) {
+            const profData = await profileRes.json();
+            if (profData?.user) {
+              const u = profData.user;
+              currentId = u.id;
+              setStudentId(u.id);
+              if (u.fullName) setStudentName(u.fullName);
+              if (u.email) setStudentEmail(u.email);
+              if (u.institutionId) {
+                setInstitution(INSTITUTION_MAP[u.institutionId] || u.institutionId);
+              }
+              if (u.programmeId) {
+                setProgramme(PROGRAMME_MAP[u.programmeId] || u.programmeId);
+              }
+              if (u.academicYear) setAcademicYear(Number(u.academicYear));
+              if (u.semester) setSemester(Number(u.semester));
+              if (Array.isArray(u.activeCourseUnits) && u.activeCourseUnits.length > 0) {
+                setActiveCourseUnits(u.activeCourseUnits);
+              }
+            }
+          } else {
+            // Fallback to local storage if API unreachable
+            const cached = localStorage.getItem("somaug_user_session");
+            if (cached) {
+              const u = JSON.parse(cached);
+              if (u.id) {
+                currentId = u.id;
+                setStudentId(u.id);
+              }
+              if (u.fullName) setStudentName(u.fullName);
+              if (u.email) setStudentEmail(u.email);
+              if (u.institutionId) setInstitution(INSTITUTION_MAP[u.institutionId] || u.institutionId);
+              if (u.programmeId) setProgramme(PROGRAMME_MAP[u.programmeId] || u.programmeId);
+              if (u.academicYear) setAcademicYear(Number(u.academicYear));
+              if (u.semester) setSemester(Number(u.semester));
+              if (Array.isArray(u.activeCourseUnits) && u.activeCourseUnits.length > 0) {
+                setActiveCourseUnits(u.activeCourseUnits);
+              }
+            }
+          }
+        } catch (authErr) {
+          console.warn("Could not load remote profile, checking local storage cache:", authErr);
+        }
+
         const [walletRes, catRes, offlineDocs, allNotes] = await Promise.all([
           fetch(
             `/api/wallet?userId=${currentId}&targetUserId=${currentId}&walletType=student`
@@ -168,29 +225,30 @@ export default function StudentDashboardPage() {
         );
         setEntitlements(unlocked);
 
-        // Recommended based on BSSE Year 2 / Makerere profile
+        // Recommended based on student's actual active course units & programme
         const recommended = docs.filter(
           (d) =>
-            d.institutionShortCode === "MAK" ||
+            activeCourseUnits.some((unit) => d.courseCode.toUpperCase().includes(unit.toUpperCase())) ||
             d.courseCode.includes("CSC") ||
-            d.courseCode.includes("BSSE")
+            d.courseCode.includes("BSSE") ||
+            d.institutionShortCode === "MAK"
         );
         setRecommendedDocs(recommended.slice(0, 3));
 
         // Popular academic resources
-        const popular = docs.filter(
-          (d) => !recommended.some((r) => r.id === d.id)
+        const sortedPopular = [...docs].sort(
+          (a, b) => (b.ratingAverage || 4.5) - (a.ratingAverage || 4.5)
         );
-        setPopularDocs(popular.slice(0, 3));
+        setPopularDocs(sortedPopular.slice(0, 6));
       } catch (err) {
-        console.error("Failed to load student dashboard:", err);
+        console.error("Dashboard failed to initialize:", err);
       } finally {
         setLoading(false);
       }
     }
 
     loadDashboard();
-  }, [studentId]);
+  }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -228,14 +286,38 @@ export default function StudentDashboardPage() {
             </div>
 
             {/* Personalized Welcome */}
-            <div className="space-y-1">
-              <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
-                {greeting}, {firstName}! 👋
-              </h1>
-              <p className="text-xs sm:text-sm text-emerald-100 font-medium">
-                Welcome back to your academic workspace at <span className="font-bold text-white">{institution}</span>. Keep up your active revision momentum for semester examinations.
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
+                  {greeting}, {studentName}! 👋
+                </h1>
+                {studentEmail && (
+                  <span className="text-[11px] font-mono text-emerald-200 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/15">
+                    {studentEmail}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs sm:text-sm text-emerald-100 font-medium leading-relaxed">
+                <span className="font-bold text-white">{programme}</span> • <span className="font-semibold text-emerald-200">{institution}</span> • <span className="text-amber-300 font-bold">Year {academicYear}, Semester {semester === 1 ? "I" : "II"}</span>
               </p>
             </div>
+
+            {/* Registered Course Units Chips */}
+            {activeCourseUnits.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                <span className="text-[10px] font-bold text-emerald-200 uppercase tracking-wider mr-1">
+                  Enrolled Units:
+                </span>
+                {activeCourseUnits.map((cu) => (
+                  <span
+                    key={cu}
+                    className="inline-flex items-center gap-1 rounded-lg bg-emerald-950/60 border border-emerald-400/30 px-2.5 py-0.5 text-[11px] font-mono font-bold text-amber-300 shadow-xs"
+                  >
+                    <span>{cu}</span>
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/* Quick Badges */}
             <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs font-semibold">
@@ -249,27 +331,41 @@ export default function StudentDashboardPage() {
               </div>
               <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
-                <span>Semester I Active Session</span>
+                <span>Semester {semester === 1 ? "I" : "II"} Active Session</span>
               </div>
             </div>
           </div>
 
-          {/* Quick Balance & Top-up Card */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 space-y-3 min-w-[240px]">
+          {/* Quick Modern Fintech Balance & Top-up Card */}
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 space-y-3 min-w-[260px] shadow-lg">
             <div className="flex items-center justify-between text-xs text-emerald-200 font-bold uppercase tracking-wider">
-              <span>Spendable Balance</span>
-              <Wallet className="h-4 w-4 text-amber-300" />
+              <span>SomaUG Wallet</span>
+              <span className="flex items-center gap-1 text-[10px] text-amber-300 font-black bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 rounded-full">
+                <Wallet className="h-3 w-3" />
+                <span>UGX Ledger</span>
+              </span>
             </div>
-            <div className="text-2xl font-black text-amber-300">
-              {formatUGX(walletBalance)}
+            <div>
+              <div className="text-xs text-slate-300 font-medium">Available Spendable Funds</div>
+              <div className="text-3xl font-black text-amber-300 tracking-tight font-mono">
+                {formatUGX(walletBalance)}
+              </div>
             </div>
-            <Link
-              href="/student/wallet"
-              className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 px-4 py-2 text-xs font-bold transition shadow-sm"
-            >
-              <span>+ Top Up with MoMo</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
+            {reservedBalance > 0 && (
+              <div className="text-[11px] text-emerald-200 font-medium flex items-center justify-between pt-1 border-t border-white/10">
+                <span>Reserved in Purchases:</span>
+                <span className="font-mono font-bold text-white">{formatUGX(reservedBalance)}</span>
+              </div>
+            )}
+            <div className="flex gap-2 pt-1">
+              <Link
+                href="/student/wallet"
+                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 px-3.5 py-2.5 text-xs font-black transition shadow-sm"
+              >
+                <span>+ Top Up with MoMo</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>

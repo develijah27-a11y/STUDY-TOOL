@@ -30,6 +30,7 @@ import {
   Printer,
   KeyRound,
   QrCode,
+  CreditCard,
 } from "lucide-react";
 
 interface CatalogueDoc {
@@ -75,6 +76,11 @@ export default function DocumentDetailPage() {
   const [purchasing, setPurchasing] = useState(false);
   const [purchaseError, setPurchaseError] = useState<string | null>(null);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [checkoutMethod, setCheckoutMethod] = useState<"wallet" | "momo">("wallet");
+  const [momoPhone, setMomoPhone] = useState("0772112233");
+  const [momoProvider, setMomoProvider] = useState<"MTN" | "AIRTEL">("MTN");
+  const [momoProcessing, setMomoProcessing] = useState(false);
+  const [momoUssdActive, setMomoUssdActive] = useState(false);
   const [receipt, setReceipt] = useState<{
     orderNumber: string;
     receiptReference: string;
@@ -229,6 +235,102 @@ export default function DocumentDetailPage() {
       setPurchaseError("Network connection interrupted. Please try again.");
     } finally {
       setPurchasing(false);
+    }
+  };
+
+  const handleMomoDirectPurchase = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!doc) return;
+    setMomoProcessing(true);
+    setPurchaseError(null);
+
+    try {
+      const depRes = await fetch("/api/wallet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "deposit_initiate",
+          studentId: selectedStudentId,
+          phoneNumber: momoPhone,
+          amountUGX: doc.priceUGX,
+        }),
+      });
+
+      const depData = await depRes.json();
+      if (!depRes.ok || !depData.success) {
+        setPurchaseError(depData.error || "Mobile Money transaction initiation failed.");
+        setMomoProcessing(false);
+        return;
+      }
+
+      setMomoUssdActive(true);
+    } catch {
+      setPurchaseError("Network error connecting to Mobile Money gateway.");
+    } finally {
+      setMomoProcessing(false);
+    }
+  };
+
+  const handleConfirmMomoPrompt = async () => {
+    if (!doc) return;
+    setMomoProcessing(true);
+
+    try {
+      const depRef = `DEP-MOMO-${Date.now()}`;
+      await fetch("/api/wallet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "deposit_confirm_webhook",
+          eventId: `EVT-${depRef}`,
+          reference: depRef,
+          provider: momoProvider,
+          status: "SUCCESSFUL",
+          amountUGX: doc.priceUGX,
+        }),
+      });
+
+      const idempotencyKey = `PUR-MOMO-${selectedStudentId}-${doc.id}-${Date.now()}`;
+      const purRes = await fetch("/api/wallet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "purchase_document",
+          studentId: selectedStudentId,
+          documentId: doc.id,
+          idempotencyKey,
+          pin: "1234",
+        }),
+      });
+
+      const purData = await purRes.json();
+      if (purData.success) {
+        setIsEntitled(true);
+        if (purData.order) {
+          setReceipt({
+            orderNumber: purData.order.orderNumber,
+            receiptReference: purData.order.receiptReference,
+            grossAmountUGX: purData.order.grossAmountUGX,
+            lecturerEarningsUGX: purData.order.lecturerEarningsUGX,
+            platformFeeUGX: purData.order.platformFeeUGX,
+            purchasedAt: new Date().toLocaleTimeString("en-GB", {
+              hour: "2-digit",
+              minute: "2-digit",
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            }),
+          });
+        }
+        setShowCheckoutModal(false);
+        setMomoUssdActive(false);
+      } else {
+        setPurchaseError(purData.error || "Purchase failed after payment.");
+      }
+    } catch {
+      setPurchaseError("Failed to complete Mobile Money purchase.");
+    } finally {
+      setMomoProcessing(false);
     }
   };
 
@@ -642,29 +744,20 @@ export default function DocumentDetailPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {hasSufficientFunds ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowCheckoutModal(true)}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#142B45] px-4 py-3.5 text-sm font-bold text-white shadow-lg hover:bg-[#1A3859] active:scale-[0.99] transition"
-                  >
-                    <Lock className="h-4 w-4 text-[#E9B949]" />
-                    <span>Purchase with Wallet ({formatUGX(doc.priceUGX)})</span>
-                  </button>
-                ) : (
-                  <div className="space-y-2">
-                    <Link
-                      href="/student/wallet"
-                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#E9B949] hover:bg-[#d9a838] px-4 py-3.5 text-sm font-bold text-[#142B45] shadow-md active:scale-[0.99] transition"
-                    >
-                      <Smartphone className="h-4 w-4 text-[#142B45]" />
-                      <span>Deposit via MTN / Airtel Money</span>
-                    </Link>
-                    <p className="text-center text-xs text-slate-500 font-medium">
-                      Takes ~15 seconds to credit via USSD prompt
-                    </p>
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setShowCheckoutModal(true)}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#153F35] hover:bg-[#183D32] px-4 py-3.5 text-sm font-bold text-white shadow-lg active:scale-[0.99] transition"
+                >
+                  <Lock className="h-4 w-4 text-amber-300" />
+                  <span>Unlock Document ({formatUGX(doc.priceUGX)})</span>
+                </button>
+                <div className="flex items-center justify-between text-xs text-slate-500 font-medium px-1">
+                  <span>Available Balance: <strong className="font-mono text-emerald-800">{formatUGX(walletBalance)}</strong></span>
+                  <Link href="/student/wallet" className="text-[#23836B] hover:underline font-bold">
+                    + Top Up
+                  </Link>
+                </div>
               </div>
             )}
 
@@ -731,18 +824,18 @@ export default function DocumentDetailPage() {
         </div>
       </div>
 
-      {/* Checkout PIN Confirmation Modal */}
+      {/* Checkout Modal: TWO CLEAR PAYMENT OPTIONS (Option A: Mobile Money / Option B: Pay with Wallet) */}
       {showCheckoutModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl space-y-5 border border-slate-200">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-7 shadow-2xl space-y-5 border border-slate-200">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
-                  <Lock className="h-5 w-5" />
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-800">
+                  <CreditCard className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-900">Authorize Purchase</h3>
-                  <p className="text-xs text-slate-500">Confirm with your 4-digit Wallet PIN</p>
+                  <h3 className="text-base font-black text-slate-900">Purchase Learning Material</h3>
+                  <p className="text-xs text-slate-500 font-medium">Select your preferred payment method</p>
                 </div>
               </div>
               <button
@@ -750,6 +843,7 @@ export default function DocumentDetailPage() {
                 onClick={() => {
                   setShowCheckoutModal(false);
                   setPurchaseError(null);
+                  setMomoUssdActive(false);
                 }}
                 className="text-slate-400 hover:text-slate-600 font-bold text-lg"
               >
@@ -757,73 +851,243 @@ export default function DocumentDetailPage() {
               </button>
             </div>
 
-            <div className="rounded-xl bg-slate-50 p-4 space-y-2 text-xs">
-              <div className="flex justify-between font-bold text-slate-900">
-                <span>{doc.title}</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>Unit Price (Exact UGX):</span>
-                <span className="font-extrabold text-slate-900">{formatUGX(doc.priceUGX)}</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>Wallet Balance After Purchase:</span>
-                <span className="font-extrabold text-emerald-700">
-                  {formatUGX(walletBalance - doc.priceUGX)}
+            {/* Document Summary Card */}
+            <div className="rounded-2xl bg-[#FAF8F5] border border-slate-200 p-4 space-y-2 text-xs">
+              <div className="flex justify-between items-start font-bold text-slate-900">
+                <span className="line-clamp-1">{doc.title}</span>
+                <span className="shrink-0 text-emerald-800 font-mono font-black text-sm ml-2">
+                  {formatUGX(doc.priceUGX)}
                 </span>
+              </div>
+              <div className="flex justify-between text-slate-500 font-medium">
+                <span>Course Unit: {doc.courseCode}</span>
+                <span>{doc.pageCount} Pages</span>
               </div>
             </div>
 
-            <form onSubmit={handleAtomicPurchase} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Enter 4-Digit Wallet PIN (Sandbox Default: 1234)
-                </label>
-                <input
-                  type="password"
-                  maxLength={6}
-                  value={walletPin}
-                  onChange={(e) => setWalletPin(e.target.value)}
-                  placeholder="• • • •"
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-center text-lg font-mono tracking-widest text-slate-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
-                  autoFocus
-                  required
-                />
-              </div>
+            {/* Payment Method Selector Tabs */}
+            <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-bold gap-1">
+              <button
+                type="button"
+                onClick={() => setCheckoutMethod("wallet")}
+                className={`flex-1 py-2.5 rounded-lg flex items-center justify-center gap-1.5 transition ${
+                  checkoutMethod === "wallet"
+                    ? "bg-[#153F35] text-white shadow-xs"
+                    : "text-slate-700 hover:text-slate-900"
+                }`}
+              >
+                <Wallet className="h-3.5 w-3.5" />
+                <span>OPTION B — Pay with Wallet</span>
+              </button>
 
-              {purchaseError && (
-                <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-xs text-red-800 flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
-                  <p className="font-semibold">{purchaseError}</p>
+              <button
+                type="button"
+                onClick={() => setCheckoutMethod("momo")}
+                className={`flex-1 py-2.5 rounded-lg flex items-center justify-center gap-1.5 transition ${
+                  checkoutMethod === "momo"
+                    ? "bg-[#153F35] text-white shadow-xs"
+                    : "text-slate-700 hover:text-slate-900"
+                }`}
+              >
+                <Smartphone className="h-3.5 w-3.5" />
+                <span>OPTION A — Mobile Money</span>
+              </button>
+            </div>
+
+            {/* TAB CONTENT: OPTION B — WALLET */}
+            {checkoutMethod === "wallet" && (
+              <div className="space-y-4">
+                <div className="rounded-xl border border-slate-200 p-3.5 bg-white space-y-2 text-xs">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Available Wallet Balance:</span>
+                    <span className="font-mono font-bold text-slate-900">{formatUGX(walletBalance)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Document Price:</span>
+                    <span className="font-mono font-bold text-slate-900">{formatUGX(doc.priceUGX)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-1.5 border-t border-slate-100 font-bold">
+                    <span>Balance After Purchase:</span>
+                    <span className={walletBalance >= doc.priceUGX ? "text-emerald-700 font-mono" : "text-red-600 font-mono"}>
+                      {formatUGX(walletBalance - doc.priceUGX)}
+                    </span>
+                  </div>
                 </div>
-              )}
 
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowCheckoutModal(false)}
-                  className="flex-1 rounded-xl border border-slate-300 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={purchasing}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#0B192C] px-4 py-2.5 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50 transition shadow-md"
-                >
-                  {purchasing ? (
-                    <>
-                      <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Committing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="h-3.5 w-3.5 text-amber-400" />
-                      <span>Confirm &amp; Unlock</span>
-                    </>
-                  )}
-                </button>
+                {walletBalance < doc.priceUGX ? (
+                  <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 space-y-3 text-xs">
+                    <div className="flex items-start gap-2 text-amber-950 font-semibold">
+                      <AlertCircle className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
+                      <p>Insufficient wallet balance. Please add funds or choose Mobile Money.</p>
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setCheckoutMethod("momo")}
+                        className="flex-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 py-2.5 font-bold transition text-center shadow-xs"
+                      >
+                        Switch to Mobile Money
+                      </button>
+                      <Link
+                        href="/student/wallet"
+                        className="flex-1 rounded-xl border border-amber-300 bg-white py-2.5 font-bold text-amber-950 text-center hover:bg-amber-50 transition"
+                      >
+                        + Top Up Wallet
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleAtomicPurchase} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        Enter 4-Digit Wallet Security PIN (Default: 1234):
+                      </label>
+                      <input
+                        type="password"
+                        maxLength={6}
+                        value={walletPin}
+                        onChange={(e) => setWalletPin(e.target.value)}
+                        placeholder="• • • •"
+                        className="w-full rounded-xl border border-slate-300 px-4 py-3 text-center text-lg font-mono tracking-widest text-slate-900 focus:ring-2 focus:ring-emerald-600 outline-none"
+                        autoFocus
+                        required
+                      />
+                    </div>
+
+                    {purchaseError && (
+                      <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-xs text-red-800 flex items-start gap-2">
+                        <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
+                        <p className="font-semibold">{purchaseError}</p>
+                      </div>
+                    )}
+
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setShowCheckoutModal(false)}
+                        className="flex-1 rounded-xl border border-slate-300 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={purchasing}
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#153F35] hover:bg-[#183D32] px-4 py-2.5 text-xs font-black text-white disabled:opacity-50 transition shadow-sm"
+                      >
+                        {purchasing ? "Authorizing Ledger..." : "Confirm & Unlock"}
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
-            </form>
+            )}
+
+            {/* TAB CONTENT: OPTION A — MOBILE MONEY */}
+            {checkoutMethod === "momo" && (
+              <div className="space-y-4">
+                {momoUssdActive ? (
+                  <div className="rounded-2xl bg-slate-900 border border-slate-800 p-5 text-white space-y-4 text-xs font-mono">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                      <span className="font-bold text-amber-300">
+                        {momoProvider === "MTN" ? "MTN MoMo USSD Push" : "Airtel Money Push"}
+                      </span>
+                      <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                    </div>
+                    <p className="text-slate-300 leading-relaxed">
+                      Approve payment of <strong>{formatUGX(doc.priceUGX)}</strong> on your handset to unlock{" "}
+                      <strong>{doc.title}</strong>.
+                    </p>
+                    <div className="flex gap-2.5 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setMomoUssdActive(false)}
+                        className="flex-1 rounded-xl bg-slate-800 border border-slate-700 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-700"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleConfirmMomoPrompt}
+                        disabled={momoProcessing}
+                        className="flex-1 rounded-xl bg-amber-500 py-2.5 text-xs font-black text-slate-950 hover:bg-amber-400 transition shadow-sm"
+                      >
+                        {momoProcessing ? "Confirming..." : "Simulate USSD PIN Approval"}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleMomoDirectPurchase} className="space-y-4 text-xs">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`flex-1 flex items-center gap-2.5 p-3 rounded-xl border-2 transition cursor-pointer ${
+                          momoProvider === "MTN"
+                            ? "border-emerald-600 bg-emerald-50/40"
+                            : "border-slate-200 bg-slate-50/50 opacity-60"
+                        }`}
+                        onClick={() => setMomoProvider("MTN")}
+                      >
+                        <span className="rounded-lg bg-amber-400 text-slate-950 font-black text-xs px-2 py-0.5">
+                          MTN
+                        </span>
+                        <span className="font-bold text-slate-900">MTN MoMo</span>
+                      </div>
+
+                      <div
+                        className={`flex-1 flex items-center gap-2.5 p-3 rounded-xl border-2 transition cursor-pointer ${
+                          momoProvider === "AIRTEL"
+                            ? "border-emerald-600 bg-emerald-50/40"
+                            : "border-slate-200 bg-slate-50/50 opacity-60"
+                        }`}
+                        onClick={() => setMomoProvider("AIRTEL")}
+                      >
+                        <span className="rounded-lg bg-red-600 text-white font-black text-xs px-2 py-0.5">
+                          Airtel
+                        </span>
+                        <span className="font-bold text-slate-900">Airtel Money</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1.5">
+                        Registered Mobile Money Number:
+                      </label>
+                      <input
+                        type="text"
+                        value={momoPhone}
+                        onChange={(e) => setMomoPhone(e.target.value)}
+                        placeholder="e.g. 0772 123 456"
+                        className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-mono font-bold text-slate-900 focus:ring-2 focus:ring-emerald-600 outline-none"
+                        required
+                      />
+                    </div>
+
+                    {purchaseError && (
+                      <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-xs text-red-800 flex items-start gap-2">
+                        <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
+                        <p className="font-semibold">{purchaseError}</p>
+                      </div>
+                    )}
+
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setShowCheckoutModal(false)}
+                        className="flex-1 rounded-xl border border-slate-300 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={momoProcessing}
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#153F35] hover:bg-[#183D32] px-4 py-2.5 text-xs font-black text-white disabled:opacity-50 transition shadow-sm"
+                      >
+                        {momoProcessing ? "Connecting to MoMo..." : `Pay ${formatUGX(doc.priceUGX)} via MoMo`}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

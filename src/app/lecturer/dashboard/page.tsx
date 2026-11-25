@@ -1431,127 +1431,194 @@ function LecturerDashboardContent() {
         </div>
       )}
 
-      {/* 7. TAB: WALLET & EARNINGS */}
+      {/* 7. TAB: WALLET & EARNINGS (Fintech Modern UI) */}
       {activeTab === "earnings" && (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
-          <div className="border-b border-slate-100 pb-3">
-            <h2 className="text-lg font-extrabold text-[#142B45]">
-              Wallet &amp; Withdrawals
-            </h2>
+        <div className="space-y-6">
+          {/* Main Balance Banner */}
+          <div className="rounded-3xl border border-[#E3E9E4] bg-gradient-to-br from-[#FAF8F5] via-white to-[#F7F5EF] p-6 sm:p-8 shadow-xs">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="space-y-3">
+                <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100/70 border border-emerald-300/60 px-3.5 py-1 text-xs font-bold text-[#153F35]">
+                  <Wallet className="h-3.5 w-3.5 text-[#23836B]" />
+                  <span>Lecturer Net Royalty Earnings (UGX)</span>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Cleared Available Balance (Withdrawable)
+                  </span>
+                  <div className="text-4xl sm:text-5xl font-black text-[#153F35] tracking-tight font-mono">
+                    {formatUGX(walletBalance)}
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 pt-1 text-xs font-semibold">
+                  <div className="inline-flex items-center gap-1.5 rounded-xl bg-amber-50 border border-amber-200 px-3 py-1.5 text-amber-900 shadow-xs">
+                    <Clock className="h-3.5 w-3.5 text-amber-600" />
+                    <span>Pending Settlement: <strong className="font-mono text-slate-900">{formatUGX(pendingPayouts || 0)}</strong></span>
+                  </div>
+                  <div className="inline-flex items-center gap-1.5 rounded-xl bg-white border border-slate-200 px-3 py-1.5 text-slate-700 shadow-xs">
+                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                    <span>NPSA 2020 Protected</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Summary Stats Pill Box */}
+              <div className="grid grid-cols-2 gap-3 min-w-[280px]">
+                <div className="rounded-2xl border border-slate-200/90 bg-white p-4 space-y-1 shadow-xs">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Lifetime Earnings
+                  </span>
+                  <div className="text-lg font-black text-[#153F35] font-mono">
+                    {formatUGX(walletBalance + totalWithdrawn)}
+                  </div>
+                  <span className="text-[10px] text-slate-500 font-medium">90% Net Author Share</span>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200/90 bg-white p-4 space-y-1 shadow-xs">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Total Withdrawn
+                  </span>
+                  <div className="text-lg font-black text-slate-900 font-mono">
+                    {formatUGX(totalWithdrawn)}
+                  </div>
+                  <span className="text-[10px] text-emerald-700 font-semibold">MoMo Settled</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Earnings Breakdown */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-5 rounded-2xl bg-teal-50 border border-teal-200 space-y-1">
-              <span className="text-xs font-bold uppercase text-teal-800">Available Balance</span>
-              <div className="text-3xl font-black text-teal-950">{formatUGX(walletBalance)}</div>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-              <span className="text-xs font-bold uppercase text-slate-500">Reserved</span>
-              <div className="text-3xl font-black text-slate-800">{formatUGX(reservedBalance)}</div>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-              <span className="text-xs font-bold uppercase text-slate-500">Total Withdrawn</span>
-              <div className="text-3xl font-black text-slate-800">{formatUGX(totalWithdrawn)}</div>
-            </div>
-          </div>
-
-          {/* Withdrawal Form */}
-          <div className="rounded-2xl border border-slate-200 bg-[#F8FAFC] p-6 max-w-xl space-y-4">
-            <div className="flex items-center gap-2">
-              <Smartphone className="h-5 w-5 text-amber-600" />
-              <h3 className="text-sm font-bold text-slate-900">
-                Self-Service Mobile Money Withdrawal
-              </h3>
-            </div>
-
-            {withdrawMsg && (
-              <div className="p-3.5 rounded-xl bg-teal-50 border border-teal-200 text-xs font-bold text-teal-900 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-teal-600 shrink-0" />
-                <span>{withdrawMsg}</span>
-              </div>
-            )}
-
-            {withdrawError && (
-              <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs font-bold text-red-800 flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
-                <span>{withdrawError}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleWithdraw} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">
-                  Withdrawal Amount (UGX) *
-                </label>
-                <input
-                  type="number"
-                  min={5000}
-                  step={1000}
-                  required
-                  value={withdrawAmount}
-                  onChange={(e) => setWithdrawAmount(Number(e.target.value))}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 font-mono font-bold text-slate-900"
-                />
-                <span className="text-xs text-slate-500 mt-0.5 block">
-                  Minimum withdrawal: UGX 5,000 · Platform fee: 0 UGX on withdrawal
+          {/* Withdrawal Form & Security Guidance */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div className="lg:col-span-7 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="h-4 w-4 text-[#23836B]" />
+                  <h3 className="text-sm font-black text-slate-900">
+                    Request Mobile Money Withdrawal
+                  </h3>
+                </div>
+                <span className="text-xs font-mono font-bold text-slate-500">
+                  Min UGX 20,000
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {withdrawMsg && (
+                <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-900 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <span>{withdrawMsg}</span>
+                </div>
+              )}
+
+              {withdrawError && (
+                <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs font-bold text-red-800 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
+                  <span>{withdrawError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleWithdraw} className="space-y-4 text-xs">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
-                    Telecom Network *
-                  </label>
-                  <select
-                    value={withdrawNetwork}
-                    onChange={(e) => setWithdrawNetwork(e.target.value as "MTN" | "AIRTEL")}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 font-bold text-slate-900"
-                  >
-                    <option value="MTN">MTN Mobile Money</option>
-                    <option value="AIRTEL">Airtel Money</option>
-                  </select>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="font-bold text-slate-700">
+                      Withdrawal Amount (UGX) *
+                    </label>
+                    <span className="font-mono text-xs text-slate-500">
+                      Available: {formatUGX(walletBalance)}
+                    </span>
+                  </div>
+                  <input
+                    type="number"
+                    min={5000}
+                    step={1000}
+                    required
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(Number(e.target.value))}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 font-mono font-bold text-slate-900 focus:ring-2 focus:ring-emerald-600 outline-none"
+                  />
+                  <span className="text-[11px] text-slate-500 mt-1 block">
+                    Zero platform processing fee deducted from lecturer withdrawals.
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1.5">
+                      Destination Network *
+                    </label>
+                    <select
+                      value={withdrawNetwork}
+                      onChange={(e) => setWithdrawNetwork(e.target.value as "MTN" | "AIRTEL")}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 font-bold text-slate-900 focus:ring-2 focus:ring-emerald-600 outline-none"
+                    >
+                      <option value="MTN">MTN Mobile Money (Uganda)</option>
+                      <option value="AIRTEL">Airtel Money (Uganda)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1.5">
+                      Phone Number *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. 0772 123 456"
+                      value={withdrawPhone}
+                      onChange={(e) => setWithdrawPhone(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 font-mono font-bold text-slate-900 focus:ring-2 focus:ring-emerald-600 outline-none"
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">
-                    Mobile Money Phone Number *
+                  <label className="block font-bold text-slate-700 mb-1.5">
+                    Wallet Security PIN (Default: 1234)
                   </label>
                   <input
-                    type="text"
-                    required
-                    placeholder="e.g. 0772 123 456"
-                    value={withdrawPhone}
-                    onChange={(e) => setWithdrawPhone(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 font-mono font-bold text-slate-900"
+                    type="password"
+                    maxLength={4}
+                    placeholder="••••"
+                    value={withdrawPin}
+                    onChange={(e) => setWithdrawPin(e.target.value)}
+                    className="w-32 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-center font-mono font-bold text-sm text-slate-900 focus:ring-2 focus:ring-emerald-600 outline-none"
                   />
                 </div>
-              </div>
 
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">
-                  4-Digit Security PIN (Optional / If set in Settings)
-                </label>
-                <input
-                  type="password"
-                  maxLength={4}
-                  placeholder="••••"
-                  value={withdrawPin}
-                  onChange={(e) => setWithdrawPin(e.target.value)}
-                  className="w-32 rounded-xl border border-slate-300 bg-white px-3 py-2 text-center font-mono font-bold text-sm text-slate-900"
-                />
-              </div>
+                <button
+                  type="submit"
+                  disabled={withdrawing || walletBalance < 5000}
+                  className="w-full rounded-xl bg-[#153F35] hover:bg-[#183D32] disabled:opacity-50 text-white py-3 font-bold transition shadow-xs"
+                >
+                  {withdrawing ? "Processing Mobile Money Settlement..." : `Confirm & Withdraw ${formatUGX(withdrawAmount)}`}
+                </button>
+              </form>
+            </div>
 
-              <button
-                type="submit"
-                disabled={withdrawing || walletBalance < 5000}
-                className="w-full rounded-xl bg-[#142B45] hover:bg-[#1A3859] text-white py-3 font-bold transition shadow-sm disabled:opacity-50"
-              >
-                {withdrawing ? "Processing Withdrawal..." : "Confirm & Send Funds via MoMo"}
-              </button>
-            </form>
+            <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-[#FAF8F5] p-5 space-y-3.5 text-xs text-slate-700 shadow-xs">
+              <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2.5">
+                <ShieldCheck className="h-4 w-4 text-[#23836B]" />
+                <h4 className="font-black uppercase tracking-wider text-slate-900">
+                  Royalty Settlement Policy
+                </h4>
+              </div>
+              <p className="leading-relaxed font-medium">
+                SomaUG Academic automatically credits 90% of publication sales directly to the author&apos;s wallet upon student purchase.
+              </p>
+              <div className="rounded-xl bg-white border border-slate-200 p-3 space-y-2">
+                <div className="flex justify-between font-bold">
+                  <span>Author Share:</span>
+                  <span className="text-emerald-700">90%</span>
+                </div>
+                <div className="flex justify-between font-bold">
+                  <span>Platform Commission:</span>
+                  <span className="text-slate-600">10%</span>
+                </div>
+                <div className="flex justify-between font-bold pt-1 border-t border-slate-100">
+                  <span>Settlement SLA:</span>
+                  <span className="text-slate-900">Instant to 24 Hours</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

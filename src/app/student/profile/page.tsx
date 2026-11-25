@@ -53,19 +53,51 @@ export default function StudentAcademicProfilePage() {
     setDataSaverMode(mode);
   };
 
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
-    try {
-      const cached = localStorage.getItem("somaug_user_session");
-      if (cached) {
-        const u = JSON.parse(cached);
-        if (u.fullName) setStudentName(u.fullName);
-        if (u.institutionId) setInstitution(u.institutionId);
-        if (u.programmeId) setProgramme(u.programmeId);
-        if (Array.isArray(u.selectedCourses) && u.selectedCourses.length > 0) {
-          setSelectedCourses(u.selectedCourses);
+    async function fetchDatabaseProfile() {
+      try {
+        const res = await fetch("/api/auth/profile");
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.user) {
+            const u = data.user;
+            if (u.fullName) setStudentName(u.fullName);
+            if (u.institutionId) setInstitution(u.institutionId);
+            if (u.programmeId) setProgramme(u.programmeId);
+            if (u.academicYear) setAcademicYear(Number(u.academicYear));
+            if (u.semester) setSemester(Number(u.semester));
+            if (Array.isArray(u.activeCourseUnits) && u.activeCourseUnits.length > 0) {
+              setSelectedCourses(u.activeCourseUnits);
+            }
+            return;
+          }
         }
+      } catch (err) {
+        console.warn("Could not fetch remote profile:", err);
       }
-    } catch { }
+
+      // Fallback to local session cache
+      try {
+        const cached = localStorage.getItem("somaug_user_session");
+        if (cached) {
+          const u = JSON.parse(cached);
+          if (u.fullName) setStudentName(u.fullName);
+          if (u.institutionId) setInstitution(u.institutionId);
+          if (u.programmeId) setProgramme(u.programmeId);
+          if (u.academicYear) setAcademicYear(Number(u.academicYear));
+          if (u.semester) setSemester(Number(u.semester));
+          if (Array.isArray(u.activeCourseUnits) && u.activeCourseUnits.length > 0) {
+            setSelectedCourses(u.activeCourseUnits);
+          } else if (Array.isArray(u.selectedCourses) && u.selectedCourses.length > 0) {
+            setSelectedCourses(u.selectedCourses);
+          }
+        }
+      } catch { }
+    }
+
+    fetchDatabaseProfile();
   }, []);
 
   const handleAddCourseUnit = () => {
@@ -86,9 +118,32 @@ export default function StudentAcademicProfilePage() {
     );
   };
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSaving(true);
+    setSavedMessage(null);
+
     try {
+      const res = await fetch("/api/auth/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: studentName,
+          institutionId: institution,
+          programmeId: programme,
+          academicYear,
+          semester,
+          activeCourseUnits: selectedCourses,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setSavedMessage(data.error || "Failed to persist profile to database.");
+        return;
+      }
+
+      // Sync local cache
       const cached = localStorage.getItem("somaug_user_session");
       const current = cached ? JSON.parse(cached) : {};
       const updated = {
@@ -102,12 +157,16 @@ export default function StudentAcademicProfilePage() {
         activeCourseUnits: selectedCourses,
       };
       localStorage.setItem("somaug_user_session", JSON.stringify(updated));
-    } catch { }
 
-    setSavedMessage(
-      "Academic profile updated! Catalogue rankings and recommendations now prioritize your active course units."
-    );
-    setTimeout(() => setSavedMessage(null), 4000);
+      setSavedMessage(
+        "Academic profile saved to database! Dashboard and catalogue recommendations are now updated."
+      );
+    } catch {
+      setSavedMessage("Network error saving profile to server.");
+    } finally {
+      setSaving(false);
+      setTimeout(() => setSavedMessage(null), 5000);
+    }
   };
 
   return (

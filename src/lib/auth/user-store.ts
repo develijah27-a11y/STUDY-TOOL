@@ -269,6 +269,33 @@ export function registerUser(data: {
   return newUser;
 }
 
+export function updateUserProfile(
+  userId: string,
+  updates: Partial<RegisteredUser>
+): RegisteredUser | null {
+  loadUsers();
+  for (const user of usersCache.values()) {
+    if (user.id === userId) {
+      if (updates.fullName !== undefined) user.fullName = updates.fullName.trim();
+      if (updates.institutionId !== undefined) user.institutionId = updates.institutionId;
+      if (updates.faculty !== undefined) user.faculty = updates.faculty.trim();
+      if (updates.department !== undefined) user.department = updates.department.trim();
+      if (updates.programmeId !== undefined) user.programmeId = updates.programmeId;
+      if (updates.academicYear !== undefined) user.academicYear = updates.academicYear;
+      if (updates.semester !== undefined) user.semester = updates.semester;
+      if (updates.activeCourseUnits !== undefined) user.activeCourseUnits = updates.activeCourseUnits;
+      if (updates.teachingRole !== undefined) user.teachingRole = updates.teachingRole.trim();
+      if (updates.staffId !== undefined) user.staffId = updates.staffId.trim();
+      if (updates.coursesTaught !== undefined) user.coursesTaught = updates.coursesTaught;
+      if (updates.payoutMobileNumber !== undefined) user.payoutMobileNumber = updates.payoutMobileNumber.trim();
+      if (updates.payoutMobileNetwork !== undefined) user.payoutMobileNetwork = updates.payoutMobileNetwork;
+      saveUsers();
+      return user;
+    }
+  }
+  return null;
+}
+
 export function updateUserVerification(
   userId: string,
   status: UserVerificationStatus
@@ -361,19 +388,35 @@ export function verifySessionToken(token: string): RegisteredUser | null {
     const found = findUserById(payload.id);
     if (found) return found;
 
-    return {
+    const fallbackUser: RegisteredUser = {
       id: payload.id,
       email: payload.email,
       fullName: payload.fullName,
       role: payload.role,
       verificationStatus: payload.verificationStatus,
       institutionId: payload.institutionId,
-      programmeId: payload.programmeId,
+      faculty: payload.faculty,
       department: payload.department,
+      programmeId: payload.programmeId,
+      academicYear: payload.academicYear,
+      semester: payload.semester,
+      activeCourseUnits: payload.activeCourseUnits || [],
       teachingRole: payload.teachingRole,
+      staffId: payload.staffId,
+      coursesTaught: payload.coursesTaught || [],
+      payoutMobileNumber: payload.payoutMobileNumber,
+      payoutMobileNetwork: payload.payoutMobileNetwork,
       passwordHash: "",
       createdAt: new Date().toISOString(),
     };
+
+    // Re-seed into cache so next lookups find the user
+    if (fallbackUser.email) {
+      usersCache.set(fallbackUser.email.toLowerCase(), fallbackUser);
+      saveUsers();
+    }
+
+    return fallbackUser;
   } catch {
     return null;
   }
