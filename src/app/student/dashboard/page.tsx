@@ -11,7 +11,6 @@ import {
   Star,
   Layers,
 } from "lucide-react";
-import { offlineStorage } from "@/lib/offline/offline-storage";
 
 interface EntitlementItem {
   id: string;
@@ -192,10 +191,10 @@ export default function StudentDashboardPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6 max-w-6xl">
-      {/* 1. Clean Welcoming Header (No emojis, no money display, concise) */}
-      <div className="rounded-2xl bg-gradient-to-r from-sky-600 via-sky-500 to-orange-500 text-white p-5 sm:p-6 shadow-md">
-        <div className="space-y-2">
-          <h1 className="text-xl sm:text-3xl font-black tracking-tight">
+      {/* 1. Welcoming Header */}
+      <div className="rounded-2xl bg-gradient-to-r from-sky-600 via-sky-500 to-orange-500 text-white p-5 sm:p-6 shadow-sm">
+        <div className="space-y-1">
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight">
             {greeting}, {firstName}
           </h1>
 
@@ -206,15 +205,6 @@ export default function StudentDashboardPage() {
               Year {academicYear}, Semester {semester === 1 ? "I" : "II"}
             </span>
           </p>
-
-          <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
-            <span className="bg-white/15 px-2.5 py-1 rounded-lg font-semibold text-white">
-              {entitlements.length} Unlocked Materials
-            </span>
-            <span className="bg-white/15 px-2.5 py-1 rounded-lg font-semibold text-white">
-              Semester {semester === 1 ? "I" : "II"} Session
-            </span>
-          </div>
         </div>
       </div>
 
