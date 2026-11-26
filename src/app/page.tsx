@@ -219,7 +219,7 @@ export default function HomePage() {
                   <input
                     type="text"
                     name="q"
-                    placeholder="Search course code or title (e.g. BBA 1204)..."
+                    placeholder="Search course or subject (e.g. Business Administration)..."
                     className="w-full h-12 rounded-xl border-2 border-sky-300 dark:border-sky-700 bg-white dark:bg-slate-900 pl-10 pr-4 text-base sm:text-sm text-slate-900 dark:text-white shadow-sm outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 transition font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500"
                   />
                 </div>
@@ -339,11 +339,8 @@ export default function HomePage() {
                         <IconComponent className="h-5 w-5" />
                       </div>
                       <div>
-                        <span className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                        <span className="block text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wide">
                           {cat.faculty}
-                        </span>
-                        <span className={`inline-block text-xs font-mono font-black px-2 py-0.5 rounded-md mt-0.5 border ${cat.codeBadge}`}>
-                          {cat.code}
                         </span>
                       </div>
                     </div>
@@ -618,7 +615,7 @@ export default function HomePage() {
                   required
                   value={courseCode}
                   onChange={(e) => setCourseCode(e.target.value)}
-                  placeholder="Course code (e.g. MEC 2101)"
+                  placeholder="Course unit (e.g. Mechanics)"
                   className="h-11 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 px-3.5 text-base sm:text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition font-medium w-full shadow-2xs"
                 />
                 <input
@@ -626,7 +623,7 @@ export default function HomePage() {
                   required
                   value={courseTitle}
                   onChange={(e) => setCourseTitle(e.target.value)}
-                  placeholder="Course unit title"
+                  placeholder="Programme or Subject"
                   className="h-11 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 px-3.5 text-base sm:text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition font-medium w-full shadow-2xs"
                 />
               </div>

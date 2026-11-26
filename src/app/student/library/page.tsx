@@ -132,48 +132,41 @@ export default function StudentLibraryPage() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       {/* Header Banner */}
-      <div className="rounded-2xl bg-[#142B45] text-white p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+      <div className="rounded-2xl bg-gradient-to-r from-sky-600 via-sky-500 to-orange-500 text-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#E9B949]">
+          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-orange-200">
             <Library className="h-4 w-4" />
-            <span>Personal Study Library</span>
+            <span>My Library</span>
           </div>
-          <h1 className="text-2xl font-black">{studentName}&apos;s Academic Study Library</h1>
-          <p className="text-xs text-slate-300">
-            Access your purchased course compendiums, download encrypted offline copies, and track reading progress.
+          <h1 className="text-xl sm:text-2xl font-black">{studentName}&apos;s Materials</h1>
+          <p className="text-xs text-sky-100 font-medium">
+            Your unlocked study notes, revision compendiums, and offline copies.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Link
-            href="/student/wallet"
-            className="rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/20 transition"
-          >
-            <Wallet className="inline h-3.5 w-3.5 mr-1.5 text-[#E9B949]" />
-            Balance: {formatUGX(walletBalance)}
-          </Link>
+        <div className="flex items-center gap-2">
           <Link
             href="/catalogue"
-            className="rounded-xl bg-[#E9B949] hover:bg-[#d9a838] px-4 py-2.5 text-xs font-bold text-[#142B45] transition shadow-sm"
+            className="rounded-xl bg-white text-slate-900 hover:bg-slate-100 px-4 py-2 text-xs font-bold transition shadow-xs"
           >
-            <Search className="inline h-3.5 w-3.5 mr-1" />
-            Find More Notes
+            <Search className="inline h-3.5 w-3.5 mr-1 text-sky-600" />
+            Find Materials
           </Link>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
         <button
           type="button"
           onClick={() => setActiveTab("all")}
           className={`px-4 py-2 text-xs font-bold rounded-xl transition ${
             activeTab === "all"
-              ? "bg-[#142B45] text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-100"
+              ? "bg-sky-500 text-white shadow-xs"
+              : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
-          All Purchased Materials ({activeOrders.length})
+          All Materials ({activeOrders.length})
         </button>
 
         <button
@@ -184,12 +177,12 @@ export default function StudentLibraryPage() {
           }}
           className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition ${
             activeTab === "offline"
-              ? "bg-[#147D78] text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-100"
+              ? "bg-orange-500 text-white shadow-xs"
+              : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
           <HardDrive className="h-3.5 w-3.5" />
-          <span>Offline Library ({offlineDocIds.size})</span>
+          <span>Offline Ready ({offlineDocIds.size})</span>
         </button>
       </div>
 
@@ -249,7 +242,7 @@ export default function StudentLibraryPage() {
                   </h3>
 
                   <p className="text-xs text-slate-500">
-                    {doc?.institutionShortCode} • {doc?.courseCode} • {doc?.lecturerName}
+                    {doc?.institutionShortCode} • {doc?.lecturerName} • {doc?.pageCount} Pages
                   </p>
 
                   {/* Offline Status Badge */}

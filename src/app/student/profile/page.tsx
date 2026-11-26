@@ -21,8 +21,8 @@ export default function StudentAcademicProfilePage() {
   const [academicYear, setAcademicYear] = useState(2);
   const [semester, setSemester] = useState(1);
   const [selectedCourses, setSelectedCourses] = useState<string[]>([
-    "CSC 2101",
-    "BSSE 3102",
+    "Data Structures",
+    "Software Architecture",
   ]);
   const [customCourseInput, setCustomCourseInput] = useState("");
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
@@ -278,8 +278,8 @@ export default function StudentAcademicProfilePage() {
                         handleAddCourseUnit();
                       }
                     }}
-                    placeholder="Type course unit (e.g. CSC 2101, LAW 2105, BRIBTE EE 1101)..."
-                    className="flex-1 rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-900 font-semibold focus:border-[#147D78] focus:ring-2 focus:ring-[#147D78]/20 outline-none uppercase placeholder:normal-case"
+                    placeholder="Type course unit (e.g. Data Structures, Constitutional Law)..."
+                    className="flex-1 rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-900 font-semibold focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 outline-none"
                   />
                   <button
                     type="button"
@@ -332,15 +332,15 @@ export default function StudentAcademicProfilePage() {
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {[
-                    "CSC 2101",
-                    "BSSE 3102",
-                    "LAW 2105",
-                    "ACC 1102",
-                    "CIV 2201",
-                    "MED 2104",
-                    "EE 1101",
-                    "TLC 1204",
-                    "AUT 2102",
+                    "Data Structures",
+                    "Software Architecture",
+                    "Constitutional Law",
+                    "Financial Accounting",
+                    "Structural Analysis",
+                    "Clinical Anatomy",
+                    "Electrical Circuits",
+                    "Computer Networks",
+                    "Thermodynamics",
                   ].map((code) => {
                     const active = selectedCourses.includes(code);
                     return (
@@ -403,7 +403,7 @@ export default function StudentAcademicProfilePage() {
                 Year 2, Semester I (Current — 2026/2027)
               </span>
               <span className="text-slate-600 block">
-                Makerere University • BSSE • CSC 2101, BSSE 3102
+                Makerere University • Software Engineering • Data Structures, Software Architecture
               </span>
             </div>
 
@@ -412,7 +412,7 @@ export default function StudentAcademicProfilePage() {
                 Year 1, Semester II (Completed — 2025/2026)
               </span>
               <span className="text-slate-500 block">
-                Makerere University • BSSE • BSSE 1204, MTH 1101
+                Makerere University • Software Engineering • Programming Fundamentals, Discrete Mathematics
               </span>
               <Link
                 href="/catalogue"

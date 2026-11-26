@@ -5,51 +5,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatUGX } from "@/lib/utils";
 import {
-  GraduationCap,
   BookOpen,
-  Wallet,
-  Clock,
-  CheckCircle2,
-  Bookmark,
   Search,
   ArrowRight,
-  Sparkles,
-  KeyRound,
-  FileText,
-  Smartphone,
-  ChevronRight,
-  TrendingUp,
-  Building2,
-  QrCode,
-  Camera,
-  Compass,
-  Library,
   Star,
-  HardDrive,
-  Highlighter,
-  StickyNote,
-  Download,
-  ArrowUpRight,
-  Check,
-  Users,
-  Flame,
-  Target,
-  WifiOff,
-  Calendar,
   Layers,
-  Award,
 } from "lucide-react";
-import {
-  offlineStorage,
-  OfflineMaterialMeta,
-  StudyAnnotation,
-} from "@/lib/offline/offline-storage";
+import { offlineStorage } from "@/lib/offline/offline-storage";
 
 interface EntitlementItem {
   id: string;
   documentId: string;
   title: string;
-  courseCode: string;
+  subjectName: string;
   institutionShortCode: string;
   pageCount: number;
   lastReadPage: number;
@@ -77,66 +45,66 @@ function getGreeting(): string {
   return "Good evening";
 }
 
-function getFormattedDate(): string {
-  const options: Intl.DateTimeFormatOptions = {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  };
-  return new Date().toLocaleDateString("en-UG", options);
-}
-
 const INSTITUTION_MAP: Record<string, string> = {
-  "inst-mak": "Makerere University (MAK)",
-  "inst-kyu": "Kyambogo University (KYU)",
-  "inst-must": "Mbarara University of Science & Tech (MUST)",
-  "inst-ucu": "Uganda Christian University (UCU)",
-  "inst-mubs": "Makerere University Business School (MUBS)",
+  "inst-mak": "Makerere University",
+  "inst-kyu": "Kyambogo University",
+  "inst-must": "Mbarara University",
+  "inst-ucu": "Uganda Christian University",
+  "inst-mubs": "Makerere Business School",
   "inst-uict": "UICT Nakawa",
-  "inst-bribte": "Buganda Royal Institute (BRIBTE)",
-  "inst-kpm": "Kampala Polytechnic Mengo",
+  "inst-bribte": "Buganda Royal Institute",
+  "inst-kpm": "Kampala Polytechnic",
 };
 
 const PROGRAMME_MAP: Record<string, string> = {
-  "prog-bsse": "B.Sc. Software Engineering",
-  "prog-bcs": "B.Sc. Computer Science",
-  "prog-bit": "Bachelor of Information Technology",
-  "prog-bba": "Bachelor of Business Administration (BBA)",
-  "prog-bee": "B.Sc. Electrical Engineering",
-  "prog-bce": "B.Sc. Civil Engineering",
-  "prog-llb": "Bachelor of Laws (LLB)",
-  "prog-voc-elec": "National Cert. Electrical Installation",
-  "prog-voc-auto": "Automotive & Power Mechanics",
+  "prog-bsse": "Software Engineering",
+  "prog-bcs": "Computer Science",
+  "prog-bit": "Information Technology",
+  "prog-bba": "Business Administration",
+  "prog-bee": "Electrical Engineering",
+  "prog-bce": "Civil Engineering",
+  "prog-llb": "Bachelor of Laws",
+  "prog-voc-elec": "Electrical Installation",
+  "prog-voc-auto": "Automotive Mechanics",
 };
+
+// Map any legacy codes into full words
+function getSubjectNameInWords(codeOrTitle: string, titleFallback?: string): string {
+  const upper = (codeOrTitle || "").toUpperCase();
+  if (upper.includes("CSC") || upper.includes("COMP") || upper.includes("TECH")) return "Computer Science";
+  if (upper.includes("BSSE") || upper.includes("SOFT")) return "Software Engineering";
+  if (upper.includes("BIT") || upper.includes("INFO")) return "Information Technology";
+  if (upper.includes("BBA") || upper.includes("BUS") || upper.includes("MGT")) return "Business Administration";
+  if (upper.includes("ACC") || upper.includes("FIN") || upper.includes("ECON")) return "Accounting & Finance";
+  if (upper.includes("LAW") || upper.includes("LLB") || upper.includes("JUR")) return "Law & Legal Studies";
+  if (upper.includes("MEC") || upper.includes("ENG")) return "Engineering";
+  if (upper.includes("MED") || upper.includes("NURS") || upper.includes("HLTH")) return "Health Sciences";
+  if (upper.includes("EDU")) return "Education";
+  return titleFallback ? titleFallback.slice(0, 24) : "Academic Course";
+}
 
 export default function StudentDashboardPage() {
   const router = useRouter();
-  const [studentId, setStudentId] = useState("user-student-1");
   const [studentName, setStudentName] = useState("Student");
-  const [studentEmail, setStudentEmail] = useState("");
-  const [institution, setInstitution] = useState("Makerere University (MAK)");
-  const [programme, setProgramme] = useState("B.Sc. Software Engineering");
+  const [institution, setInstitution] = useState("Makerere University");
+  const [programme, setProgramme] = useState("Software Engineering");
   const [academicYear, setAcademicYear] = useState<number>(2);
   const [semester, setSemester] = useState<number>(1);
-  const [activeCourseUnits, setActiveCourseUnits] = useState<string[]>(["CSC 2101", "BIT 1202"]);
-  const [walletBalance, setWalletBalance] = useState(25000);
-  const [reservedBalance, setReservedBalance] = useState(0);
+  const [activeCourseUnits, setActiveCourseUnits] = useState<string[]>([
+    "Data Structures",
+    "Database Systems",
+  ]);
   const [entitlements, setEntitlements] = useState<EntitlementItem[]>([]);
   const [recommendedDocs, setRecommendedDocs] = useState<CatalogueDocument[]>([]);
-  const [popularDocs, setPopularDocs] = useState<CatalogueDocument[]>([]);
-  const [offlineMaterials, setOfflineMaterials] = useState<OfflineMaterialMeta[]>([]);
-  const [savedAnnotations, setSavedAnnotations] = useState<StudyAnnotation[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // Initialize active student session from authoritative database session
   useEffect(() => {
     let currentId = "user-student-1";
 
     async function loadDashboard() {
       setLoading(true);
       try {
-        // 1. Fetch authenticated student profile from database
         try {
           const profileRes = await fetch("/api/auth/profile");
           if (profileRes.ok) {
@@ -144,9 +112,7 @@ export default function StudentDashboardPage() {
             if (profData?.user) {
               const u = profData.user;
               currentId = u.id;
-              setStudentId(u.id);
               if (u.fullName) setStudentName(u.fullName);
-              if (u.email) setStudentEmail(u.email);
               if (u.institutionId) {
                 setInstitution(INSTITUTION_MAP[u.institutionId] || u.institutionId);
               }
@@ -156,56 +122,25 @@ export default function StudentDashboardPage() {
               if (u.academicYear) setAcademicYear(Number(u.academicYear));
               if (u.semester) setSemester(Number(u.semester));
               if (Array.isArray(u.activeCourseUnits) && u.activeCourseUnits.length > 0) {
-                setActiveCourseUnits(u.activeCourseUnits);
-              }
-            }
-          } else {
-            // Fallback to local storage if API unreachable
-            const cached = localStorage.getItem("somaug_user_session");
-            if (cached) {
-              const u = JSON.parse(cached);
-              if (u.id) {
-                currentId = u.id;
-                setStudentId(u.id);
-              }
-              if (u.fullName) setStudentName(u.fullName);
-              if (u.email) setStudentEmail(u.email);
-              if (u.institutionId) setInstitution(INSTITUTION_MAP[u.institutionId] || u.institutionId);
-              if (u.programmeId) setProgramme(PROGRAMME_MAP[u.programmeId] || u.programmeId);
-              if (u.academicYear) setAcademicYear(Number(u.academicYear));
-              if (u.semester) setSemester(Number(u.semester));
-              if (Array.isArray(u.activeCourseUnits) && u.activeCourseUnits.length > 0) {
-                setActiveCourseUnits(u.activeCourseUnits);
+                setActiveCourseUnits(
+                  u.activeCourseUnits.map((c: string) => getSubjectNameInWords(c))
+                );
               }
             }
           }
-        } catch (authErr) {
-          console.warn("Could not load remote profile, checking local storage cache:", authErr);
-        }
+        } catch { }
 
-        const [walletRes, catRes, offlineDocs, allNotes] = await Promise.all([
+        const [walletRes, catRes] = await Promise.all([
           fetch(
             `/api/wallet?userId=${currentId}&targetUserId=${currentId}&walletType=student`
           ),
           fetch("/api/catalogue"),
-          offlineStorage.getAllOfflineMaterials().catch(() => []),
-          offlineStorage.getAllAnnotations().catch(() => []),
         ]);
-
-        setOfflineMaterials(offlineDocs);
-        setSavedAnnotations(allNotes);
 
         const walletData = await walletRes.json();
         const catData = await catRes.json();
-
-        if (walletRes.ok && walletData.wallet) {
-          setWalletBalance(walletData.wallet.spendableBalanceUGX ?? 0);
-          setReservedBalance(walletData.wallet.reservedBalanceUGX ?? 0);
-        }
-
         const docs: CatalogueDocument[] = catData.documents || [];
 
-        // Map actual student entitlements from completed verified orders
         const orders = walletData.orders || [];
         const completedOrders = orders.filter((o: { status: string }) => o.status === "completed");
         const unlocked: EntitlementItem[] = completedOrders.map(
@@ -214,8 +149,8 @@ export default function StudentDashboardPage() {
             return {
               id: o.id,
               documentId: o.documentId,
-              title: doc ? doc.title : `Document Order #${o.orderNumber}`,
-              courseCode: doc ? doc.courseCode : "COURSE",
+              title: doc ? doc.title : `Study Material #${o.orderNumber}`,
+              subjectName: doc ? getSubjectNameInWords(doc.courseCode, doc.title) : "Course Notes",
               institutionShortCode: doc ? doc.institutionShortCode : "UG",
               pageCount: doc ? doc.pageCount : 1,
               lastReadPage: 1,
@@ -225,21 +160,14 @@ export default function StudentDashboardPage() {
         );
         setEntitlements(unlocked);
 
-        // Recommended based on student's actual active course units & programme
         const recommended = docs.filter(
           (d) =>
-            activeCourseUnits.some((unit) => d.courseCode.toUpperCase().includes(unit.toUpperCase())) ||
+            d.title.toLowerCase().includes("engineering") ||
+            d.title.toLowerCase().includes("programming") ||
             d.courseCode.includes("CSC") ||
-            d.courseCode.includes("BSSE") ||
-            d.institutionShortCode === "MAK"
+            d.courseCode.includes("BSSE")
         );
         setRecommendedDocs(recommended.slice(0, 3));
-
-        // Popular academic resources
-        const sortedPopular = [...docs].sort(
-          (a, b) => (b.ratingAverage || 4.5) - (a.ratingAverage || 4.5)
-        );
-        setPopularDocs(sortedPopular.slice(0, 6));
       } catch (err) {
         console.error("Dashboard failed to initialize:", err);
       } finally {
@@ -260,795 +188,205 @@ export default function StudentDashboardPage() {
   };
 
   const greeting = getGreeting();
-  const formattedDate = getFormattedDate();
-  const firstName = studentName.split(" ")[0];
+  const firstName = studentName.split(" ")[0] || "Student";
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
-      {/* 1. Proper Warm Welcoming Header with Motivational Status */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 text-white p-6 sm:p-8 shadow-xl border border-emerald-700/50">
-        {/* Subtle Ambient Shapes */}
-        <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none" />
-        <div className="absolute -left-16 -bottom-16 h-64 w-64 rounded-full bg-teal-500/10 blur-2xl pointer-events-none" />
+    <div className="container mx-auto px-4 py-6 space-y-6 max-w-6xl">
+      {/* 1. Clean Welcoming Header (No emojis, no money display, concise) */}
+      <div className="rounded-2xl bg-gradient-to-r from-sky-600 via-sky-500 to-orange-500 text-white p-5 sm:p-6 shadow-md">
+        <div className="space-y-2">
+          <h1 className="text-xl sm:text-3xl font-black tracking-tight">
+            {greeting}, {firstName}
+          </h1>
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-3 max-w-2xl">
-            {/* Academic Session & Date Chip */}
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-700/60 border border-emerald-500/40 px-3.5 py-1 text-xs font-bold text-emerald-200">
-                <Calendar className="h-3.5 w-3.5 text-amber-300" />
-                <span>{formattedDate}</span>
-              </div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 border border-amber-400/30 px-3 py-1 text-xs font-bold text-amber-300">
-                <Flame className="h-3.5 w-3.5 text-amber-400" />
-                <span>5-Day Study Streak 🔥</span>
-              </div>
-            </div>
+          <p className="text-xs sm:text-sm text-sky-100 font-medium">
+            <span className="font-bold text-white">{programme}</span> •{" "}
+            <span>{institution}</span> •{" "}
+            <span className="text-orange-200 font-semibold">
+              Year {academicYear}, Semester {semester === 1 ? "I" : "II"}
+            </span>
+          </p>
 
-            {/* Personalized Welcome */}
-            <div className="space-y-1.5">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
-                  {greeting}, {studentName}! 👋
-                </h1>
-                {studentEmail && (
-                  <span className="text-[11px] font-mono text-emerald-200 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/15">
-                    {studentEmail}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs sm:text-sm text-emerald-100 font-medium leading-relaxed">
-                <span className="font-bold text-white">{programme}</span> • <span className="font-semibold text-emerald-200">{institution}</span> • <span className="text-amber-300 font-bold">Year {academicYear}, Semester {semester === 1 ? "I" : "II"}</span>
-              </p>
-            </div>
-
-            {/* Registered Course Units Chips */}
-            {activeCourseUnits.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                <span className="text-[10px] font-bold text-emerald-200 uppercase tracking-wider mr-1">
-                  Enrolled Units:
-                </span>
-                {activeCourseUnits.map((cu) => (
-                  <span
-                    key={cu}
-                    className="inline-flex items-center gap-1 rounded-lg bg-emerald-950/60 border border-emerald-400/30 px-2.5 py-0.5 text-[11px] font-mono font-bold text-amber-300 shadow-xs"
-                  >
-                    <span>{cu}</span>
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Quick Badges */}
-            <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs font-semibold">
-              <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15">
-                <BookOpen className="h-3.5 w-3.5 text-amber-300" />
-                <span>{entitlements.length} Unlocked Course Units</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15">
-                <WifiOff className="h-3.5 w-3.5 text-teal-300" />
-                <span>{offlineMaterials.length} Offline Ready Notes</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
-                <span>Semester {semester === 1 ? "I" : "II"} Active Session</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Modern Fintech Balance & Top-up Card */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 space-y-3 min-w-[260px] shadow-lg">
-            <div className="flex items-center justify-between text-xs text-emerald-200 font-bold uppercase tracking-wider">
-              <span>SomaUG Wallet</span>
-              <span className="flex items-center gap-1 text-[10px] text-amber-300 font-black bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 rounded-full">
-                <Wallet className="h-3 w-3" />
-                <span>UGX Ledger</span>
-              </span>
-            </div>
-            <div>
-              <div className="text-xs text-slate-300 font-medium">Available Spendable Funds</div>
-              <div className="text-3xl font-black text-amber-300 tracking-tight font-mono">
-                {formatUGX(walletBalance)}
-              </div>
-            </div>
-            {reservedBalance > 0 && (
-              <div className="text-[11px] text-emerald-200 font-medium flex items-center justify-between pt-1 border-t border-white/10">
-                <span>Reserved in Purchases:</span>
-                <span className="font-mono font-bold text-white">{formatUGX(reservedBalance)}</span>
-              </div>
-            )}
-            <div className="flex gap-2 pt-1">
-              <Link
-                href="/student/wallet"
-                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 px-3.5 py-2.5 text-xs font-black transition shadow-sm"
-              >
-                <span>+ Top Up with MoMo</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
+          <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+            <span className="bg-white/15 px-2.5 py-1 rounded-lg font-semibold text-white">
+              {entitlements.length} Unlocked Materials
+            </span>
+            <span className="bg-white/15 px-2.5 py-1 rounded-lg font-semibold text-white">
+              Semester {semester === 1 ? "I" : "II"} Session
+            </span>
           </div>
         </div>
       </div>
 
-      {/* 2. Student Engagement & Productivity Suite */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      {/* 2. Direct Search Bar */}
+      <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+        <Search className="absolute left-3.5 top-3 h-4 w-4 text-sky-600 dark:text-sky-400" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search materials by subject, topic, or lecturer..."
+          className="w-full h-11 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-10 pr-24 text-xs sm:text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 shadow-xs"
+        />
+        <button
+          type="submit"
+          className="absolute right-1.5 top-1.5 h-8 px-4 rounded-lg bg-gradient-to-r from-sky-500 to-orange-500 hover:from-sky-600 hover:to-orange-600 text-white text-xs font-bold transition shadow-xs"
+        >
+          Search
+        </button>
+      </form>
+
+      {/* 3. Continue Reading */}
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-xs">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-emerald-600" />
-            <h2 className="text-base sm:text-lg font-black text-slate-900">
-              My Study Engagement &amp; Progress
-            </h2>
-          </div>
-          <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-            Active Study Mode
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Engagement Card 1: Weekly Study Hours */}
-          <div className="rounded-2xl border-2 border-emerald-100 bg-gradient-to-br from-emerald-50/60 to-white p-5 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="h-10 w-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-                <Clock className="h-5 w-5" />
-              </div>
-              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-full">
-                +2.4 hrs vs last wk
-              </span>
+            <div className="h-8 w-8 rounded-lg bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-400 flex items-center justify-center font-bold">
+              <BookOpen className="h-4 w-4" />
             </div>
             <div>
-              <div className="text-2xl font-black text-slate-900">14.5 Hours</div>
-              <div className="text-xs font-semibold text-slate-500 mt-0.5">
-                Reading time this week
-              </div>
-            </div>
-            {/* Daily Streak Indicator */}
-            <div className="pt-2 border-t border-emerald-100/80 flex items-center justify-between text-[11px] font-bold text-slate-600">
-              {["M", "T", "W", "T", "F", "S", "S"].map((day, dIdx) => (
-                <div key={dIdx} className="flex flex-col items-center gap-1">
-                  <span
-                    className={`h-6 w-6 rounded-lg flex items-center justify-center text-[10px] ${
-                      dIdx < 5
-                        ? "bg-emerald-600 text-white font-black shadow-xs"
-                        : "bg-slate-100 text-slate-400"
-                    }`}
-                  >
-                    {dIdx < 5 ? "✓" : day}
-                  </span>
-                  <span className="text-[9px] text-slate-400">{day}</span>
-                </div>
-              ))}
+              <h2 className="text-sm font-black text-slate-900 dark:text-white">
+                Continue Reading
+              </h2>
             </div>
           </div>
 
-          {/* Engagement Card 2: Revision Goals */}
-          <div className="rounded-2xl border-2 border-blue-100 bg-gradient-to-br from-blue-50/60 to-white p-5 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="h-10 w-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
-                <Target className="h-5 w-5" />
-              </div>
-              <span className="text-[11px] font-bold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-full">
-                80% On Track
-              </span>
-            </div>
-            <div>
-              <div className="text-2xl font-black text-slate-900">4 of 5 Units</div>
-              <div className="text-xs font-semibold text-slate-500 mt-0.5">
-                Semester Revision Coverage
-              </div>
-            </div>
-            <div className="space-y-1 pt-1">
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-blue-600 h-2 rounded-full w-4/5 transition-all duration-500" />
-              </div>
-              <div className="flex justify-between text-[10px] text-slate-500 font-semibold">
-                <span>Target: 5 Units</span>
-                <span>80% Completed</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Engagement Card 3: Zero-Data Offline Status */}
-          <div className="rounded-2xl border-2 border-amber-100 bg-gradient-to-br from-amber-50/60 to-white p-5 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="h-10 w-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
-                <HardDrive className="h-5 w-5" />
-              </div>
-              <span className="text-[11px] font-bold text-amber-700 bg-amber-100/70 px-2 py-0.5 rounded-full">
-                Zero Data Mode
-              </span>
-            </div>
-            <div>
-              <div className="text-2xl font-black text-slate-900">
-                {offlineMaterials.length} Stored Notes
-              </div>
-              <div className="text-xs font-semibold text-slate-500 mt-0.5">
-                Encrypted on this device
-              </div>
-            </div>
-            <Link
-              href="/student/offline"
-              className="inline-flex items-center justify-between w-full pt-2 border-t border-amber-100 text-xs font-bold text-amber-700 hover:text-amber-800"
-            >
-              <span>Open Offline Library</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-
-          {/* Engagement Card 4: Study Notes & Highlights */}
-          <div className="rounded-2xl border-2 border-purple-100 bg-gradient-to-br from-purple-50/60 to-white p-5 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="h-10 w-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
-                <Highlighter className="h-5 w-5" />
-              </div>
-              <span className="text-[11px] font-bold text-purple-700 bg-purple-100/70 px-2 py-0.5 rounded-full">
-                Exam Tags
-              </span>
-            </div>
-            <div>
-              <div className="text-2xl font-black text-slate-900">
-                {savedAnnotations.length} Highlights
-              </div>
-              <div className="text-xs font-semibold text-slate-500 mt-0.5">
-                Saved definitions &amp; notes
-              </div>
-            </div>
-            <div className="pt-2 border-t border-purple-100 flex items-center justify-between text-xs font-bold text-purple-700">
-              <span>Revision Definitions</span>
-              <span>{savedAnnotations.length > 0 ? "Ready" : "0 Saved"}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Educational Explainer: What is the Offline Library? */}
-      <div className="rounded-2xl border-2 border-teal-200 bg-gradient-to-r from-teal-50/80 via-emerald-50/50 to-white p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-start gap-3.5 max-w-2xl">
-          <div className="h-11 w-11 rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-teal-500/20">
-            <WifiOff className="h-6 w-6" />
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm sm:text-base font-black text-slate-900">
-                What is the Offline Library?
-              </h3>
-              <span className="text-[10px] font-bold uppercase bg-teal-100 text-teal-800 border border-teal-200 px-2 py-0.5 rounded-full">
-                Zero-Data Reading
-              </span>
-            </div>
-            <p className="text-xs text-slate-600 leading-relaxed font-medium">
-              The Offline Library saves your unlocked lecture notes locally on your device using authenticated AES-GCM encryption. Download once when you have campus Wi-Fi or data bundles, then read, highlight, and revise anywhere—in hostels, libraries, or on commute—without consuming any active mobile data bundles.
-            </p>
-          </div>
-        </div>
-
-        <Link
-          href="/student/offline"
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white px-5 py-2.5 text-xs font-black shadow-md shadow-teal-600/20 transition shrink-0"
-        >
-          <HardDrive className="h-4 w-4" />
-          <span>Access Offline Library ({offlineMaterials.length})</span>
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
-      </div>
-
-      {/* 4. Quick Navigation Hub: Library, Community, Tutors, Catalogue */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <Link
-          href="/student/library"
-          className="rounded-2xl border-2 border-slate-200/80 bg-white p-4 shadow-xs hover:border-emerald-500 hover:shadow-md transition flex items-center gap-3 group"
-        >
-          <div className="h-10 w-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <BookOpen className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="block text-xs font-black text-slate-900 group-hover:text-emerald-700 transition">
-              My Library
-            </span>
-            <span className="block text-[11px] font-medium text-slate-500">
-              Purchased &amp; Notes
-            </span>
-          </div>
-        </Link>
-
-        <Link
-          href="/catalogue"
-          className="rounded-2xl border-2 border-slate-200/80 bg-white p-4 shadow-xs hover:border-amber-500 hover:shadow-md transition flex items-center gap-3 group"
-        >
-          <div className="h-10 w-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <Search className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="block text-xs font-black text-slate-900 group-hover:text-amber-700 transition">
-              Explore Materials
-            </span>
-            <span className="block text-[11px] font-medium text-slate-500">
-              Search Course Units
-            </span>
-          </div>
-        </Link>
-
-        <Link
-          href="/student/community"
-          className="rounded-2xl border-2 border-slate-200/80 bg-white p-4 shadow-xs hover:border-purple-500 hover:shadow-md transition flex items-center gap-3 group"
-        >
-          <div className="h-10 w-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <Users className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="block text-xs font-black text-slate-900 group-hover:text-purple-700 transition">
-              Study Community
-            </span>
-            <span className="block text-[11px] font-medium text-slate-500">
-              Course Q&amp;A &amp; Discussion
-            </span>
-          </div>
-        </Link>
-
-        <Link
-          href="/student/tutors"
-          className="rounded-2xl border-2 border-slate-200/80 bg-white p-4 shadow-xs hover:border-blue-500 hover:shadow-md transition flex items-center gap-3 group"
-        >
-          <div className="h-10 w-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <GraduationCap className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="block text-xs font-black text-slate-900 group-hover:text-blue-700 transition">
-              Find a Tutor
-            </span>
-            <span className="block text-[11px] font-medium text-slate-500">
-              Verified Revision Tutors
-            </span>
-          </div>
-        </Link>
-      </div>
-
-      {/* 5. Prominent Search Bar with Faculty Shortcuts */}
-      <div className="rounded-2xl bg-white p-5 border-2 border-slate-200 shadow-xs space-y-3">
-        <form onSubmit={handleSearchSubmit} className="relative flex items-center">
-          <Search className="absolute left-4 top-3.5 h-5 w-5 text-emerald-600" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search publications by course code (e.g. CSC 2101), lecturer name, topic, or institution..."
-            className="w-full rounded-xl border-2 border-slate-200 pl-12 pr-28 py-3 text-xs sm:text-sm font-medium text-slate-900 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 outline-none transition"
-          />
-          <button
-            type="submit"
-            className="absolute right-2 top-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-5 py-2 text-xs font-bold transition shadow-sm"
+          <Link
+            href="/student/library"
+            className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1"
           >
-            Search
-          </button>
-        </form>
-
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
-          <span className="text-xs font-bold text-slate-600">Faculty Directories:</span>
-          {[
-            { label: "Makerere (MAK)", q: "MAK" },
-            { label: "Kyambogo (KYU)", q: "KYU" },
-            { label: "Buganda Royal (BRIBTE)", q: "BRIBTE" },
-            { label: "UICT Nakawa", q: "UICT" },
-            { label: "Kampala Poly (KPM)", q: "KPM" },
-          ].map((s) => (
-            <Link
-              key={s.q}
-              href={`/catalogue?q=${s.q}`}
-              className="rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/70 px-2.5 py-1 text-xs font-bold transition flex items-center gap-1.5"
-            >
-              <span>{s.label}</span>
-              <Search className="h-3 w-3" />
-            </Link>
-          ))}
+            <span>My Library</span>
+            <ArrowRight className="h-3 w-3" />
+          </Link>
         </div>
-      </div>
 
-      {/* 6. Main Academic Workspace Desk */}
-      <div className="space-y-8">
-        {/* Continue Reading Section */}
-        <div className="rounded-3xl border-2 border-slate-200/90 bg-white p-6 shadow-xs space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="h-10 w-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-                <BookOpen className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="text-base font-black text-slate-900">
-                  Continue Reading
-                </h2>
-                <p className="text-xs text-slate-500 font-medium">
-                  Resume directly from your saved bookmark position
-                </p>
-              </div>
-            </div>
-
+        {entitlements.length === 0 ? (
+          <div className="py-8 text-center space-y-2">
+            <BookOpen className="h-7 w-7 text-slate-300 dark:text-slate-600 mx-auto" />
+            <p className="text-xs text-slate-500">No active reading documents found yet.</p>
             <Link
-              href="/student/library"
-              className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1"
+              href="/catalogue"
+              className="inline-block rounded-xl bg-gradient-to-r from-sky-500 to-orange-500 px-4 py-2 text-xs font-bold text-white shadow-xs"
             >
-              <span>View All in My Library</span>
-              <ArrowRight className="h-3.5 w-3.5" />
+              Explore Study Materials
             </Link>
           </div>
+        ) : (
+          <div className="space-y-3">
+            {entitlements.slice(0, 3).map((item) => {
+              const progressPct = Math.round(
+                (item.lastReadPage / item.pageCount) * 100
+              );
 
-          {entitlements.length === 0 ? (
-            <div className="py-12 text-center space-y-3">
-              <BookOpen className="h-10 w-10 text-slate-300 mx-auto" />
-              <p className="text-xs text-slate-500 font-medium">No active reading documents found yet.</p>
-              <Link
-                href="/catalogue"
-                className="inline-block rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 px-5 py-2.5 text-xs font-bold text-white transition shadow-sm"
-              >
-                Browse Academic Catalogue
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {entitlements.map((item) => {
-                const progressPct = Math.round(
-                  (item.lastReadPage / item.pageCount) * 100
-                );
-
-                return (
-                  <div
-                    key={item.id}
-                    className="rounded-2xl border-2 border-slate-100 bg-[#F8FAFC] p-5 space-y-4 hover:border-emerald-300 transition"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="rounded-md bg-emerald-100 font-mono text-xs font-black px-2 py-0.5 text-emerald-800 border border-emerald-200">
-                            {item.courseCode}
-                          </span>
-                          <span className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                            Unlocked Entitlement
-                          </span>
-                        </div>
-                        <h3 className="text-sm font-black text-slate-900">
-                          {item.title}
-                        </h3>
-                      </div>
-
-                      <Link
-                        href={`/student/read/${item.documentId}`}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-5 py-2.5 text-xs font-bold transition shadow-sm shrink-0"
-                      >
-                        <BookOpen className="h-3.5 w-3.5 text-amber-300" />
-                        <span>Resume Reading (p. {item.lastReadPage})</span>
-                      </Link>
+              return (
+                <div
+                  key={item.id}
+                  className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 p-4 space-y-3"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded border border-sky-200 dark:border-sky-800">
+                        {item.subjectName}
+                      </span>
+                      <h3 className="text-xs font-black text-slate-900 dark:text-white mt-1">
+                        {item.title}
+                      </h3>
                     </div>
 
-                    {/* Progress Bar */}
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between text-xs text-slate-500 font-bold">
-                        <span>
-                          Progress: Page {item.lastReadPage} of {item.pageCount}
-                        </span>
-                        <span>{progressPct}% Completed</span>
-                      </div>
-                      <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                        <div
-                          className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${progressPct}%` }}
-                        />
-                      </div>
+                    <Link
+                      href={`/student/read/${item.documentId}`}
+                      className="inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-r from-sky-500 to-orange-500 hover:from-sky-600 hover:to-orange-600 text-white px-4 py-2 text-xs font-bold transition shadow-xs shrink-0 self-start sm:self-auto"
+                    >
+                      <BookOpen className="h-3.5 w-3.5" />
+                      <span>Resume (p. {item.lastReadPage})</span>
+                    </Link>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-[11px] text-slate-500 font-semibold">
+                      <span>Page {item.lastReadPage} of {item.pageCount}</span>
+                      <span>{progressPct}% Completed</span>
+                    </div>
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                      <div
+                        className="bg-sky-500 h-1.5 rounded-full"
+                        style={{ width: `${progressPct}%` }}
+                      />
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Offline Reading Desk (Downloaded Notes) */}
-        <div className="rounded-3xl border-2 border-slate-200/90 bg-white p-6 shadow-xs space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="h-10 w-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold">
-                <HardDrive className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-base font-black text-slate-900">
-                    Offline Downloads
-                  </h2>
-                  <span className="text-xs font-bold uppercase text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">
-                    Zero-Data Mode
-                  </span>
                 </div>
-              </div>
-            </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
-            <Link
-              href="/student/offline"
-              className="text-xs font-bold text-teal-700 hover:underline flex items-center gap-1"
-            >
-              <span>Manage All ({offlineMaterials.length})</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
+      {/* 4. Recommended Study Materials (Full subject words, no course codes) */}
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-xs">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-400 flex items-center justify-center font-bold">
+              <Layers className="h-4 w-4" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-slate-900 dark:text-white">
+                Recommended for {programme}
+              </h2>
+            </div>
           </div>
 
-          {offlineMaterials.length === 0 ? (
-            <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-[#F8FAFC] p-6 text-center space-y-2">
-              <WifiOff className="h-8 w-8 text-slate-400 mx-auto" />
-              <p className="text-xs font-bold text-slate-700">No offline downloads cached yet on this device.</p>
-              <p className="text-xs text-slate-500">Tap &ldquo;Download Offline&rdquo; while reading any entitled document to save it for Zero-Data access.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {offlineMaterials.map((mat) => (
-                <div
-                  key={mat.documentId}
-                  className="rounded-2xl border-2 border-teal-200/80 bg-teal-50/40 p-4 space-y-3 flex flex-col justify-between hover:border-teal-400 transition"
+          <Link
+            href="/catalogue"
+            className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1"
+          >
+            <span>Browse All</span>
+            <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
+
+        {recommendedDocs.length === 0 ? (
+          <div className="py-6 text-center space-y-1">
+            <p className="text-xs text-slate-500">Materials for this programme are currently being uploaded by lecturers.</p>
+            <Link href="/catalogue" className="text-xs font-bold text-sky-600 hover:underline">
+              Browse Catalogue
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {recommendedDocs.map((doc) => {
+              const subjectWords = getSubjectNameInWords(doc.courseCode, doc.title);
+              return (
+                <Link
+                  key={doc.id}
+                  href={`/catalogue/${doc.id}`}
+                  className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 p-4 flex flex-col justify-between hover:border-sky-400 dark:hover:border-sky-500 transition space-y-3"
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs font-black bg-teal-100 text-teal-800 px-2 py-0.5 rounded">
-                        {mat.courseCode}
+                      <span className="rounded bg-sky-100 dark:bg-sky-950 px-2 py-0.5 text-[10px] font-bold text-sky-800 dark:text-sky-300">
+                        {subjectWords}
                       </span>
-                      <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                        Encrypted • {Math.round(mat.fileSizeBytes / 1024)} KB
-                      </span>
-                    </div>
-                    <h3 className="font-black text-slate-900 text-xs line-clamp-2">
-                      {mat.title}
-                    </h3>
-                    <p className="text-xs text-slate-600">
-                      {mat.institutionName} • {mat.lecturerName} • {mat.pageCount} Pages
-                    </p>
-                  </div>
-
-                  <div className="pt-2 border-t border-teal-100 flex items-center justify-between">
-                    <span className="text-[11px] text-slate-500 font-medium">
-                      Cached {new Date(mat.downloadedAt).toLocaleDateString()}
-                    </span>
-                    <Link
-                      href={`/student/read/${mat.documentId}`}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white px-3.5 py-1.5 text-xs font-bold transition shadow-xs"
-                    >
-                      <BookOpen className="h-3.5 w-3.5 text-amber-300" />
-                      <span>Open Offline Reader →</span>
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Personal Study & Revision Desk (Personal Notes & Highlighting) */}
-        <div className="rounded-3xl border-2 border-slate-200/90 bg-white p-6 shadow-xs space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="h-10 w-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
-                <Highlighter className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="text-base font-black text-slate-900">
-                  Study Notes &amp; Highlights
-                </h2>
-                <p className="text-xs text-slate-500 font-medium">
-                  Review tagged examination definitions and margin summaries
-                </p>
-              </div>
-            </div>
-
-            <div className="text-xs font-bold text-slate-500">
-              {savedAnnotations.length} Item{savedAnnotations.length === 1 ? "" : "s"}
-            </div>
-          </div>
-
-          {savedAnnotations.length === 0 ? (
-            <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-[#F8FAFC] p-6 text-center space-y-1">
-              <Highlighter className="h-7 w-7 text-slate-400 mx-auto" />
-              <p className="text-xs font-bold text-slate-700">No notes or highlights saved yet.</p>
-              <p className="text-xs text-slate-500">Highlight important exam definitions or formulas while reading to organize them here automatically.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {savedAnnotations.slice(0, 6).map((item) => {
-                const isHighlight = item.type === "highlight";
-                const badgeColor =
-                  item.color === "green"
-                    ? "bg-emerald-100 text-emerald-800 border-emerald-300"
-                    : item.color === "teal"
-                    ? "bg-teal-100 text-teal-800 border-teal-300"
-                    : "bg-amber-100 text-amber-900 border-amber-300";
-
-                const badgeText = isHighlight
-                  ? item.color === "green"
-                    ? "Definition / Rule"
-                    : item.color === "teal"
-                    ? "Exam Formula"
-                    : "Core Concept"
-                  : "Margin Note";
-
-                return (
-                  <div
-                    key={item.id}
-                    className="rounded-2xl border-2 border-slate-100 bg-[#F8FAFC] p-4 flex flex-col justify-between space-y-3 hover:border-amber-300 transition"
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`text-xs font-bold uppercase px-2 py-0.5 rounded-full border ${badgeColor}`}
-                        >
-                          {badgeText}
-                        </span>
-                        <span className="text-xs font-mono font-bold text-slate-400">
-                          Page {item.pageNumber}
-                        </span>
-                      </div>
-                      <p className="text-xs font-medium text-slate-800 leading-relaxed line-clamp-3">
-                        {isHighlight ? `"${item.content}"` : item.content}
-                      </p>
-                    </div>
-
-                    <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
-                      <span className="text-xs text-slate-400">
-                        {new Date(item.createdAt).toLocaleDateString()}
-                      </span>
-                      <Link
-                        href={`/student/read/${item.documentId}`}
-                        className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1"
-                      >
-                        <span>Jump to Page {item.pageNumber}</span>
-                        <ArrowUpRight className="h-3 w-3" />
-                      </Link>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Recommended Materials Section */}
-        <div className="rounded-3xl border-2 border-slate-200/90 bg-white p-6 shadow-xs space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="h-10 w-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
-                <Sparkles className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="text-base font-black text-slate-900">
-                  Recommended For Your Academic Profile
-                </h2>
-                <p className="text-xs text-slate-500 font-medium">
-                  Handpicked for {programme}
-                </p>
-              </div>
-            </div>
-
-            <Link
-              href="/catalogue"
-              className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1"
-            >
-              <span>Browse All</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-
-          {recommendedDocs.length === 0 ? (
-            <div className="py-8 text-center space-y-2 border-2 border-dashed border-slate-200 rounded-2xl bg-[#F8FAFC] p-6">
-              <BookOpen className="h-8 w-8 text-slate-400 mx-auto" />
-              <p className="text-xs font-bold text-slate-700">No verified course notes published yet for {programme}</p>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                Lecturers publish materials directly. You can request your course unit or browse other faculties.
-              </p>
-              <Link
-                href="/catalogue"
-                className="inline-block mt-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 px-5 py-2.5 text-xs font-bold text-white transition shadow-sm"
-              >
-                Browse Full Catalogue
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recommendedDocs.map((doc) => (
-                <Link
-                  key={doc.id}
-                  href={`/catalogue/${doc.id}`}
-                  className="rounded-2xl border-2 border-slate-100 bg-[#F8FAFC] p-4 flex flex-col justify-between hover:border-emerald-500 hover:shadow-md transition space-y-3"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-mono font-black text-emerald-800">
-                        {doc.courseCode}
-                      </span>
-                      <span className="text-xs font-black text-emerald-700">
+                      <span className="text-xs font-black text-orange-600 dark:text-orange-400">
                         {formatUGX(doc.priceUGX)}
                       </span>
                     </div>
-                    <h4 className="text-xs font-black text-slate-900 line-clamp-2 leading-snug">
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white line-clamp-2 leading-snug">
                       {doc.title}
                     </h4>
-                    <p className="text-xs text-slate-600 font-medium">{doc.lecturerName}</p>
+                    <p className="text-[11px] text-slate-500 font-medium">{doc.lecturerName}</p>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500 font-semibold">
+                  <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 font-semibold">
                     <span>{doc.pageCount} Pages</span>
-                    <span className="flex items-center gap-1 text-amber-600 font-bold">
-                      <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                    <span className="flex items-center gap-1 text-orange-500 font-bold">
+                      <Star className="h-3 w-3 fill-orange-500 text-orange-500" />
                       {doc.ratingAverage}
                     </span>
                   </div>
                 </Link>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Popular Academic Resources Section */}
-        <div className="rounded-3xl border-2 border-slate-200/90 bg-white p-6 shadow-xs space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="h-10 w-10 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center font-bold">
-                <TrendingUp className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="text-base font-black text-slate-900">
-                  Popular Across Ugandan Institutions
-                </h2>
-                <p className="text-xs text-slate-500 font-medium">
-                  Frequently read notes and practical exam revision packs
-                </p>
-              </div>
-            </div>
-
-            <Link
-              href="/catalogue"
-              className="text-xs font-bold text-blue-700 hover:underline flex items-center gap-1"
-            >
-              <span>See Full Catalogue</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
+              );
+            })}
           </div>
-
-          {popularDocs.length === 0 ? (
-            <div className="py-8 text-center space-y-2 border-2 border-dashed border-slate-200 rounded-2xl bg-[#F8FAFC] p-6">
-              <TrendingUp className="h-8 w-8 text-slate-400 mx-auto" />
-              <p className="text-xs font-bold text-slate-700">Catalogue is being populated by registered lecturers</p>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                Only authentic, lecturer-uploaded study materials and marking schemes are published on SomaUG.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {popularDocs.map((doc) => (
-                <Link
-                  key={doc.id}
-                  href={`/catalogue/${doc.id}`}
-                  className="rounded-2xl border-2 border-slate-100 bg-[#F8FAFC] p-4 flex flex-col justify-between hover:border-blue-500 hover:shadow-md transition space-y-3"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="rounded-md bg-blue-100 px-2 py-0.5 text-xs font-mono font-black text-blue-800">
-                        {doc.courseCode}
-                      </span>
-                      <span className="text-xs font-black text-emerald-700">
-                        {formatUGX(doc.priceUGX)}
-                      </span>
-                    </div>
-                    <h4 className="text-xs font-black text-slate-900 line-clamp-2 leading-snug">
-                      {doc.title}
-                    </h4>
-                    <p className="text-xs text-slate-600 font-medium">
-                      {doc.institutionShortCode} • {doc.lecturerName}
-                    </p>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-500 font-semibold">
-                    <span>{doc.pageCount} Pages</span>
-                    <span className="flex items-center gap-1 text-amber-600 font-bold">
-                      <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-                      {doc.ratingAverage}
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );
