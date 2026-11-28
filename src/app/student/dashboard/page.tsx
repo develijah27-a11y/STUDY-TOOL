@@ -192,7 +192,7 @@ export default function StudentDashboardPage() {
   return (
     <div className="container mx-auto px-4 py-6 space-y-6 max-w-6xl">
       {/* 1. Welcoming Header */}
-      <div className="rounded-2xl bg-gradient-to-r from-sky-600 via-sky-500 to-orange-500 text-white p-5 sm:p-6 shadow-sm">
+      <div className="rounded-2xl bg-sky-600 dark:bg-sky-950 text-white p-5 sm:p-6 shadow-sm border border-sky-500/30">
         <div className="space-y-1">
           <h1 className="text-xl sm:text-2xl font-black tracking-tight">
             {greeting}, {firstName}
@@ -201,7 +201,7 @@ export default function StudentDashboardPage() {
           <p className="text-xs sm:text-sm text-sky-100 font-medium">
             <span className="font-bold text-white">{programme}</span> •{" "}
             <span>{institution}</span> •{" "}
-            <span className="text-orange-200 font-semibold">
+            <span className="text-orange-300 dark:text-orange-400 font-bold">
               Year {academicYear}, Semester {semester === 1 ? "I" : "II"}
             </span>
           </p>
@@ -220,7 +220,7 @@ export default function StudentDashboardPage() {
         />
         <button
           type="submit"
-          className="absolute right-1.5 top-1.5 h-8 px-4 rounded-lg bg-gradient-to-r from-sky-500 to-orange-500 hover:from-sky-600 hover:to-orange-600 text-white text-xs font-bold transition shadow-xs"
+          className="absolute right-1.5 top-1.5 h-8 px-4 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition shadow-xs"
         >
           Search
         </button>
@@ -255,7 +255,7 @@ export default function StudentDashboardPage() {
             <p className="text-xs text-slate-500">No active reading documents found yet.</p>
             <Link
               href="/catalogue"
-              className="inline-block rounded-xl bg-gradient-to-r from-sky-500 to-orange-500 px-4 py-2 text-xs font-bold text-white shadow-xs"
+              className="inline-block rounded-xl bg-sky-600 hover:bg-sky-700 px-4 py-2 text-xs font-bold text-white shadow-xs"
             >
               Explore Study Materials
             </Link>
@@ -284,7 +284,7 @@ export default function StudentDashboardPage() {
 
                     <Link
                       href={`/student/read/${item.documentId}`}
-                      className="inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-r from-sky-500 to-orange-500 hover:from-sky-600 hover:to-orange-600 text-white px-4 py-2 text-xs font-bold transition shadow-xs shrink-0 self-start sm:self-auto"
+                      className="inline-flex items-center justify-center gap-1 rounded-xl bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 text-xs font-bold transition shadow-xs shrink-0 self-start sm:self-auto"
                     >
                       <BookOpen className="h-3.5 w-3.5" />
                       <span>Resume (p. {item.lastReadPage})</span>

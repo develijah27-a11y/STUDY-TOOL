@@ -94,7 +94,7 @@ export default function PersonalRevisionPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-sky-500 to-orange-500 text-white flex items-center justify-center shadow-md shadow-sky-500/20">
+            <div className="h-9 w-9 rounded-xl bg-sky-500 text-white flex items-center justify-center shadow-xs">
               <Highlighter className="h-5 w-5" />
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
@@ -109,7 +109,7 @@ export default function PersonalRevisionPage() {
         <button
           type="button"
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-sky-500 via-sky-600 to-orange-500 hover:from-sky-600 hover:to-orange-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-sky-500/20 transition self-start sm:self-auto"
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs transition self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
           <span>Add Revision Note</span>
@@ -285,7 +285,7 @@ export default function PersonalRevisionPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-orange-500 text-white text-xs font-bold hover:from-sky-600 hover:to-orange-600 shadow-sm"
+                  className="px-4 py-2 rounded-xl bg-orange-500 text-white text-xs font-bold hover:bg-orange-600 shadow-xs"
                 >
                   Save Note
                 </button>

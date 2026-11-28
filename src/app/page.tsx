@@ -160,7 +160,7 @@ export default function HomePage() {
       description: "Constitutional law, contracts, criminal jurisprudence, and civil procedure.",
       query: "Law",
       icon: Scale,
-      iconBg: "bg-gradient-to-tr from-sky-500 via-sky-600 to-orange-500 text-white shadow-md shadow-sky-500/30",
+      iconBg: "bg-sky-500 text-white shadow-xs",
       accentBorder: "hover:border-sky-400 dark:hover:border-sky-500 hover:shadow-sky-500/15",
       linkText: "text-sky-600 dark:text-sky-400 group-hover:text-orange-500",
       codeBadge: "text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 border-sky-200 dark:border-sky-800",
@@ -172,7 +172,7 @@ export default function HomePage() {
       description: "Curriculum development, instructional psychology, and pedagogy.",
       query: "Education",
       icon: GraduationCap,
-      iconBg: "bg-gradient-to-tr from-orange-500 via-orange-600 to-sky-600 text-white shadow-md shadow-orange-500/30",
+      iconBg: "bg-orange-500 text-white shadow-xs",
       accentBorder: "hover:border-orange-400 dark:hover:border-orange-500 hover:shadow-orange-500/15",
       linkText: "text-orange-600 dark:text-orange-400 group-hover:text-sky-500",
       codeBadge: "text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/60 border-orange-200 dark:border-orange-800",
@@ -184,7 +184,7 @@ export default function HomePage() {
       {/* 1. Hero Section - Sky Blue & Orange Harmonies */}
       <section className="relative overflow-hidden bg-gradient-to-b from-sky-50 via-orange-50/40 to-slate-50 dark:from-slate-900 dark:via-sky-950/30 dark:to-slate-950 pt-10 sm:pt-16 pb-12 sm:pb-16 border-b border-sky-200/60 dark:border-slate-800">
         {/* Sky Blue & Orange Ambient Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-72 bg-gradient-to-r from-sky-400/25 via-orange-400/20 to-sky-300/20 dark:from-sky-500/15 dark:via-orange-500/15 dark:to-sky-400/10 blur-3xl pointer-events-none -z-10" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-72 bg-sky-500/10 dark:bg-sky-500/15 blur-3xl pointer-events-none -z-10" />
 
         <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
@@ -198,7 +198,7 @@ export default function HomePage() {
               {/* Bold Headline */}
               <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-tight sm:leading-[1.12]">
                 Authentic university notes, directly from your{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-sky-500 to-orange-500 dark:from-sky-400 dark:via-sky-300 dark:to-orange-400">
+                <span className="text-orange-500 dark:text-orange-400">
                   lecturers.
                 </span>
               </h1>
@@ -225,7 +225,7 @@ export default function HomePage() {
                 </div>
                 <button
                   type="submit"
-                  className="h-12 w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 via-sky-600 to-orange-500 hover:from-sky-600 hover:to-orange-600 active:scale-[0.98] px-6 text-sm font-bold text-white shadow-md shadow-sky-500/25 transition shrink-0 touch-target"
+                  className="h-12 w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-[0.98] px-6 text-sm font-bold text-white shadow-xs transition shrink-0 touch-target"
                 >
                   <span>Search Notes</span>
                   <ArrowRight className="h-4 w-4" />
@@ -259,7 +259,7 @@ export default function HomePage() {
                       Uganda University Academic Notes
                     </div>
                   </div>
-                  <span className="rounded-lg bg-gradient-to-r from-sky-500 to-orange-500 text-white px-3 py-1 text-xs font-bold shrink-0 shadow-xs">
+                  <span className="rounded-lg bg-sky-500 text-white px-3 py-1 text-xs font-bold shrink-0 shadow-xs">
                     Verified
                   </span>
                 </div>
@@ -449,7 +449,7 @@ export default function HomePage() {
               <div className="pt-2">
                 <Link
                   href="/lecturer/apply"
-                  className="w-full sm:w-auto h-12 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 via-sky-600 to-orange-500 hover:from-sky-600 hover:to-orange-600 active:scale-[0.98] px-6 text-sm font-bold text-white shadow-md shadow-sky-500/25 transition touch-target"
+                  className="w-full sm:w-auto h-12 inline-flex items-center justify-center gap-2 rounded-xl bg-sky-600 hover:bg-sky-700 active:scale-[0.98] px-6 text-sm font-bold text-white shadow-xs transition touch-target"
                 >
                   <span>Become a Verified Lecturer</span>
                   <ArrowRight className="h-4 w-4" />
@@ -499,7 +499,7 @@ export default function HomePage() {
               <div className="pt-2">
                 <Link
                   href="/catalogue"
-                  className="w-full sm:w-auto h-12 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-sky-600 hover:from-orange-600 hover:to-sky-700 active:scale-[0.98] px-6 text-sm font-bold text-white shadow-md shadow-orange-500/25 transition touch-target"
+                  className="w-full sm:w-auto h-12 inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-[0.98] px-6 text-sm font-bold text-white shadow-xs transition touch-target"
                 >
                   <BookOpen className="h-4 w-4 text-white" />
                   <span>Start Reading Offline</span>
@@ -649,7 +649,7 @@ export default function HomePage() {
               <button
                 type="submit"
                 disabled={submittingRequest}
-                className="w-full h-11 rounded-xl bg-gradient-to-r from-sky-500 via-sky-600 to-orange-500 hover:from-sky-600 hover:to-orange-600 active:scale-[0.98] text-white text-xs sm:text-sm font-bold transition shadow-md shadow-sky-500/25 touch-target"
+                className="w-full h-11 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-[0.98] text-white text-xs sm:text-sm font-bold transition shadow-xs touch-target"
               >
                 {submittingRequest ? "Submitting..." : "Submit Course Request"}
               </button>

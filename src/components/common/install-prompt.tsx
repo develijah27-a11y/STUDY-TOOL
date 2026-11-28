@@ -117,8 +117,8 @@ export default function InstallPrompt() {
     >
       <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border-2 border-sky-400/80 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xl dark:shadow-sky-950/50 backdrop-blur-xl ring-4 ring-sky-500/10 dark:ring-sky-400/20">
         {/* Sky Blue & Orange Ambient Highlights */}
-        <div className="absolute top-0 right-0 w-36 h-36 bg-gradient-to-bl from-orange-400/25 via-sky-400/20 to-transparent blur-2xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-sky-500/20 to-transparent blur-xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-36 h-36 bg-orange-500/10 blur-2xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-sky-500/10 blur-xl pointer-events-none" />
 
         {/* Close Button */}
         <button
@@ -131,8 +131,8 @@ export default function InstallPrompt() {
         </button>
 
         <div className="flex items-start gap-3.5 pr-6">
-          {/* Brand Icon with Sky Blue & Orange Blend */}
-          <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-sky-500 via-sky-600 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-sky-500/30">
+          {/* Brand Icon */}
+          <div className="h-12 w-12 rounded-2xl bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-xs">
             <Smartphone className="h-6 w-6" />
           </div>
 
@@ -175,7 +175,7 @@ export default function InstallPrompt() {
           <button
             type="button"
             onClick={handleInstallClick}
-            className="flex-1 h-10 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 via-sky-600 to-orange-500 hover:from-sky-600 hover:to-orange-600 active:scale-[0.98] text-white text-xs font-black shadow-md shadow-sky-500/25 transition"
+            className="flex-1 h-10 inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-[0.98] text-white text-xs font-black shadow-xs transition"
           >
             <Download className="h-4 w-4" />
             <span>Install App</span>

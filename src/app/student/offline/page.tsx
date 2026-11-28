@@ -23,9 +23,9 @@ export default function StudentOfflinePage() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       {/* Header Banner */}
-      <div className="rounded-2xl bg-gradient-to-r from-sky-600 via-sky-500 to-orange-500 text-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+      <div className="rounded-2xl bg-sky-600 dark:bg-sky-950 text-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm border border-sky-500/30">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-orange-200">
+          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-orange-300 dark:text-orange-400">
             <HardDrive className="h-4 w-4" />
             <span>Stored Notes</span>
           </div>

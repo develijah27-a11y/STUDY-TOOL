@@ -87,7 +87,7 @@ export function Navbar() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-500 via-sky-600 to-orange-500 text-white shadow-md shadow-sky-500/25">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500 text-white shadow-xs">
             <GraduationCap className="h-5 w-5" />
           </div>
           <div>
@@ -134,7 +134,7 @@ export function Navbar() {
               </Link>
               <Link
                 href="/sign-up"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-orange-500 hover:from-sky-600 hover:to-orange-600 px-4 py-2 text-xs font-black text-white shadow-md shadow-sky-500/25 transition"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 px-4 py-2 text-xs font-black text-white shadow-xs transition"
               >
                 <span>Create Account</span>
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -171,7 +171,7 @@ export function Navbar() {
                       ? "/admin/dashboard"
                       : "/student/dashboard"
                 }
-                className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-sky-600 to-orange-600 hover:from-sky-700 hover:to-orange-700 px-4 py-2 text-xs font-bold text-white transition shadow-sm"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 px-4 py-2 text-xs font-bold text-white transition shadow-xs"
               >
                 <UserCheck className="h-3.5 w-3.5 text-sky-200" />
                 <span>Dashboard</span>
@@ -196,7 +196,7 @@ export function Navbar() {
               </Link>
               <Link
                 href="/sign-up"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-orange-500 hover:from-sky-600 hover:to-orange-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition"
               >
                 <span>Create Account</span>
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -252,7 +252,7 @@ export function Navbar() {
               <Link
                 href="/sign-up"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-center py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-orange-500 text-white text-xs font-bold"
+                className="text-center py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-xs"
               >
                 Get Started
               </Link>
@@ -261,7 +261,7 @@ export function Navbar() {
                 <Link
                   href={authenticatedUser.role === "lecturer" ? "/lecturer/dashboard" : "/student/dashboard"}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-orange-600 text-white text-xs font-bold"
+                  className="w-full text-center py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-xs"
                 >
                   Go to Dashboard
                 </Link>
@@ -285,7 +285,7 @@ export function Navbar() {
                 <Link
                   href="/sign-up"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-center py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-orange-500 text-white text-xs font-bold"
+                  className="text-center py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-xs"
                 >
                   Create Account
                 </Link>
@@ -315,7 +315,7 @@ export function Footer() {
           {/* Brand & Mission (md:col-span-5) */}
           <div className="md:col-span-5 space-y-3">
             <div className="flex items-center gap-2.5 text-slate-900 dark:text-white font-extrabold text-base">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-500 to-orange-500 text-white shadow-md shadow-sky-500/20">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-500 text-white shadow-xs">
                 <GraduationCap className="h-5 w-5" />
               </div>
               <span>

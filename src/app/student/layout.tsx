@@ -148,18 +148,18 @@ export default function StudentLayout({
   return (
     <div className="h-[100dvh] max-h-[100dvh] bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row overflow-hidden transition-colors">
       {/* Desktop Sidebar (Left Fixed 64 with Independent Scroll) */}
-      <aside className="hidden md:flex flex-col w-64 bg-slate-900 text-white border-r border-slate-800 shrink-0 h-full max-h-full overflow-hidden">
+      <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 border-r border-slate-200 dark:border-slate-800 shrink-0 h-full max-h-full overflow-hidden">
         {/* Brand Header */}
-        <div className="p-4 border-b border-slate-800 shrink-0">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
           <Link href="/student/dashboard" className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-sky-500 to-orange-500 text-white shadow-md shadow-sky-500/20">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-500 text-white shadow-xs">
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <span className="block text-base font-black tracking-tight text-white leading-tight">
+              <span className="block text-base font-black tracking-tight text-slate-900 dark:text-white leading-tight">
                 Soma<span className="text-orange-500">UG</span>
               </span>
-              <span className="block text-[11px] font-bold text-sky-400">
+              <span className="block text-[11px] font-bold text-sky-600 dark:text-sky-400">
                 Student Workspace
               </span>
             </div>
@@ -167,17 +167,17 @@ export default function StudentLayout({
         </div>
 
         {/* Quick Wallet Glance in Sidebar */}
-        <div className="px-3.5 py-2.5 mx-3 my-2.5 rounded-xl bg-slate-800/80 border border-slate-700/60 space-y-1 shrink-0">
-          <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+        <div className="px-3.5 py-2.5 mx-3 my-2.5 rounded-xl bg-sky-50/70 dark:bg-sky-950/40 border border-sky-100 dark:border-sky-800/60 space-y-1 shrink-0">
+          <div className="flex items-center justify-between text-[10px] text-sky-800 dark:text-sky-300 font-bold uppercase tracking-wider">
             <span>Spendable Balance</span>
-            <ShieldCheck className="h-3.5 w-3.5 text-sky-400" />
+            <ShieldCheck className="h-3.5 w-3.5 text-sky-500" />
           </div>
-          <div className="text-lg font-black text-orange-400 font-mono">
+          <div className="text-lg font-black text-orange-600 dark:text-orange-400 font-mono">
             {formatUGX(walletBalance)}
           </div>
           <Link
             href="/student/wallet"
-            className="block text-[10px] text-sky-400 hover:text-sky-300 font-bold"
+            className="block text-[10px] text-sky-600 dark:text-sky-400 hover:text-sky-700 font-bold"
           >
             Manage Wallet →
           </Link>
@@ -197,19 +197,19 @@ export default function StudentLayout({
                   key={item.href}
                   href={item.href}
                   className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${isActive
-                    ? "bg-gradient-to-r from-sky-500 to-sky-600 text-white shadow-sm"
-                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                    ? "bg-sky-500 text-white shadow-xs"
+                    : "text-slate-600 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-sky-950/50 hover:text-sky-600 dark:hover:text-sky-300"
                     }`}
                 >
                   <div className="flex items-center gap-2.5 truncate">
-                    <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
+                    <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : "text-slate-400 dark:text-slate-500"}`} />
                     <span className="truncate">{item.label}</span>
                   </div>
                   {item.badge !== undefined && (
                     <span
                       className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${isActive
-                        ? "bg-white/20 text-white"
-                        : "bg-slate-800 text-orange-400 border border-slate-700"
+                        ? "bg-white/25 text-white"
+                        : "bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800"
                         }`}
                     >
                       {item.badge}
@@ -221,39 +221,39 @@ export default function StudentLayout({
           </div>
 
           {/* Quick Document Access in Sidebar */}
-          <div className="rounded-xl bg-slate-800/50 border border-slate-700/60 p-3 space-y-2">
-            <span className="text-[11px] font-bold text-slate-200 flex items-center gap-1.5">
-              <QrCode className="h-3.5 w-3.5 text-orange-400" />
+          <div className="rounded-xl bg-orange-50/60 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-800/40 p-3 space-y-2">
+            <span className="text-[11px] font-bold text-orange-800 dark:text-orange-200 flex items-center gap-1.5">
+              <QrCode className="h-3.5 w-3.5 text-orange-500" />
               Quick Document Access
             </span>
             <Link
               href="/d"
-              className="flex items-center justify-between rounded-lg bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/30 px-2.5 py-1.5 text-[11px] font-bold text-sky-200 transition group"
+              className="flex items-center justify-between rounded-lg bg-sky-500 hover:bg-sky-600 text-white px-2.5 py-1.5 text-[11px] font-bold transition group shadow-xs"
             >
               <span className="flex items-center gap-1.5">
-                <Camera className="h-3 w-3 text-orange-400" />
+                <Camera className="h-3 w-3 text-white" />
                 Scan QR / Enter Code
               </span>
-              <ArrowRight className="h-3 w-3 text-orange-400 group-hover:translate-x-0.5 transition" />
+              <ArrowRight className="h-3 w-3 text-white group-hover:translate-x-0.5 transition" />
             </Link>
           </div>
         </nav>
 
         {/* Bottom User Card & Sign Out */}
-        <div className="p-3 border-t border-slate-800 bg-slate-950/80 shrink-0">
+        <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 shrink-0">
           <div className="flex items-center justify-between">
             <div className="truncate mr-2">
-              <span className="block text-xs font-bold text-white truncate">
+              <span className="block text-xs font-bold text-slate-900 dark:text-white truncate">
                 {student.fullName}
               </span>
-              <span className="block text-[10px] text-slate-400 truncate">
+              <span className="block text-[10px] text-slate-500 dark:text-slate-400 truncate">
                 {student.institutionName}
               </span>
             </div>
             <button
               type="button"
               onClick={handleSignOut}
-              className="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-300 transition"
+              className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 transition"
               title="Sign Out"
               aria-label="Sign Out"
             >
@@ -264,35 +264,37 @@ export default function StudentLayout({
       </aside>
 
       {/* Mobile Top Header (Single Clean Mobile Navigation) */}
-      <div className="md:hidden sticky top-0 z-40 bg-slate-900 text-white border-b border-slate-800 px-4 py-3 flex items-center justify-between shrink-0">
+      <div className="md:hidden sticky top-0 z-40 bg-white dark:bg-slate-950 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-1.5 rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800"
+            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
             aria-label="Toggle Navigation"
           >
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
           <Link href="/student/dashboard" className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-tr from-sky-500 to-orange-500 text-white">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-500 text-white">
               <GraduationCap className="h-4 w-4" />
             </div>
-            <span className="text-sm font-black tracking-tight">SomaUG</span>
+            <span className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
+              Soma<span className="text-orange-500">UG</span>
+            </span>
           </Link>
         </div>
 
         <div className="flex items-center gap-2">
           <Link
             href="/student/wallet"
-            className="px-2 py-0.5 rounded-lg bg-orange-500/20 border border-orange-500/40 text-[11px] font-bold text-orange-400"
+            className="px-2 py-0.5 rounded-lg bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-800 text-[11px] font-bold text-orange-600 dark:text-orange-400"
           >
             {formatUGX(walletBalance)}
           </Link>
           <button
             type="button"
             onClick={handleSignOut}
-            className="p-1.5 rounded-lg text-red-300 hover:bg-slate-800"
+            className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-slate-800"
             title="Sign Out"
           >
             <LogOut className="h-4 w-4" />
@@ -307,12 +309,12 @@ export default function StudentLayout({
           onClick={() => setIsMobileMenuOpen(false)}
         >
           <div
-            className="w-72 bg-slate-900 text-white h-full flex flex-col p-4 space-y-3"
+            className="w-72 bg-white dark:bg-slate-950 text-slate-900 dark:text-white h-full flex flex-col p-4 space-y-3"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-sky-500 to-orange-500 text-white flex items-center justify-center font-bold">
+                <div className="h-8 w-8 rounded-lg bg-sky-500 text-white flex items-center justify-center font-bold">
                   <GraduationCap className="h-4 w-4" />
                 </div>
                 <span className="font-black text-sm">Student Workspace</span>
@@ -320,17 +322,17 @@ export default function StudentLayout({
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1 text-slate-400 hover:text-white"
+                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700/60 space-y-0.5">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+            <div className="p-3 rounded-xl bg-sky-50/70 dark:bg-sky-950/40 border border-sky-100 dark:border-sky-800/60 space-y-0.5">
+              <span className="text-[10px] uppercase font-bold text-sky-800 dark:text-sky-300 tracking-wider">
                 Spendable Balance
               </span>
-              <div className="text-base font-black text-orange-400 font-mono">
+              <div className="text-base font-black text-orange-600 dark:text-orange-400 font-mono">
                 {formatUGX(walletBalance)}
               </div>
             </div>
@@ -348,16 +350,16 @@ export default function StudentLayout({
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${isActive
-                      ? "bg-gradient-to-r from-sky-500 to-sky-600 text-white"
-                      : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                      ? "bg-sky-500 text-white"
+                      : "text-slate-600 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-sky-950/50 hover:text-sky-600 dark:hover:text-sky-300"
                       }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <Icon className="h-4 w-4 shrink-0" />
+                      <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
                       <span>{item.label}</span>
                     </div>
                     {item.badge !== undefined && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-800 text-orange-400">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300">
                         {item.badge}
                       </span>
                     )}
@@ -365,18 +367,18 @@ export default function StudentLayout({
                 );
               })}
 
-              <div className="rounded-xl bg-slate-800/50 border border-slate-700/60 p-2.5 mt-2 space-y-1.5">
-                <span className="text-[11px] font-bold text-slate-200 flex items-center gap-1.5">
-                  <QrCode className="h-3.5 w-3.5 text-orange-400" />
+              <div className="rounded-xl bg-orange-50/60 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-800/40 p-2.5 mt-2 space-y-1.5">
+                <span className="text-[11px] font-bold text-orange-800 dark:text-orange-200 flex items-center gap-1.5">
+                  <QrCode className="h-3.5 w-3.5 text-orange-500" />
                   Quick Document Access
                 </span>
                 <Link
                   href="/d"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between rounded-lg bg-sky-500/20 border border-sky-500/30 px-2.5 py-1.5 text-[11px] font-bold text-sky-200"
+                  className="flex items-center justify-between rounded-lg bg-sky-500 hover:bg-sky-600 text-white px-2.5 py-1.5 text-[11px] font-bold"
                 >
                   <span>Scan QR / Enter Code</span>
-                  <ArrowRight className="h-3 w-3 text-orange-400" />
+                  <ArrowRight className="h-3 w-3 text-white" />
                 </Link>
               </div>
             </nav>

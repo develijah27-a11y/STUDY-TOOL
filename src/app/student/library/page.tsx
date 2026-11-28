@@ -76,7 +76,7 @@ export default function StudentLibraryPage() {
         if (u.id) currentId = u.id;
         if (u.fullName) setStudentName(u.fullName);
       }
-    } catch {}
+    } catch { }
     setStudentId(currentId);
 
     async function loadLibrary() {
@@ -132,9 +132,9 @@ export default function StudentLibraryPage() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       {/* Header Banner */}
-      <div className="rounded-2xl bg-gradient-to-r from-sky-600 via-sky-500 to-orange-500 text-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+      <div className="rounded-2xl bg-sky-600 dark:bg-sky-950 text-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm border border-sky-500/30">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-orange-200">
+          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-orange-300 dark:text-orange-400">
             <Library className="h-4 w-4" />
             <span>My Library</span>
           </div>
@@ -160,11 +160,10 @@ export default function StudentLibraryPage() {
         <button
           type="button"
           onClick={() => setActiveTab("all")}
-          className={`px-4 py-2 text-xs font-bold rounded-xl transition ${
-            activeTab === "all"
+          className={`px-4 py-2 text-xs font-bold rounded-xl transition ${activeTab === "all"
               ? "bg-sky-500 text-white shadow-xs"
               : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-          }`}
+            }`}
         >
           All Materials ({activeOrders.length})
         </button>
@@ -175,11 +174,10 @@ export default function StudentLibraryPage() {
             setActiveTab("offline");
             checkOfflineDocuments();
           }}
-          className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition ${
-            activeTab === "offline"
+          className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition ${activeTab === "offline"
               ? "bg-orange-500 text-white shadow-xs"
               : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-          }`}
+            }`}
         >
           <HardDrive className="h-3.5 w-3.5" />
           <span>Offline Ready ({offlineDocIds.size})</span>
