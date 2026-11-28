@@ -7,27 +7,16 @@ import {
   Wallet,
   ArrowDownLeft,
   ArrowUpRight,
-  Receipt,
+  RefreshCw,
   CheckCircle2,
   Clock,
-  ShieldCheck,
   Smartphone,
   BookOpen,
   AlertCircle,
-  RefreshCw,
-  Search,
-  Filter,
-  Check,
-  Zap,
-  TrendingUp,
   CreditCard,
-  Lock,
+  X,
   ChevronRight,
-  ExternalLink,
-  Info,
-  DollarSign,
-  PieChart,
-  HelpCircle,
+  ShieldCheck,
 } from "lucide-react";
 
 interface DepositItem {
@@ -59,27 +48,27 @@ interface UnifiedTransaction {
   status: string;
   provider?: string;
   createdAt: string;
-  orderItem?: OrderItem;
-  depositItem?: DepositItem;
 }
 
 export default function StudentWalletPage() {
   const [selectedStudentId, setSelectedStudentId] = useState("user-student-1");
   const [studentName, setStudentName] = useState("Student");
   const [spendableBalance, setSpendableBalance] = useState(25000);
-  const [reservedBalance, setReservedBalance] = useState(0);
   const [deposits, setDeposits] = useState<DepositItem[]>([]);
   const [orders, setOrders] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Deposit Form State
+  // Active Action: "deposit" or "withdraw" or null
+  const [activeAction, setActiveAction] = useState<"deposit" | "withdraw">("deposit");
+
+  // Deposit State
   const [depositPhone, setDepositPhone] = useState("0772112233");
   const [depositAmount, setDepositAmount] = useState(10000);
   const [detectedProvider, setDetectedProvider] = useState<"MTN" | "AIRTEL">("MTN");
   const [depositMessage, setDepositMessage] = useState<string | null>(null);
   const [depositError, setDepositError] = useState<string | null>(null);
 
-  // Simulated USSD Handset Prompt State
+  // USSD Handset Prompt Modal
   const [activeUssdPrompt, setActiveUssdPrompt] = useState<{
     reference: string;
     phoneNumber: string;
@@ -89,7 +78,7 @@ export default function StudentWalletPage() {
   const [ussdPin, setUssdPin] = useState("1234");
   const [ussdProcessing, setUssdProcessing] = useState(false);
 
-  // Withdrawal Form State
+  // Withdrawal State
   const [withdrawPhone, setWithdrawPhone] = useState("0772112233");
   const [withdrawAmount, setWithdrawAmount] = useState(5000);
   const [withdrawPin, setWithdrawPin] = useState("1234");
@@ -97,14 +86,10 @@ export default function StudentWalletPage() {
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const [withdrawing, setWithdrawing] = useState(false);
 
-  // View state & Filters
-  const [activeTab, setActiveTab] = useState<"deposit" | "withdraw">("deposit");
-  const [historyFilter, setHistoryFilter] = useState<"all" | "deposit" | "purchase" | "withdrawal">("all");
-  const [historySearch, setHistorySearch] = useState("");
-  const [selectedReceipt, setSelectedReceipt] = useState<OrderItem | null>(null);
-  const [hoveredDataPoint, setHoveredDataPoint] = useState<{ date: string; balance: number } | null>(null);
+  // Filter for transactions
+  const [historyFilter, setHistoryFilter] = useState<"all" | "deposit" | "purchase">("all");
 
-  // 1. Initialize user from authoritative database session
+  // 1. Initialize user from session
   useEffect(() => {
     async function initUser() {
       try {
@@ -134,14 +119,26 @@ export default function StudentWalletPage() {
   // 2. Detect provider from Ugandan mobile prefixes
   useEffect(() => {
     const clean = depositPhone.replace(/\s+/g, "");
-    if (clean.startsWith("077") || clean.startsWith("078") || clean.startsWith("076") || clean.startsWith("+25677") || clean.startsWith("+25678")) {
+    if (
+      clean.startsWith("077") ||
+      clean.startsWith("078") ||
+      clean.startsWith("076") ||
+      clean.startsWith("+25677") ||
+      clean.startsWith("+25678")
+    ) {
       setDetectedProvider("MTN");
-    } else if (clean.startsWith("070") || clean.startsWith("075") || clean.startsWith("074") || clean.startsWith("+25670") || clean.startsWith("+25675")) {
+    } else if (
+      clean.startsWith("070") ||
+      clean.startsWith("075") ||
+      clean.startsWith("074") ||
+      clean.startsWith("+25670") ||
+      clean.startsWith("+25675")
+    ) {
       setDetectedProvider("AIRTEL");
     }
   }, [depositPhone]);
 
-  // 3. Load wallet data from authoritative backend
+  // 3. Load wallet data
   const loadWalletData = useCallback(async () => {
     setLoading(true);
     try {
@@ -151,7 +148,6 @@ export default function StudentWalletPage() {
       if (res.ok) {
         const data = await res.json();
         setSpendableBalance(data.wallet?.spendableBalanceUGX ?? 0);
-        setReservedBalance(data.wallet?.reservedBalanceUGX ?? 0);
         setDeposits(data.deposits || []);
         setOrders(data.orders || []);
       }
@@ -166,111 +162,7 @@ export default function StudentWalletPage() {
     loadWalletData();
   }, [loadWalletData]);
 
-  // Unified chronological transaction list
-  const unifiedTransactions: UnifiedTransaction[] = useMemo(() => {
-    const txs: UnifiedTransaction[] = [
-      ...deposits.map((d) => ({
-        id: `dep-${d.id}`,
-        type: "deposit" as const,
-        reference: d.reference,
-        description: `Mobile Money Deposit (${d.provider})`,
-        amountUGX: d.amountUGX,
-        status: d.status,
-        provider: d.provider,
-        createdAt: d.createdAt,
-        depositItem: d,
-      })),
-      ...orders.map((o) => ({
-        id: `ord-${o.id}`,
-        type: "purchase" as const,
-        reference: o.orderNumber,
-        description: `Academic Document Purchase (${o.orderNumber})`,
-        amountUGX: o.grossAmountUGX,
-        status: o.status,
-        createdAt: o.createdAt,
-        orderItem: o,
-      })),
-    ];
-
-    return txs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [deposits, orders]);
-
-  // Filtered transactions
-  const filteredTransactions = useMemo(() => {
-    return unifiedTransactions.filter((tx) => {
-      const matchesType = historyFilter === "all" || tx.type === historyFilter;
-      const search = historySearch.toLowerCase();
-      const matchesSearch =
-        !search ||
-        tx.reference.toLowerCase().includes(search) ||
-        tx.description.toLowerCase().includes(search) ||
-        (tx.orderItem?.documentId && tx.orderItem.documentId.toLowerCase().includes(search));
-      return matchesType && matchesSearch;
-    });
-  }, [unifiedTransactions, historyFilter, historySearch]);
-
-  // Financial statistics
-  const totalDeposited = useMemo(() => {
-    return deposits
-      .filter((d) => d.status === "completed" || d.status === "SUCCESSFUL")
-      .reduce((acc, d) => acc + d.amountUGX, 0);
-  }, [deposits]);
-
-  const totalSpent = useMemo(() => {
-    return orders
-      .filter((o) => o.status === "completed")
-      .reduce((acc, o) => acc + o.grossAmountUGX, 0);
-  }, [orders]);
-
-  // Balance Trend Data points (simulated chronological trajectory from actual orders/deposits)
-  const chartPoints = useMemo(() => {
-    const sorted = [...unifiedTransactions].reverse();
-    let running = 0;
-    const points: { date: string; balance: number }[] = [];
-
-    // Initial baseline
-    points.push({ date: "Start", balance: 0 });
-
-    sorted.forEach((tx) => {
-      if (tx.status === "completed" || tx.status === "SUCCESSFUL") {
-        if (tx.type === "deposit") {
-          running += tx.amountUGX;
-        } else if (tx.type === "purchase" || tx.type === "withdrawal") {
-          running = Math.max(0, running - tx.amountUGX);
-        }
-        const d = new Date(tx.createdAt);
-        const label = `${d.getDate()}/${d.getMonth() + 1}`;
-        points.push({ date: label, balance: running });
-      }
-    });
-
-    if (points.length === 1) {
-      points.push({ date: "Today", balance: spendableBalance });
-    } else {
-      points[points.length - 1].balance = spendableBalance;
-    }
-
-    return points;
-  }, [unifiedTransactions, spendableBalance]);
-
-  // SVG dimensions for balance trend
-  const svgWidth = 420;
-  const svgHeight = 110;
-  const maxBalance = Math.max(...chartPoints.map((p) => p.balance), 10000);
-  const minBalance = 0;
-
-  const pointsString = useMemo(() => {
-    if (chartPoints.length < 2) return "";
-    return chartPoints
-      .map((p, i) => {
-        const x = (i / (chartPoints.length - 1)) * (svgWidth - 24) + 12;
-        const y = svgHeight - 16 - ((p.balance - minBalance) / (maxBalance - minBalance || 1)) * (svgHeight - 32);
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-      })
-      .join(" ");
-  }, [chartPoints, maxBalance, minBalance]);
-
-  // Handlers
+  // Deposit handler
   const handleInitiateDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
     setDepositError(null);
@@ -301,12 +193,10 @@ export default function StudentWalletPage() {
         amountUGX: Number(depositAmount),
       });
 
-      setDepositMessage(
-        `${data.instructions || "USSD prompt generated."} Please enter your Mobile Money PIN on your phone to approve.`
-      );
+      setDepositMessage("Payment prompt sent to your phone. Approve to complete.");
       await loadWalletData();
     } catch {
-      setDepositError("Network connection interrupted. Please try again.");
+      setDepositError("Network error. Please try again.");
     }
   };
 
@@ -330,13 +220,11 @@ export default function StudentWalletPage() {
 
       const data = await res.json();
       if (data.success) {
-        setDepositMessage(
-          `Payment Confirmed! ${formatUGX(activeUssdPrompt.amountUGX)} successfully credited to your wallet.`
-        );
+        setDepositMessage(`${formatUGX(activeUssdPrompt.amountUGX)} added to wallet.`);
         setActiveUssdPrompt(null);
         await loadWalletData();
       } else {
-        setDepositError(data.error || "Payment approval failed.");
+        setDepositError(data.error || "Approval failed.");
       }
     } catch {
       setDepositError("Network error validating payment.");
@@ -345,6 +233,7 @@ export default function StudentWalletPage() {
     }
   };
 
+  // Withdraw handler
   const handleStudentWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
     setWithdrawError(null);
@@ -370,749 +259,462 @@ export default function StudentWalletPage() {
         return;
       }
 
-      setWithdrawMessage(
-        `Withdrawal ref ${data.withdrawalReference} initiated. ${formatUGX(withdrawAmount)} moved to reserved balance awaiting settlement.`
-      );
+      setWithdrawMessage(`${formatUGX(withdrawAmount)} withdrawn successfully.`);
       await loadWalletData();
     } catch {
-      setWithdrawError("Connection error while requesting withdrawal.");
+      setWithdrawError("Network error during withdrawal.");
     } finally {
       setWithdrawing(false);
     }
   };
 
+  // Merge and sort transactions
+  const unifiedTransactions = useMemo<UnifiedTransaction[]>(() => {
+    const list: UnifiedTransaction[] = [];
+
+    deposits.forEach((d) => {
+      list.push({
+        id: `dep-${d.id}`,
+        type: "deposit",
+        reference: d.reference,
+        description: `${d.provider} Mobile Money Top Up`,
+        amountUGX: d.amountUGX,
+        status: d.status,
+        provider: d.provider,
+        createdAt: d.createdAt,
+      });
+    });
+
+    orders.forEach((o) => {
+      list.push({
+        id: `ord-${o.id}`,
+        type: "purchase",
+        reference: o.orderNumber,
+        description: "Course Notes Purchase",
+        amountUGX: o.grossAmountUGX,
+        status: o.status,
+        createdAt: o.createdAt,
+      });
+    });
+
+    return list.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [deposits, orders]);
+
+  const filteredTransactions = useMemo(() => {
+    return unifiedTransactions.filter((tx) => {
+      if (historyFilter === "deposit") return tx.type === "deposit";
+      if (historyFilter === "purchase") return tx.type === "purchase";
+      return true;
+    });
+  }, [unifiedTransactions, historyFilter]);
+
+  // Student card digits formatted like reference
+  const cardDigits = useMemo(() => {
+    const cleaned = selectedStudentId.replace(/\D/g, "");
+    const lastFour = cleaned.slice(-4) || "8019";
+    return `XXXX - ${lastFour}`;
+  }, [selectedStudentId]);
+
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
-      {/* Top Breadcrumb & Live Refresh Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80">
+    <div className="container mx-auto px-4 py-6 max-w-4xl space-y-6">
+      {/* 1. Header: "Your Balance" & Big Number (Matching Reference) */}
+      <div className="flex items-start justify-between">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-            <Link href="/student/dashboard" className="hover:text-emerald-700 transition">
-              Student Dashboard
-            </Link>
-            <span>/</span>
-            <span className="text-slate-900 font-bold">Fintech Wallet</span>
+          <h2 className="text-sm sm:text-base font-semibold text-slate-500 dark:text-slate-400">
+            Your Balance
+          </h2>
+          <div className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight flex items-baseline gap-2">
+            <span>{formatUGX(spendableBalance)}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#153F35] tracking-tight">
-            SomaUG Student Wallet
-          </h1>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-bold text-emerald-800">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>NPSA 2020 Compliant</span>
-          </div>
-
-          <button
-            type="button"
-            onClick={loadWalletData}
-            disabled={loading}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition shadow-xs disabled:opacity-50"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin text-emerald-600" : ""}`} />
-            <span>{loading ? "Syncing..." : "Sync Ledger"}</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={loadWalletData}
+          disabled={loading}
+          className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition shadow-2xs"
+          title="Refresh Balance"
+          aria-label="Refresh Balance"
+        >
+          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-sky-600" : ""}`} />
+        </button>
       </div>
 
-      {/* SECTION 1: WALLET BALANCE & AVAILABLE FUNDS (Clean, Light, Warm Ivory Focus) */}
-      <div className="rounded-3xl border border-[#E3E9E4] bg-gradient-to-br from-[#FAF8F5] via-white to-[#F7F5EF] p-6 sm:p-8 shadow-xs">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          
-          {/* Main Visual Focus: Spendable Balance */}
-          <div className="lg:col-span-7 space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100/70 border border-emerald-300/60 px-3.5 py-1 text-xs font-bold text-[#153F35]">
-              <Wallet className="h-3.5 w-3.5 text-[#23836B]" />
-              <span>Available Student Balance (UGX)</span>
-            </div>
+      {/* 2. Sleek Digital Card (Pixel-Matched to Reference Image in App Colours) */}
+      <div className="relative rounded-3xl bg-sky-600 dark:bg-sky-700 text-white p-6 sm:p-7 shadow-lg overflow-hidden border border-sky-500/40">
+        {/* Subtle Decorative Arc Overlay in bottom right corner (like in reference image) */}
+        <div className="absolute -bottom-14 -right-14 w-52 h-52 rounded-full bg-sky-500/35 dark:bg-sky-400/20 pointer-events-none" />
 
-            <div className="space-y-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Cleared &amp; Ready for Purchases
+        <div className="relative z-10 flex flex-col justify-between h-44 sm:h-48">
+          {/* Top Row: Card Balance & Brand Logo */}
+          <div className="flex items-start justify-between">
+            <div>
+              <span className="block text-xs font-medium text-sky-100/90 tracking-wide">
+                Card Balance
               </span>
-              <div className="text-4xl sm:text-5xl lg:text-6xl font-black text-[#153F35] tracking-tight font-mono">
-                {formatUGX(spendableBalance)}
-              </div>
+              <span className="block text-xl sm:text-2xl font-black text-white mt-0.5 tracking-tight">
+                {spendableBalance.toLocaleString()} UGX
+              </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 pt-1 text-xs font-semibold">
-              <div className="inline-flex items-center gap-1.5 rounded-xl bg-white border border-slate-200/90 px-3 py-1.5 text-slate-700 shadow-xs">
-                <Clock className="h-3.5 w-3.5 text-amber-600" />
-                <span>Reserved in Escrow: <strong className="font-mono text-slate-900">{formatUGX(reservedBalance)}</strong></span>
-              </div>
-              <div className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-[#153F35]">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                <span>Double-Entry Protected</span>
-              </div>
+            {/* Brand Logo styled cleanly like m°netta */}
+            <div className="flex items-center gap-1">
+              <span className="text-lg sm:text-xl font-black tracking-tight text-white">
+                Soma<span className="text-orange-400">UG</span>
+              </span>
             </div>
           </div>
 
-          {/* SECTION 2: QUICK ACTIONS (Based strictly on existing functionality) */}
-          <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/90 p-5 space-y-4 shadow-sm">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
-                Quick Wallet Actions
-              </span>
-              <span className="text-[11px] font-mono text-slate-500 font-bold">
-                Account: {studentName.split(" ")[0]}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab("deposit");
-                  window.scrollTo({ top: 400, behavior: "smooth" });
-                }}
-                className="flex items-center justify-center gap-2 rounded-xl bg-[#23836B] hover:bg-[#1b6b57] text-white py-3 px-3 text-xs font-bold transition shadow-xs"
-              >
-                <ArrowDownLeft className="h-4 w-4 text-emerald-200" />
-                <span>Add Money</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab("withdraw");
-                  window.scrollTo({ top: 400, behavior: "smooth" });
-                }}
-                className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 py-3 px-3 text-xs font-bold transition"
-              >
-                <ArrowUpRight className="h-4 w-4 text-slate-600" />
-                <span>Withdraw</span>
-              </button>
-            </div>
-
-            <div className="pt-1 flex items-center justify-between text-xs text-slate-600 border-t border-slate-100">
-              <span className="font-medium">Need more notes?</span>
-              <Link
-                href="/catalogue"
-                className="font-bold text-[#23836B] hover:text-[#153F35] inline-flex items-center gap-1"
-              >
-                <span>Browse Catalogue</span>
-                <ChevronRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* SECTION 3 & 4: BALANCE TREND CHART & SPENDING DISTRIBUTION (2 Columns) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* SECTION 3: BALANCE TREND CHART */}
-        <div className="lg:col-span-7 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-[#23836B]" />
-                <h3 className="text-sm font-black text-slate-900">Balance Trend</h3>
-              </div>
-              <p className="text-xs text-slate-500 font-medium">
-                Chronological balance progression from real transaction history
-              </p>
-            </div>
-            <span className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-              Live Trend
+          {/* Middle Row: Card Identifier */}
+          <div>
+            <span className="text-sm sm:text-base font-mono tracking-widest text-sky-100 font-semibold">
+              {cardDigits}
             </span>
           </div>
 
-          {/* SVG Area Chart */}
-          <div className="relative pt-2">
-            <div className="h-32 w-full flex items-end">
-              <svg
-                viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-                className="w-full h-full overflow-visible"
-                preserveAspectRatio="none"
-              >
-                <defs>
-                  <linearGradient id="balanceGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#23836B" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="#23836B" stopOpacity="0.0" />
-                  </linearGradient>
-                </defs>
-
-                {/* Subtle horizontal grid lines */}
-                <line x1="0" y1="20" x2={svgWidth} y2="20" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="3 3" />
-                <line x1="0" y1="55" x2={svgWidth} y2="55" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="3 3" />
-                <line x1="0" y1="90" x2={svgWidth} y2="90" stroke="#F1F5F9" strokeWidth="1" />
-
-                {/* Area fill */}
-                {pointsString && (
-                  <polygon
-                    points={`12,${svgHeight - 16} ${pointsString} ${svgWidth - 12},${svgHeight - 16}`}
-                    fill="url(#balanceGradient)"
-                  />
-                )}
-
-                {/* Line path */}
-                {pointsString && (
-                  <polyline
-                    fill="none"
-                    stroke="#23836B"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    points={pointsString}
-                  />
-                )}
-
-                {/* Data points */}
-                {chartPoints.map((p, i) => {
-                  const x = (i / (chartPoints.length - 1)) * (svgWidth - 24) + 12;
-                  const y = svgHeight - 16 - ((p.balance - minBalance) / (maxBalance - minBalance || 1)) * (svgHeight - 32);
-                  return (
-                    <circle
-                      key={i}
-                      cx={x}
-                      cy={y}
-                      r="3.5"
-                      fill="#FFFFFF"
-                      stroke="#23836B"
-                      strokeWidth="2"
-                      className="cursor-pointer hover:r-5 transition-all"
-                      onMouseEnter={() => setHoveredDataPoint(p)}
-                      onMouseLeave={() => setHoveredDataPoint(null)}
-                    />
-                  );
-                })}
-              </svg>
-            </div>
-
-            {/* Hover Tooltip or Current State Indicator */}
-            <div className="flex items-center justify-between pt-3 text-[11px] font-semibold text-slate-500 border-t border-slate-100">
-              <span>{chartPoints[0]?.date || "Baseline"}</span>
-              <span className="font-mono text-xs font-bold text-[#153F35]">
-                {hoveredDataPoint
-                  ? `${hoveredDataPoint.date}: ${formatUGX(hoveredDataPoint.balance)}`
-                  : `Current: ${formatUGX(spendableBalance)}`}
+          {/* Bottom Row: Expiration Date & Active Status Badge */}
+          <div className="flex items-end justify-between">
+            <div>
+              <span className="block text-[10px] sm:text-[11px] font-medium text-sky-200 uppercase tracking-wider">
+                Expiration Date
               </span>
-              <span>{chartPoints[chartPoints.length - 1]?.date || "Today"}</span>
+              <span className="block text-xs sm:text-sm font-bold text-white mt-0.5 font-mono">
+                10/26
+              </span>
+            </div>
+
+            {/* Active Status Badge matching reference image */}
+            <div className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-sm font-bold text-white tracking-wide">Active</span>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* SECTION 4: SPENDING OR TRANSACTION DISTRIBUTION */}
-        <div className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center gap-2">
-              <PieChart className="h-4 w-4 text-[#23836B]" />
-              <h3 className="text-sm font-black text-slate-900">Financial Distribution</h3>
+      {/* 3. Action Switcher (Top Up vs Withdraw) */}
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          onClick={() => setActiveAction("deposit")}
+          className={`flex items-center justify-center gap-2 py-3 px-4 rounded-2xl text-xs font-bold transition shadow-xs ${
+            activeAction === "deposit"
+              ? "bg-orange-500 text-white"
+              : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50"
+          }`}
+        >
+          <ArrowDownLeft className="h-4 w-4" />
+          <span>Top Up (MTN / Airtel)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveAction("withdraw")}
+          className={`flex items-center justify-center gap-2 py-3 px-4 rounded-2xl text-xs font-bold transition shadow-xs ${
+            activeAction === "withdraw"
+              ? "bg-sky-600 text-white"
+              : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50"
+          }`}
+        >
+          <ArrowUpRight className="h-4 w-4" />
+          <span>Withdraw</span>
+        </button>
+      </div>
+
+      {/* 4. Concise Operation Form (Limited Words) */}
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-xs">
+        {activeAction === "deposit" ? (
+          <form onSubmit={handleInitiateDeposit} className="space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+              <span className="text-xs font-bold text-slate-900 dark:text-white">
+                Mobile Money Top Up
+              </span>
+              <span className="text-[11px] font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/40 px-2 py-0.5 rounded-full border border-orange-200 dark:border-orange-800">
+                {detectedProvider} Prompt
+              </span>
             </div>
-            <span className="text-xs text-slate-400 font-bold">Lifetime Ratio</span>
-          </div>
 
-          <div className="space-y-4 pt-1">
-            {/* Proportion Bar */}
+            {depositMessage && (
+              <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 p-3 text-xs font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                <span>{depositMessage}</span>
+              </div>
+            )}
+
+            {depositError && (
+              <div className="rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 p-3 text-xs font-semibold text-red-800 dark:text-red-300 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
+                <span>{depositError}</span>
+              </div>
+            )}
+
+            {/* Quick Amount Chips */}
             <div className="space-y-1.5">
-              <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex">
-                <div
-                  style={{
-                    width: `${totalDeposited + totalSpent > 0 ? (totalDeposited / (totalDeposited + totalSpent)) * 100 : 50}%`,
-                  }}
-                  className="bg-[#23836B] transition-all duration-500"
-                  title="Deposits"
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">
+                Select Amount (UGX)
+              </label>
+              <div className="grid grid-cols-4 gap-2">
+                {[2000, 5000, 10000, 20000].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => setDepositAmount(amt)}
+                    className={`py-2 rounded-xl text-xs font-bold transition border ${
+                      depositAmount === amt
+                        ? "bg-sky-50 dark:bg-sky-950 border-sky-500 text-sky-700 dark:text-sky-300"
+                        : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100"
+                    }`}
+                  >
+                    {amt.toLocaleString()}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={depositPhone}
+                  onChange={(e) => setDepositPhone(e.target.value)}
+                  placeholder="077XXXXXXX or 070XXXXXXX"
+                  className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-3 text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-sky-500"
                 />
-                <div
-                  style={{
-                    width: `${totalDeposited + totalSpent > 0 ? (totalSpent / (totalDeposited + totalSpent)) * 100 : 50}%`,
-                  }}
-                  className="bg-blue-600 transition-all duration-500"
-                  title="Purchases"
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
+                  Amount (UGX)
+                </label>
+                <input
+                  type="number"
+                  required
+                  min={500}
+                  value={depositAmount}
+                  onChange={(e) => setDepositAmount(Number(e.target.value))}
+                  className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-3 text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-sky-500 font-mono"
                 />
               </div>
-              <div className="flex justify-between text-[11px] font-bold text-slate-500">
-                <span className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-full bg-[#23836B]" />
-                  <span>Deposits ({totalDeposited + totalSpent > 0 ? Math.round((totalDeposited / (totalDeposited + totalSpent)) * 100) : 0}%)</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-full bg-blue-600" />
-                  <span>Purchases ({totalDeposited + totalSpent > 0 ? Math.round((totalSpent / (totalDeposited + totalSpent)) * 100) : 0}%)</span>
-                </span>
-              </div>
             </div>
 
-            {/* Distribution metrics */}
-            <div className="grid grid-cols-2 gap-3 pt-2">
-              <div className="rounded-xl border border-slate-100 bg-[#FAF8F5] p-3 space-y-1">
-                <span className="text-[11px] font-bold text-slate-500 block uppercase">
-                  Total Deposits
-                </span>
-                <span className="text-lg font-black text-[#153F35] font-mono block">
-                  {formatUGX(totalDeposited)}
-                </span>
-                <span className="text-[10px] text-emerald-700 font-semibold block">
-                  {deposits.length} Mobile Money Credits
-                </span>
-              </div>
-
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 space-y-1">
-                <span className="text-[11px] font-bold text-slate-500 block uppercase">
-                  Total Spent
-                </span>
-                <span className="text-lg font-black text-slate-900 font-mono block">
-                  {formatUGX(totalSpent)}
-                </span>
-                <span className="text-[10px] text-blue-700 font-semibold block">
-                  {orders.length} Unlocked Documents
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* OPERATIONS WORKSPACE: DEPOSIT / WITHDRAW INTERACTION CARD */}
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
-        {/* Tab Header */}
-        <div className="flex border-b border-slate-200 bg-slate-50/60 p-2 gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveTab("deposit")}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold transition ${
-              activeTab === "deposit"
-                ? "bg-[#153F35] text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-            }`}
-          >
-            <ArrowDownLeft className="h-4 w-4 text-emerald-300" />
-            <span>Deposit via Mobile Money</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("withdraw")}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold transition ${
-              activeTab === "withdraw"
-                ? "bg-[#153F35] text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-            }`}
-          >
-            <ArrowUpRight className="h-4 w-4 text-amber-300" />
-            <span>Withdraw Unused Funds</span>
-          </button>
-        </div>
-
-        <div className="p-6">
-          {activeTab === "deposit" ? (
-            <div className="max-w-xl mx-auto space-y-6">
-              {/* Carrier Selection Pill */}
-              <div className="flex items-center gap-3">
-                <div
-                  className={`flex-1 flex items-center gap-3 p-3.5 rounded-xl border-2 transition cursor-pointer ${
-                    detectedProvider === "MTN"
-                      ? "border-emerald-600 bg-emerald-50/40"
-                      : "border-slate-200 bg-slate-50/50 opacity-60"
-                  }`}
-                  onClick={() => setDetectedProvider("MTN")}
-                >
-                  <span className="rounded-lg bg-amber-400 text-slate-950 font-black text-xs px-2.5 py-1">
-                    MTN
-                  </span>
-                  <div>
-                    <span className="text-xs font-black text-slate-900 block">MTN MoMo</span>
-                    <span className="text-[11px] text-slate-500 font-medium">077, 078, 076</span>
-                  </div>
-                </div>
-
-                <div
-                  className={`flex-1 flex items-center gap-3 p-3.5 rounded-xl border-2 transition cursor-pointer ${
-                    detectedProvider === "AIRTEL"
-                      ? "border-emerald-600 bg-emerald-50/40"
-                      : "border-slate-200 bg-slate-50/50 opacity-60"
-                  }`}
-                  onClick={() => setDetectedProvider("AIRTEL")}
-                >
-                  <span className="rounded-lg bg-red-600 text-white font-black text-xs px-2.5 py-1">
-                    Airtel
-                  </span>
-                  <div>
-                    <span className="text-xs font-black text-slate-900 block">Airtel Money</span>
-                    <span className="text-[11px] text-slate-500 font-medium">070, 075, 074</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Deposit Form */}
-              <form onSubmit={handleInitiateDeposit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Ugandan Mobile Money Number:
-                  </label>
-                  <div className="relative">
-                    <Smartphone className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                    <input
-                      type="text"
-                      value={depositPhone}
-                      onChange={(e) => setDepositPhone(e.target.value)}
-                      placeholder="e.g. 0772112233"
-                      className="w-full rounded-xl border border-slate-300 pl-10 pr-4 py-2.5 text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-emerald-600 outline-none"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-bold text-slate-700">
-                      Deposit Amount (Min UGX 1,000):
-                    </label>
-                    <span className="text-xs font-black text-emerald-800 font-mono">
-                      {formatUGX(depositAmount)}
-                    </span>
-                  </div>
-                  <input
-                    type="number"
-                    min={1000}
-                    step={500}
-                    value={depositAmount}
-                    onChange={(e) => setDepositAmount(Number(e.target.value))}
-                    className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-600 outline-none"
-                    required
-                  />
-
-                  {/* 1-Click Amount Chips */}
-                  <div className="flex flex-wrap gap-2 pt-2.5">
-                    {[2000, 5000, 10000, 20000, 50000].map((amt) => (
-                      <button
-                        key={amt}
-                        type="button"
-                        onClick={() => setDepositAmount(amt)}
-                        className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition ${
-                          depositAmount === amt
-                            ? "bg-[#23836B] text-white border-[#23836B] shadow-xs"
-                            : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
-                        }`}
-                      >
-                        +{formatUGX(amt)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {depositError && (
-                  <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-xs text-red-800 flex items-start gap-2">
-                    <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
-                    <span className="font-semibold">{depositError}</span>
-                  </div>
-                )}
-
-                {depositMessage && (
-                  <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-900 flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span className="font-medium">{depositMessage}</span>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#153F35] hover:bg-[#183D32] text-white py-3 px-5 text-xs font-black transition shadow-sm active:scale-[0.99]"
-                >
-                  <Zap className="h-4 w-4 text-amber-300" />
-                  <span>Initiate Deposit ({formatUGX(depositAmount)})</span>
-                </button>
-              </form>
-            </div>
-          ) : (
-            <div className="max-w-xl mx-auto space-y-5">
-              <div className="rounded-xl bg-blue-50/70 border border-blue-200 p-3.5 text-xs text-blue-950 space-y-1">
-                <span className="font-bold block">Safe Double-Entry Withdrawal Guarantee:</span>
-                <p className="text-xs text-blue-800 leading-relaxed">
-                  Funds move from Spendable to Reserved balance during processing. If the carrier fails to disburse, the reservation reverts automatically with zero loss.
-                </p>
-              </div>
-
-              <form onSubmit={handleStudentWithdraw} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Destination Mobile Money Number:
-                  </label>
-                  <input
-                    type="text"
-                    value={withdrawPhone}
-                    onChange={(e) => setWithdrawPhone(e.target.value)}
-                    placeholder="0772112233"
-                    className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-emerald-600 outline-none"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-bold text-slate-700">
-                      Withdrawal Amount:
-                    </label>
-                    <span className="text-xs font-bold text-slate-500 font-mono">
-                      Max Spendable: {formatUGX(spendableBalance)}
-                    </span>
-                  </div>
-                  <input
-                    type="number"
-                    min={1000}
-                    max={spendableBalance}
-                    step={500}
-                    value={withdrawAmount}
-                    onChange={(e) => setWithdrawAmount(Number(e.target.value))}
-                    className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-600 outline-none"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Wallet Security PIN (Default: 1234):
-                  </label>
-                  <input
-                    type="password"
-                    maxLength={6}
-                    value={withdrawPin}
-                    onChange={(e) => setWithdrawPin(e.target.value)}
-                    placeholder="• • • •"
-                    className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-xs font-mono tracking-widest text-slate-900 focus:ring-2 focus:ring-emerald-600 outline-none"
-                    required
-                  />
-                </div>
-
-                {withdrawError && (
-                  <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-xs text-red-800 font-semibold">
-                    {withdrawError}
-                  </div>
-                )}
-
-                {withdrawMessage && (
-                  <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs text-blue-900 font-medium">
-                    {withdrawMessage}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={withdrawing || spendableBalance < withdrawAmount}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#153F35] hover:bg-[#183D32] disabled:opacity-50 text-white py-3 px-5 text-xs font-black transition shadow-sm"
-                >
-                  {withdrawing ? "Reserving Funds in Ledger..." : `Withdraw ${formatUGX(withdrawAmount)}`}
-                </button>
-              </form>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* SECTION 5: RECENT TRANSACTIONS (Compact Incoming/Outgoing Payment Badges) */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div className="space-y-0.5">
-            <h3 className="text-sm font-black text-slate-900">Recent Transactions</h3>
-            <p className="text-xs text-slate-500">Live incoming credits and outgoing purchases</p>
-          </div>
-          <span className="text-xs font-mono font-bold text-slate-500">
-            {unifiedTransactions.length} Total Events
-          </span>
-        </div>
-
-        {unifiedTransactions.length === 0 ? (
-          <div className="py-8 text-center text-xs text-slate-400">
-            No financial transactions recorded in this session.
-          </div>
+            <button
+              type="submit"
+              className="w-full h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition shadow-xs"
+            >
+              <Smartphone className="h-4 w-4" />
+              <span>Send Mobile Money Prompt</span>
+            </button>
+          </form>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {unifiedTransactions.slice(0, 6).map((tx) => (
-              <div
-                key={tx.id}
-                className="rounded-xl border border-slate-100 bg-[#FAF8F5]/60 hover:bg-[#FAF8F5] p-3.5 space-y-2.5 transition"
-              >
-                <div className="flex items-center justify-between">
-                  <span
-                    className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-black ${
-                      tx.type === "deposit"
-                        ? "bg-emerald-100 text-emerald-800"
-                        : "bg-blue-100 text-blue-800"
-                    }`}
-                  >
-                    {tx.type === "deposit" ? "+" : "-"}
-                    {tx.type === "deposit" ? "INFLOW" : "OUTFLOW"}
-                  </span>
-                  <span
-                    className={`text-xs font-mono font-black ${
-                      tx.type === "deposit" ? "text-emerald-700" : "text-slate-900"
-                    }`}
-                  >
-                    {tx.type === "deposit" ? "+" : "-"}
-                    {formatUGX(tx.amountUGX)}
-                  </span>
-                </div>
+          <form onSubmit={handleStudentWithdraw} className="space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+              <span className="text-xs font-bold text-slate-900 dark:text-white">
+                Withdraw to Mobile Money
+              </span>
+              <span className="text-[11px] font-bold text-sky-700 dark:text-sky-300">
+                Available: {formatUGX(spendableBalance)}
+              </span>
+            </div>
 
-                <div className="space-y-0.5">
-                  <span className="text-xs font-bold text-slate-800 line-clamp-1">
-                    {tx.description}
-                  </span>
-                  <span className="text-[11px] font-mono text-slate-500 block">
-                    Ref: {tx.reference}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 text-[11px] text-slate-500">
-                  <span>{new Date(tx.createdAt).toLocaleDateString("en-UG")}</span>
-                  <span className="font-bold uppercase text-emerald-700">
-                    {tx.status}
-                  </span>
-                </div>
+            {withdrawMessage && (
+              <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 p-3 text-xs font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                <span>{withdrawMessage}</span>
               </div>
-            ))}
-          </div>
+            )}
+
+            {withdrawError && (
+              <div className="rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 p-3 text-xs font-semibold text-red-800 dark:text-red-300 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
+                <span>{withdrawError}</span>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
+                  Destination Phone
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={withdrawPhone}
+                  onChange={(e) => setWithdrawPhone(e.target.value)}
+                  className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-3 text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-sky-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
+                  Amount (UGX)
+                </label>
+                <input
+                  type="number"
+                  required
+                  min={1000}
+                  max={spendableBalance}
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(Number(e.target.value))}
+                  className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-3 text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-sky-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
+                  Wallet PIN
+                </label>
+                <input
+                  type="password"
+                  required
+                  maxLength={4}
+                  value={withdrawPin}
+                  onChange={(e) => setWithdrawPin(e.target.value)}
+                  className="w-full h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-3 text-xs font-medium text-slate-900 dark:text-white outline-none focus:border-sky-500 font-mono"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={withdrawing || spendableBalance <= 0}
+              className="w-full h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-xs"
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              <span>{withdrawing ? "Processing..." : "Withdraw Funds"}</span>
+            </button>
+          </form>
         )}
       </div>
 
-      {/* SECTION 6: COMPLETE TRANSACTION HISTORY (Searchable & Filterable Table) */}
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden space-y-4 p-5 sm:p-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-          <div>
-            <h3 className="text-sm font-black text-slate-900">Complete Transaction History</h3>
-            <p className="text-xs text-slate-500">Audit-ready chronological double-entry statements</p>
-          </div>
+      {/* 5. Concise Transaction History */}
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-xs">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+          <h3 className="text-sm font-black text-slate-900 dark:text-white">
+            Recent Transactions
+          </h3>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Type Filters */}
-            <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-bold">
-              {(["all", "deposit", "purchase"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setHistoryFilter(tab)}
-                  className={`px-3 py-1.5 rounded-lg capitalize transition ${
-                    historyFilter === tab
-                      ? "bg-white text-slate-900 shadow-xs"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  {tab === "all" ? "All Activity" : `${tab}s`}
-                </button>
-              ))}
-            </div>
-
-            {/* Search Input */}
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
-              <input
-                type="text"
-                value={historySearch}
-                onChange={(e) => setHistorySearch(e.target.value)}
-                placeholder="Search by ref or description..."
-                className="rounded-xl border border-slate-200 pl-9 pr-3 py-1.5 text-xs text-slate-900 outline-none focus:ring-2 focus:ring-emerald-600"
-              />
-            </div>
+          <div className="flex items-center gap-1">
+            {(
+              [
+                { id: "all", label: "All" },
+                { id: "deposit", label: "Top Ups" },
+                { id: "purchase", label: "Purchases" },
+              ] as const
+            ).map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setHistoryFilter(tab.id)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
+                  historyFilter === tab.id
+                    ? "bg-sky-500 text-white"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
 
         {filteredTransactions.length === 0 ? (
-          <div className="py-8 text-center text-xs text-slate-400">
-            No matching transactions found.
+          <div className="py-8 text-center text-xs text-slate-500">
+            No transactions found yet.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-600 font-bold">
-                  <th className="py-2.5 px-3">Date &amp; Time</th>
-                  <th className="py-2.5 px-3">Transaction Description</th>
-                  <th className="py-2.5 px-3">Reference</th>
-                  <th className="py-2.5 px-3">Type</th>
-                  <th className="py-2.5 px-3">Status</th>
-                  <th className="py-2.5 px-3 text-right">Amount (UGX)</th>
-                  <th className="py-2.5 px-3 text-right">Receipt</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
-                {filteredTransactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-slate-50/80 transition">
-                    <td className="py-3 px-3 text-slate-500 whitespace-nowrap">
-                      {new Date(tx.createdAt).toLocaleDateString("en-UG", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </td>
-                    <td className="py-3 px-3 font-semibold text-slate-900">
-                      {tx.description}
-                    </td>
-                    <td className="py-3 px-3 font-mono text-slate-500">
-                      {tx.reference}
-                    </td>
-                    <td className="py-3 px-3">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                          tx.type === "deposit"
-                            ? "bg-emerald-100 text-emerald-800"
-                            : "bg-blue-100 text-blue-800"
-                        }`}
-                      >
-                        {tx.type}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3">
-                      <span className="font-bold text-emerald-700 uppercase text-[11px]">
-                        {tx.status}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-right font-mono font-bold">
-                      <span className={tx.type === "deposit" ? "text-emerald-700" : "text-slate-900"}>
-                        {tx.type === "deposit" ? "+" : "-"}
-                        {formatUGX(tx.amountUGX)}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-right">
-                      {tx.orderItem ? (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedReceipt(tx.orderItem || null)}
-                          className="font-bold text-[#23836B] hover:underline"
-                        >
-                          View Voucher
-                        </button>
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            {filteredTransactions.slice(0, 8).map((tx) => {
+              const isDeposit = tx.type === "deposit";
+
+              return (
+                <div
+                  key={tx.id}
+                  className="py-3 flex items-center justify-between gap-3 text-xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${
+                        isDeposit
+                          ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600"
+                          : "bg-sky-50 dark:bg-sky-950/60 text-sky-600"
+                      }`}
+                    >
+                      {isDeposit ? (
+                        <ArrowDownLeft className="h-4 w-4" />
                       ) : (
-                        <span className="text-slate-400 text-[11px]">Confirmed</span>
+                        <BookOpen className="h-4 w-4" />
                       )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+
+                    <div>
+                      <span className="block font-bold text-slate-900 dark:text-white">
+                        {tx.description}
+                      </span>
+                      <span className="block text-[11px] text-slate-500">
+                        {new Date(tx.createdAt).toLocaleDateString()} • Ref: {tx.reference}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <span
+                      className={`block font-bold font-mono ${
+                        isDeposit
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-slate-900 dark:text-white"
+                      }`}
+                    >
+                      {isDeposit ? `+${formatUGX(tx.amountUGX)}` : `-${formatUGX(tx.amountUGX)}`}
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">
+                      Completed
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* SIMULATED USSD HANDSET PUSH MODAL */}
+      {/* 6. Handset Prompt Modal */}
       {activeUssdPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-sm rounded-3xl bg-slate-900 border-4 border-slate-700 p-6 text-white shadow-2xl space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <Smartphone className="h-5 w-5 text-amber-400" />
-                <span className="text-xs font-mono font-bold tracking-wider text-slate-300">
-                  {activeUssdPrompt.provider === "MTN" ? "MTN MoMo Push" : "Airtel Money Push"}
+                <Smartphone className="h-5 w-5 text-orange-500" />
+                <span className="text-xs font-bold text-slate-900 dark:text-white">
+                  {activeUssdPrompt.provider} Mobile Money
                 </span>
               </div>
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+              <button
+                type="button"
+                onClick={() => setActiveUssdPrompt(null)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
 
-            <div className="rounded-2xl bg-black/50 border border-slate-800 p-4 space-y-3 font-mono text-xs">
-              <p className="text-amber-300 leading-relaxed">
-                Y&apos;ello! Do you approve the payment of{" "}
-                <strong>{formatUGX(activeUssdPrompt.amountUGX)}</strong> to{" "}
-                <strong>SomaUG Academic</strong> for document access?
-              </p>
-              <p className="text-xs text-slate-400">
-                Fee: UGX 0. Ref: {activeUssdPrompt.reference.slice(0, 14)}...
-              </p>
+            <div className="space-y-1 text-center py-2">
+              <span className="text-xs text-slate-500">Amount to approve:</span>
+              <div className="text-2xl font-black text-slate-900 dark:text-white font-mono">
+                {formatUGX(activeUssdPrompt.amountUGX)}
+              </div>
+              <span className="text-xs text-slate-500 font-mono">
+                {activeUssdPrompt.phoneNumber}
+              </span>
             </div>
 
             <div className="space-y-2">
-              <label className="block text-xs font-mono text-slate-300">
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">
                 Enter Mobile Money PIN (Default: 1234):
               </label>
               <input
@@ -1120,17 +722,15 @@ export default function StudentWalletPage() {
                 maxLength={4}
                 value={ussdPin}
                 onChange={(e) => setUssdPin(e.target.value)}
-                placeholder="• • • •"
-                className="w-full rounded-xl bg-slate-800 border border-slate-700 px-4 py-2.5 text-center font-mono text-lg tracking-widest text-white outline-none focus:ring-2 focus:ring-amber-400"
-                autoFocus
+                className="w-full h-11 text-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-lg font-mono tracking-widest outline-none focus:border-sky-500"
               />
             </div>
 
-            <div className="flex gap-2.5 pt-2">
+            <div className="grid grid-cols-2 gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setActiveUssdPrompt(null)}
-                className="flex-1 rounded-xl bg-slate-800 border border-slate-700 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-700"
+                className="py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
               >
                 Cancel
               </button>
@@ -1138,78 +738,10 @@ export default function StudentWalletPage() {
                 type="button"
                 onClick={handleApproveUssdPrompt}
                 disabled={ussdProcessing}
-                className="flex-1 rounded-xl bg-amber-500 py-2.5 text-xs font-black text-slate-950 hover:bg-amber-400 transition shadow-lg"
+                className="py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-xs font-bold transition shadow-xs"
               >
-                {ussdProcessing ? "Approving..." : "Approve & Credit"}
+                {ussdProcessing ? "Approving..." : "Approve"}
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* SELECTED RECEIPT VIEW MODAL */}
-      {selectedReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl space-y-5 border border-slate-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-800">
-                  <Receipt className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-extrabold text-slate-900">Official Purchase Voucher</h3>
-                  <p className="text-xs text-slate-500">Double-entry verified academic receipt</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedReceipt(null)}
-                className="text-slate-400 hover:text-slate-600 font-bold text-lg"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="rounded-xl bg-[#FAF8F5] p-4 space-y-2.5 font-mono text-xs text-slate-800 border border-slate-200">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Order No:</span>
-                <span className="font-bold">{selectedReceipt.orderNumber}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Receipt Ref:</span>
-                <span className="font-bold">{selectedReceipt.receiptReference}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Document ID:</span>
-                <span>{selectedReceipt.documentId}</span>
-              </div>
-              <div className="flex justify-between pt-2 border-t border-slate-200">
-                <span className="text-slate-500">Total Paid:</span>
-                <span className="font-extrabold text-[#23836B] text-sm">
-                  {formatUGX(selectedReceipt.grossAmountUGX)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Ledger Status:</span>
-                <span className="font-bold uppercase text-emerald-800">{selectedReceipt.status}</span>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setSelectedReceipt(null)}
-                className="flex-1 rounded-xl border border-slate-300 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
-              >
-                Close
-              </button>
-              <Link
-                href={`/student/read/${selectedReceipt.documentId}`}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#153F35] py-2.5 text-xs font-bold text-white hover:bg-[#183D32]"
-              >
-                <BookOpen className="h-3.5 w-3.5" />
-                <span>Read Document</span>
-              </Link>
             </div>
           </div>
         </div>
