@@ -14,11 +14,12 @@ const CACHE_NAME_STATIC = "somaug-static-v1";
 
 const PRECACHE_URLS = [
   "/",
-  "/student/dashboard",
-  "/student/library",
-  "/student/profile",
+  "/sign-in",
+  "/sign-up",
   "/offline.html",
   "/manifest.json",
+  "/icon-192.png",
+  "/icon-512.png",
 ];
 
 // URLs that must NEVER be touched by CacheStorage

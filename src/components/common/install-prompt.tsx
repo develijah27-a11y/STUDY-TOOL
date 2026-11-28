@@ -13,6 +13,7 @@ export default function InstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [showIOSInstructions, setShowIOSInstructions] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
@@ -88,20 +89,19 @@ export default function InstallPrompt() {
         }
         setDeferredPrompt(null);
       } catch {
-        setShowPrompt(false);
+        setShowInstructions(true);
       }
     } else if (isIOS) {
       setShowIOSInstructions(true);
     } else {
-      // Browser didn't support automated prompt; inform user
-      alert("To install SomaUG, open your browser menu (⋮) and tap 'Install App' or 'Add to Home Screen'.");
-      setShowPrompt(false);
+      setShowInstructions(true);
     }
   };
 
   const handleDismiss = () => {
     setShowPrompt(false);
     setShowIOSInstructions(false);
+    setShowInstructions(false);
     localStorage.setItem("somaug_install_prompt_dismissed", String(Date.now()));
   };
 
@@ -166,6 +166,21 @@ export default function InstallPrompt() {
               <li>Tap the <strong className="text-sky-700 dark:text-sky-300">Share button</strong> (box with arrow) at the bottom of Safari.</li>
               <li>Scroll down and tap <strong className="text-sky-700 dark:text-sky-300">&quot;Add to Home Screen&quot;</strong>.</li>
               <li>Tap <strong className="text-sky-700 dark:text-sky-300">&quot;Add&quot;</strong> in the top right corner.</li>
+            </ol>
+          </div>
+        )}
+
+        {/* Chrome & Android / Desktop Instruction Helper */}
+        {showInstructions && !showIOSInstructions && (
+          <div className="mt-3 rounded-xl bg-orange-50 dark:bg-orange-950/60 border border-orange-200 dark:border-orange-800/80 p-3 text-xs text-slate-700 dark:text-slate-200 space-y-1">
+            <div className="font-bold text-orange-900 dark:text-orange-300 flex items-center gap-1.5">
+              <Download className="h-3.5 w-3.5 text-orange-600" />
+              <span>How to install in Chrome / Android / PC:</span>
+            </div>
+            <ol className="list-decimal list-inside space-y-0.5 text-[11px] text-slate-600 dark:text-slate-300">
+              <li>Tap your browser menu (<strong className="text-orange-700 dark:text-orange-300">⋮</strong> three dots top-right).</li>
+              <li>Tap <strong className="text-orange-700 dark:text-orange-300">&quot;Install app&quot;</strong> or <strong className="text-orange-700 dark:text-orange-300">&quot;Add to Home Screen&quot;</strong>.</li>
+              <li>On laptop/PC, click the <strong className="text-orange-700 dark:text-orange-300">Install icon (⊕)</strong> on the right of the URL bar.</li>
             </ol>
           </div>
         )}

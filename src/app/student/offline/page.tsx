@@ -6,18 +6,40 @@ import { BookOpen, HardDrive, ArrowLeft, ShieldCheck, Zap } from "lucide-react";
 import OfflineLibraryView from "@/components/offline/offline-library-view";
 
 export default function StudentOfflinePage() {
-  const [studentId, setStudentId] = useState("user-student-1");
+  const [studentId, setStudentId] = useState("");
   const [studentName, setStudentName] = useState("Student");
 
   useEffect(() => {
+    let currentId = "";
     try {
       const cached = localStorage.getItem("somaug_user_session");
       if (cached) {
         const u = JSON.parse(cached);
-        if (u.id) setStudentId(u.id);
+        if (u.id) currentId = u.id;
         if (u.fullName) setStudentName(u.fullName);
       }
     } catch {}
+
+    if (!currentId) {
+      fetch("/api/auth/session")
+        .then((res) => {
+          if (res.ok) return res.json();
+          window.location.href = "/sign-in?redirect=/student/offline";
+        })
+        .then((data) => {
+          if (data?.user?.id) {
+            setStudentId(data.user.id);
+            if (data.user.fullName) setStudentName(data.user.fullName);
+          } else {
+            window.location.href = "/sign-in?redirect=/student/offline";
+          }
+        })
+        .catch(() => {
+          window.location.href = "/sign-in?redirect=/student/offline";
+        });
+    } else {
+      setStudentId(currentId);
+    }
   }, []);
 
   return (

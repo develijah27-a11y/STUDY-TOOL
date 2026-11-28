@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
             verificationStatus: meta.verificationStatus || "registered",
           };
         }
-      } catch {}
+      } catch { }
     }
 
     if (!authoritativeUser) {
@@ -97,7 +97,7 @@ export async function PATCH(req: NextRequest) {
           userId = sbUser.id;
           userEmail = sbUser.email || "";
         }
-      } catch {}
+      } catch { }
     }
 
     if (!userId) {
@@ -119,8 +119,8 @@ export async function PATCH(req: NextRequest) {
     const parsedUnits = Array.isArray(activeCourseUnits)
       ? activeCourseUnits.map((u: string) => String(u).trim().toUpperCase()).filter(Boolean)
       : typeof activeCourseUnits === "string"
-      ? activeCourseUnits.split(",").map((u) => u.trim().toUpperCase()).filter(Boolean)
-      : undefined;
+        ? activeCourseUnits.split(",").map((u) => u.trim().toUpperCase()).filter(Boolean)
+        : undefined;
 
     // 1. Update in authoritative user store
     const updatedUser = updateUserProfile(userId, {

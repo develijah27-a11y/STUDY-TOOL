@@ -402,8 +402,10 @@ export interface StudyAnnotation {
   id: string;
   documentId: string;
   pageNumber: number;
-  type: "bookmark" | "note" | "highlight";
+  type: "bookmark" | "note" | "highlight" | "photo";
   content?: string;
+  title?: string;
+  imageUrl?: string;
   color?: string;
   createdAt: string;
 }

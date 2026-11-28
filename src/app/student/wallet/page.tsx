@@ -1086,33 +1086,6 @@ export default function StudentWalletPage() {
         )}
       </div>
 
-      {/* SECTION 7: WALLET SECURITY AND SUPPORT */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3 shadow-xs">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-[#23836B]" />
-            <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">
-              Regulatory &amp; Consumer Protection
-            </h4>
-          </div>
-          <p className="text-xs text-slate-600 leading-relaxed font-medium">
-            SomaUG Academic operates strictly within the guidelines of the <strong>Uganda National Payment Systems Act (NPSA 2020)</strong>. All user wallet balances represent 100% backed double-entry liabilities held in designated escrow clearing accounts. Unused funds can be withdrawn at any time.
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3 shadow-xs">
-          <div className="flex items-center gap-2">
-            <Lock className="h-5 w-5 text-amber-600" />
-            <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">
-              Wallet Security PIN &amp; Gateway Support
-            </h4>
-          </div>
-          <p className="text-xs text-slate-600 leading-relaxed font-medium">
-            Your 4-digit Wallet PIN authorizes purchases and withdrawals. It is stored as an immutable cryptographic salted hash and never exposed. For support, contact <strong>support@somaug.ac.ug</strong>.
-          </p>
-        </div>
-      </div>
-
       {/* SIMULATED USSD HANDSET PUSH MODAL */}
       {activeUssdPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm animate-in fade-in duration-200">

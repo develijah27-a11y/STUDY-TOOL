@@ -68,7 +68,7 @@ export default function StudentLibraryPage() {
   }, []);
 
   useEffect(() => {
-    let currentId = "user-student-1";
+    let currentId = "";
     try {
       const cached = localStorage.getItem("somaug_user_session");
       if (cached) {
@@ -77,9 +77,30 @@ export default function StudentLibraryPage() {
         if (u.fullName) setStudentName(u.fullName);
       }
     } catch { }
-    setStudentId(currentId);
 
     async function loadLibrary() {
+      // Enforce authentication: My Library requires student to be logged in
+      if (!currentId) {
+        try {
+          const sessRes = await fetch("/api/auth/session");
+          if (sessRes.ok) {
+            const sessData = await sessRes.json();
+            if (sessData?.user?.id) {
+              currentId = sessData.user.id;
+              if (sessData.user.fullName) setStudentName(sessData.user.fullName);
+              setStudentId(currentId);
+            }
+          }
+        } catch { }
+      }
+
+      if (!currentId) {
+        // Not authenticated: redirect to sign-in
+        window.location.href = "/sign-in?redirect=/student/library";
+        return;
+      }
+
+      setStudentId(currentId);
       setLoading(true);
       try {
         const [walRes, catRes] = await Promise.all([
@@ -161,8 +182,8 @@ export default function StudentLibraryPage() {
           type="button"
           onClick={() => setActiveTab("all")}
           className={`px-4 py-2 text-xs font-bold rounded-xl transition ${activeTab === "all"
-              ? "bg-sky-500 text-white shadow-xs"
-              : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            ? "bg-sky-500 text-white shadow-xs"
+            : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
         >
           All Materials ({activeOrders.length})
@@ -175,8 +196,8 @@ export default function StudentLibraryPage() {
             checkOfflineDocuments();
           }}
           className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition ${activeTab === "offline"
-              ? "bg-orange-500 text-white shadow-xs"
-              : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            ? "bg-orange-500 text-white shadow-xs"
+            : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
         >
           <HardDrive className="h-3.5 w-3.5" />

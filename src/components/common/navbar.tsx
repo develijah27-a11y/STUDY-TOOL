@@ -205,8 +205,24 @@ export function Navbar() {
           )}
         </div>
 
-        {/* Mobile Hamburger Toggle */}
-        <div className="md:hidden flex items-center">
+        {/* Mobile Actions: Prominent Sign In + Hamburger */}
+        <div className="md:hidden flex items-center gap-2">
+          {!authenticatedUser ? (
+            <Link
+              href="/sign-in"
+              className="px-3 py-1.5 rounded-xl border border-sky-300 dark:border-sky-700 bg-sky-50 dark:bg-sky-950/60 text-xs font-bold text-sky-700 dark:text-sky-300 hover:bg-sky-100 transition shadow-2xs"
+            >
+              Sign In
+            </Link>
+          ) : (
+            <Link
+              href={authenticatedUser.role === "lecturer" ? "/lecturer/dashboard" : "/student/dashboard"}
+              className="px-3 py-1.5 rounded-xl bg-sky-600 text-xs font-bold text-white shadow-2xs"
+            >
+              Dashboard
+            </Link>
+          )}
+
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -222,15 +238,13 @@ export function Navbar() {
       {mobileMenuOpen && (
         <div className="md:hidden border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-4 space-y-3 shadow-lg">
           <div className="flex flex-col space-y-1 text-xs font-semibold text-slate-900 dark:text-slate-100">
-            {pathname !== "/" && (
-              <Link
-                href="/catalogue"
-                onClick={() => setMobileMenuOpen(false)}
-                className="py-2.5 px-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                Explore Materials
-              </Link>
-            )}
+            <Link
+              href="/catalogue"
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-2.5 px-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              Explore Materials
+            </Link>
             <Link
               href="/#how-it-works"
               onClick={() => setMobileMenuOpen(false)}
@@ -248,15 +262,7 @@ export function Navbar() {
           </div>
 
           <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
-            {pathname === "/" ? (
-              <Link
-                href="/sign-up"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-center py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-xs"
-              >
-                Get Started
-              </Link>
-            ) : authenticatedUser ? (
+            {authenticatedUser ? (
               <>
                 <Link
                   href={authenticatedUser.role === "lecturer" ? "/lecturer/dashboard" : "/student/dashboard"}
@@ -278,7 +284,7 @@ export function Navbar() {
                 <Link
                   href="/sign-in"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-center py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800"
+                  className="text-center py-2.5 rounded-xl border border-sky-300 dark:border-sky-700 bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 text-xs font-bold hover:bg-sky-100"
                 >
                   Sign In
                 </Link>

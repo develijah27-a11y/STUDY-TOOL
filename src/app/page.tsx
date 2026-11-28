@@ -242,6 +242,7 @@ export default function HomePage() {
                     alt="University students studying together in a modern campus library"
                     fill
                     priority
+                    quality={80}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover object-center transform group-hover:scale-105 transition-transform duration-500 ease-out"
                   />
@@ -381,6 +382,8 @@ export default function HomePage() {
                     src="/images/students-library.jpg"
                     alt="University students collaborating over course notes at a campus library study table"
                     fill
+                    loading="lazy"
+                    quality={80}
                     sizes="(max-width: 768px) 100vw, 40vw"
                     className="object-cover object-center transform group-hover:scale-105 transition-transform duration-500 ease-out"
                   />
@@ -515,6 +518,8 @@ export default function HomePage() {
                     src="/images/study-group.jpg"
                     alt="Five university students revising together with course notebooks, textbooks and laptop"
                     fill
+                    loading="lazy"
+                    quality={80}
                     sizes="(max-width: 768px) 100vw, 40vw"
                     className="object-cover object-center transform group-hover:scale-105 transition-transform duration-500 ease-out"
                   />

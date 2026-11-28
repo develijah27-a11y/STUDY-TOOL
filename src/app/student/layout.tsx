@@ -117,6 +117,13 @@ export default function StudentLayout({
               }
             }
           }
+        } else {
+          // If session endpoint returns unauthenticated and no local session exists, redirect to sign-in
+          const cachedSession = typeof window !== "undefined" ? localStorage.getItem("somaug_user_session") : null;
+          if (!cachedSession) {
+            window.location.href = `/sign-in?redirect=${encodeURIComponent(pathname)}`;
+            return;
+          }
         }
       } catch { }
 

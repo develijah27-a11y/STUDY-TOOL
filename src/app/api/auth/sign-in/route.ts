@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
             });
             authRes = await supabase.auth.signInWithPassword({ email, password });
           }
-        } catch {}
+        } catch { }
       }
 
       if (authRes.data?.user) {
