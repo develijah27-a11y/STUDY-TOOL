@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { verifySessionToken } from "@/lib/auth/user-store";
+import { getInstitutionName, getProgrammeName } from "@/lib/constants/academic";
 
 export async function GET(req: NextRequest) {
   try {
@@ -18,12 +19,15 @@ export async function GET(req: NextRequest) {
             role: user.role,
             roles: [user.role],
             institutionId: user.institutionId,
+            institutionName: user.institutionName || getInstitutionName(user.institutionId),
             faculty: user.faculty,
             department: user.department,
             programmeId: user.programmeId,
+            programme: user.programme || getProgrammeName(user.programmeId),
             academicYear: user.academicYear,
             semester: user.semester,
             activeCourseUnits: user.activeCourseUnits || [],
+            selectedCourses: user.activeCourseUnits || [],
             teachingRole: user.teachingRole,
             staffId: user.staffId,
             coursesTaught: user.coursesTaught || [],
@@ -44,15 +48,34 @@ export async function GET(req: NextRequest) {
       } = await supabase.auth.getUser();
 
       if (!error && user) {
-        const role = user.user_metadata?.role || "student";
+        const meta = user.user_metadata || {};
+        const role = meta.role || "student";
+        const instId = meta.institutionId || "inst-mak";
+        const progId = meta.programmeId || "prog-bsse";
         return NextResponse.json({
           authenticated: true,
           user: {
             id: user.id,
             email: user.email,
-            fullName: user.user_metadata?.full_name || "Verified User",
+            fullName: meta.full_name || "Verified User",
             role,
             roles: [role],
+            institutionId: instId,
+            institutionName: meta.institutionName || getInstitutionName(instId),
+            programmeId: progId,
+            programme: meta.programme || getProgrammeName(progId),
+            academicYear: meta.academicYear ? Number(meta.academicYear) : 1,
+            semester: meta.semester ? Number(meta.semester) : 1,
+            activeCourseUnits: meta.activeCourseUnits || [],
+            selectedCourses: meta.activeCourseUnits || [],
+            faculty: meta.faculty,
+            department: meta.department,
+            teachingRole: meta.teachingRole,
+            staffId: meta.staffId,
+            coursesTaught: meta.coursesTaught || [],
+            payoutMobileNumber: meta.payoutMobileNumber,
+            payoutMobileNetwork: meta.payoutMobileNetwork,
+            verificationStatus: meta.verificationStatus || "registered",
           },
         });
       }

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatUGX } from "@/lib/utils";
+import { getInstitutionName, getProgrammeName } from "@/lib/constants/academic";
 import {
   BookOpen,
   Search,
@@ -44,29 +45,6 @@ function getGreeting(): string {
   return "Good evening";
 }
 
-const INSTITUTION_MAP: Record<string, string> = {
-  "inst-mak": "Makerere University",
-  "inst-kyu": "Kyambogo University",
-  "inst-must": "Mbarara University",
-  "inst-ucu": "Uganda Christian University",
-  "inst-mubs": "Makerere Business School",
-  "inst-uict": "UICT Nakawa",
-  "inst-bribte": "Buganda Royal Institute",
-  "inst-kpm": "Kampala Polytechnic",
-};
-
-const PROGRAMME_MAP: Record<string, string> = {
-  "prog-bsse": "Software Engineering",
-  "prog-bcs": "Computer Science",
-  "prog-bit": "Information Technology",
-  "prog-bba": "Business Administration",
-  "prog-bee": "Electrical Engineering",
-  "prog-bce": "Civil Engineering",
-  "prog-llb": "Bachelor of Laws",
-  "prog-voc-elec": "Electrical Installation",
-  "prog-voc-auto": "Automotive Mechanics",
-};
-
 // Map any legacy codes into full words
 function getSubjectNameInWords(codeOrTitle: string, titleFallback?: string): string {
   const upper = (codeOrTitle || "").toUpperCase();
@@ -79,20 +57,17 @@ function getSubjectNameInWords(codeOrTitle: string, titleFallback?: string): str
   if (upper.includes("MEC") || upper.includes("ENG")) return "Engineering";
   if (upper.includes("MED") || upper.includes("NURS") || upper.includes("HLTH")) return "Health Sciences";
   if (upper.includes("EDU")) return "Education";
-  return titleFallback ? titleFallback.slice(0, 24) : "Academic Course";
+  return titleFallback ? titleFallback.slice(0, 32) : "Academic Course";
 }
 
 export default function StudentDashboardPage() {
   const router = useRouter();
   const [studentName, setStudentName] = useState("Student");
-  const [institution, setInstitution] = useState("Makerere University");
-  const [programme, setProgramme] = useState("Software Engineering");
-  const [academicYear, setAcademicYear] = useState<number>(2);
+  const [institution, setInstitution] = useState("");
+  const [programme, setProgramme] = useState("");
+  const [academicYear, setAcademicYear] = useState<number>(1);
   const [semester, setSemester] = useState<number>(1);
-  const [activeCourseUnits, setActiveCourseUnits] = useState<string[]>([
-    "Data Structures",
-    "Database Systems",
-  ]);
+  const [activeCourseUnits, setActiveCourseUnits] = useState<string[]>([]);
   const [entitlements, setEntitlements] = useState<EntitlementItem[]>([]);
   const [recommendedDocs, setRecommendedDocs] = useState<CatalogueDocument[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -100,6 +75,30 @@ export default function StudentDashboardPage() {
 
   useEffect(() => {
     let currentId = "user-student-1";
+
+    // 1. Immediate sync from localStorage to eliminate flicker / wrong defaults
+    if (typeof window !== "undefined") {
+      try {
+        const cachedStr = localStorage.getItem("somaug_user_session");
+        if (cachedStr) {
+          const u = JSON.parse(cachedStr);
+          if (u.id) currentId = u.id;
+          if (u.fullName) setStudentName(u.fullName);
+          const inst = getInstitutionName(u.institutionName || u.institutionId);
+          if (inst) setInstitution(inst);
+          const prog = getProgrammeName(u.programme || u.programmeId);
+          if (prog) setProgramme(prog);
+          if (u.academicYear) setAcademicYear(Number(u.academicYear));
+          if (u.semester) setSemester(Number(u.semester));
+          const units = u.activeCourseUnits || u.selectedCourses;
+          if (Array.isArray(units) && units.length > 0) {
+            setActiveCourseUnits(units.map((c: string) => getSubjectNameInWords(c, c)));
+          }
+        }
+      } catch (e) {
+        console.warn("Could not read local user session cache:", e);
+      }
+    }
 
     async function loadDashboard() {
       setLoading(true);
@@ -112,18 +111,54 @@ export default function StudentDashboardPage() {
               const u = profData.user;
               currentId = u.id;
               if (u.fullName) setStudentName(u.fullName);
-              if (u.institutionId) {
-                setInstitution(INSTITUTION_MAP[u.institutionId] || u.institutionId);
-              }
-              if (u.programmeId) {
-                setProgramme(PROGRAMME_MAP[u.programmeId] || u.programmeId);
-              }
+              const inst = getInstitutionName(u.institutionName || u.institutionId);
+              if (inst) setInstitution(inst);
+              const prog = getProgrammeName(u.programme || u.programmeId);
+              if (prog) setProgramme(prog);
               if (u.academicYear) setAcademicYear(Number(u.academicYear));
               if (u.semester) setSemester(Number(u.semester));
-              if (Array.isArray(u.activeCourseUnits) && u.activeCourseUnits.length > 0) {
+              const units = u.activeCourseUnits || u.selectedCourses;
+              if (Array.isArray(units) && units.length > 0) {
                 setActiveCourseUnits(
-                  u.activeCourseUnits.map((c: string) => getSubjectNameInWords(c))
+                  units.map((c: string) => getSubjectNameInWords(c, c))
                 );
+              }
+
+              // Update localStorage with validated details
+              try {
+                const existing = JSON.parse(localStorage.getItem("somaug_user_session") || "{}");
+                localStorage.setItem(
+                  "somaug_user_session",
+                  JSON.stringify({
+                    ...existing,
+                    ...u,
+                    institutionName: inst,
+                    programme: prog,
+                  })
+                );
+              } catch { }
+            }
+          } else {
+            // Fallback to /api/auth/session
+            const sessRes = await fetch("/api/auth/session");
+            if (sessRes.ok) {
+              const sessData = await sessRes.json();
+              if (sessData?.user) {
+                const u = sessData.user;
+                currentId = u.id;
+                if (u.fullName) setStudentName(u.fullName);
+                const inst = getInstitutionName(u.institutionName || u.institutionId);
+                if (inst) setInstitution(inst);
+                const prog = getProgrammeName(u.programme || u.programmeId);
+                if (prog) setProgramme(prog);
+                if (u.academicYear) setAcademicYear(Number(u.academicYear));
+                if (u.semester) setSemester(Number(u.semester));
+                const units = u.activeCourseUnits || u.selectedCourses;
+                if (Array.isArray(units) && units.length > 0) {
+                  setActiveCourseUnits(
+                    units.map((c: string) => getSubjectNameInWords(c, c))
+                  );
+                }
               }
             }
           }
@@ -199,12 +234,28 @@ export default function StudentDashboardPage() {
           </h1>
 
           <p className="text-xs sm:text-sm text-sky-100 font-medium">
-            <span className="font-bold text-white">{programme}</span> •{" "}
-            <span>{institution}</span> •{" "}
+            {programme && <span className="font-bold text-white">{programme}</span>}
+            {programme && institution && <span> • </span>}
+            {institution && <span>{institution}</span>}
+            {(programme || institution) && <span> • </span>}
             <span className="text-orange-300 dark:text-orange-400 font-bold">
               Year {academicYear}, Semester {semester === 1 ? "I" : "II"}
             </span>
           </p>
+
+          {activeCourseUnits.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-2">
+              <span className="text-[11px] font-semibold text-sky-200">Enrolled Units:</span>
+              {activeCourseUnits.map((unit, idx) => (
+                <span
+                  key={idx}
+                  className="rounded-md bg-white/15 backdrop-blur-xs px-2 py-0.5 text-[11px] font-bold text-white border border-white/20"
+                >
+                  {unit}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -319,7 +370,7 @@ export default function StudentDashboardPage() {
             </div>
             <div>
               <h2 className="text-sm font-black text-slate-900 dark:text-white">
-                Recommended for {programme}
+                Recommended for {programme || "Your Programme"}
               </h2>
             </div>
           </div>

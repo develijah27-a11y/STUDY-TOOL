@@ -3,6 +3,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/auth/rate-limit";
 import { registerUser, createSessionToken } from "@/lib/auth/user-store";
 import { dbStore } from "@/lib/db/in-memory-store";
+import { getInstitutionName, getProgrammeName } from "@/lib/constants/academic";
 
 // Validates passwords: min 6 characters
 function isSufficientPassword(password: string): boolean {
@@ -156,31 +157,26 @@ export async function POST(req: NextRequest) {
     // 4. Also register in Supabase Auth with pre-confirmed email (bypasses email confirmation gate)
     try {
       const adminSupabase = createAdminClient();
+      const sbMeta = {
+        full_name: fullName,
+        role,
+        institutionId: localUser.institutionId,
+        institutionName: localUser.institutionName || getInstitutionName(localUser.institutionId),
+        programmeId: localUser.programmeId,
+        programme: localUser.programme || getProgrammeName(localUser.programmeId),
+        academicYear: localUser.academicYear,
+        semester: localUser.semester,
+        activeCourseUnits: localUser.activeCourseUnits || [],
+        faculty: localUser.faculty || "",
+        department: localUser.department || "",
+      };
+
       await adminSupabase.auth.admin.createUser({
         email,
         password,
         email_confirm: true,
-        user_metadata: { full_name: fullName, role },
+        user_metadata: sbMeta,
       });
-
-      await Promise.allSettled([
-        adminSupabase.from("profiles").upsert({
-          id: userId,
-          email,
-          full_name: fullName,
-          institution_id: institutionId || null,
-          programme_id: programmeId || null,
-          academic_year: academicYear ? Number(academicYear) : null,
-          semester: semester ? Number(semester) : null,
-          created_at: now,
-          updated_at: now,
-        }),
-        adminSupabase.from("user_roles").upsert({
-          user_id: userId,
-          role,
-          created_at: now,
-        }),
-      ]);
     } catch (sbErr) {
       console.warn("Supabase background registration fallback:", sbErr);
     }
@@ -198,9 +194,11 @@ export async function POST(req: NextRequest) {
         roles: [localUser.role],
         verificationStatus: localUser.verificationStatus,
         institutionId: localUser.institutionId,
+        institutionName: localUser.institutionName || getInstitutionName(localUser.institutionId),
         faculty: localUser.faculty,
         department: localUser.department,
         programmeId: localUser.programmeId,
+        programme: localUser.programme || getProgrammeName(localUser.programmeId),
         academicYear: localUser.academicYear,
         semester: localUser.semester,
         activeCourseUnits: localUser.activeCourseUnits || [],

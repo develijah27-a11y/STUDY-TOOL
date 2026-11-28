@@ -7,6 +7,7 @@ import {
   findUserByEmail,
   registerUser,
 } from "@/lib/auth/user-store";
+import { getInstitutionName, getProgrammeName } from "@/lib/constants/academic";
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,9 +46,11 @@ export async function POST(req: NextRequest) {
             roles: [demoUser.role],
             verificationStatus: demoUser.verificationStatus,
             institutionId: demoUser.institutionId,
+            institutionName: demoUser.institutionName || getInstitutionName(demoUser.institutionId),
             faculty: demoUser.faculty,
             department: demoUser.department,
             programmeId: demoUser.programmeId,
+            programme: demoUser.programme || getProgrammeName(demoUser.programmeId),
             academicYear: demoUser.academicYear,
             semester: demoUser.semester,
             activeCourseUnits: demoUser.activeCourseUnits || [],
@@ -87,9 +90,11 @@ export async function POST(req: NextRequest) {
           roles: [localUser.role],
           verificationStatus: localUser.verificationStatus,
           institutionId: localUser.institutionId,
+          institutionName: localUser.institutionName || getInstitutionName(localUser.institutionId),
           faculty: localUser.faculty,
           department: localUser.department,
           programmeId: localUser.programmeId,
+          programme: localUser.programme || getProgrammeName(localUser.programmeId),
           academicYear: localUser.academicYear,
           semester: localUser.semester,
           activeCourseUnits: localUser.activeCourseUnits || [],
@@ -138,14 +143,27 @@ export async function POST(req: NextRequest) {
       }
 
       if (authRes.data?.user) {
-        const role = (authRes.data.user.user_metadata?.role as any) || "student";
-        const fullName = authRes.data.user.user_metadata?.full_name || "Verified User";
+        const meta = authRes.data.user.user_metadata || {};
+        const role = (meta.role as any) || "student";
+        const fullName = meta.full_name || "Verified User";
 
         const registered = registerUser({
           email,
           password,
           fullName,
           role,
+          institutionId: meta.institutionId,
+          programmeId: meta.programmeId,
+          academicYear: meta.academicYear ? Number(meta.academicYear) : undefined,
+          semester: meta.semester ? Number(meta.semester) : undefined,
+          activeCourseUnits: meta.activeCourseUnits,
+          faculty: meta.faculty,
+          department: meta.department,
+          teachingRole: meta.teachingRole,
+          staffId: meta.staffId,
+          coursesTaught: meta.coursesTaught,
+          payoutMobileNumber: meta.payoutMobileNumber,
+          payoutMobileNetwork: meta.payoutMobileNetwork,
         });
 
         const sessionToken = createSessionToken(registered);
@@ -157,6 +175,19 @@ export async function POST(req: NextRequest) {
             fullName: registered.fullName,
             role: registered.role,
             roles: [registered.role],
+            verificationStatus: registered.verificationStatus,
+            institutionId: registered.institutionId,
+            institutionName: registered.institutionName || getInstitutionName(registered.institutionId),
+            programmeId: registered.programmeId,
+            programme: registered.programme || getProgrammeName(registered.programmeId),
+            academicYear: registered.academicYear,
+            semester: registered.semester,
+            activeCourseUnits: registered.activeCourseUnits || [],
+            teachingRole: registered.teachingRole,
+            staffId: registered.staffId,
+            coursesTaught: registered.coursesTaught || [],
+            payoutMobileNumber: registered.payoutMobileNumber,
+            payoutMobileNetwork: registered.payoutMobileNetwork,
           },
           token: sessionToken,
         });

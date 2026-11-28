@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import { getInstitutionName, getProgrammeName } from "@/lib/constants/academic";
 
 export type UserVerificationStatus =
   | "registered"
@@ -17,9 +18,11 @@ export interface RegisteredUser {
   role: "student" | "lecturer" | "admin" | "developer";
   verificationStatus?: UserVerificationStatus;
   institutionId?: string;
+  institutionName?: string;
   faculty?: string;
   department?: string;
   programmeId?: string;
+  programme?: string;
   academicYear?: number;
   semester?: number;
   activeCourseUnits?: string[];
@@ -227,8 +230,14 @@ export function registerUser(data: {
     if (data.activeCourseUnits) existing.activeCourseUnits = data.activeCourseUnits;
     if (data.academicYear) existing.academicYear = data.academicYear;
     if (data.semester) existing.semester = data.semester;
-    if (data.institutionId) existing.institutionId = data.institutionId;
-    if (data.programmeId) existing.programmeId = data.programmeId;
+    if (data.institutionId) {
+      existing.institutionId = data.institutionId;
+      existing.institutionName = getInstitutionName(data.institutionId);
+    }
+    if (data.programmeId) {
+      existing.programmeId = data.programmeId;
+      existing.programme = getProgrammeName(data.programmeId);
+    }
     saveUsers();
     return existing;
   }
@@ -250,9 +259,11 @@ export function registerUser(data: {
     role: data.role,
     verificationStatus: initialVerification,
     institutionId: data.institutionId,
+    institutionName: getInstitutionName(data.institutionId),
     faculty: data.faculty?.trim(),
     department: data.department?.trim(),
     programmeId: data.programmeId,
+    programme: getProgrammeName(data.programmeId),
     academicYear: data.academicYear,
     semester: data.semester,
     activeCourseUnits: data.activeCourseUnits,
@@ -277,10 +288,16 @@ export function updateUserProfile(
   for (const user of usersCache.values()) {
     if (user.id === userId) {
       if (updates.fullName !== undefined) user.fullName = updates.fullName.trim();
-      if (updates.institutionId !== undefined) user.institutionId = updates.institutionId;
+      if (updates.institutionId !== undefined) {
+        user.institutionId = updates.institutionId;
+        user.institutionName = getInstitutionName(updates.institutionId);
+      }
       if (updates.faculty !== undefined) user.faculty = updates.faculty.trim();
       if (updates.department !== undefined) user.department = updates.department.trim();
-      if (updates.programmeId !== undefined) user.programmeId = updates.programmeId;
+      if (updates.programmeId !== undefined) {
+        user.programmeId = updates.programmeId;
+        user.programme = getProgrammeName(updates.programmeId);
+      }
       if (updates.academicYear !== undefined) user.academicYear = updates.academicYear;
       if (updates.semester !== undefined) user.semester = updates.semester;
       if (updates.activeCourseUnits !== undefined) user.activeCourseUnits = updates.activeCourseUnits;
@@ -338,9 +355,11 @@ export function createSessionToken(user: RegisteredUser): string {
     role: user.role,
     verificationStatus: user.verificationStatus || (user.role === "lecturer" ? "pending_verification" : "registered"),
     institutionId: user.institutionId,
+    institutionName: user.institutionName || getInstitutionName(user.institutionId),
     faculty: user.faculty,
     department: user.department,
     programmeId: user.programmeId,
+    programme: user.programme || getProgrammeName(user.programmeId),
     academicYear: user.academicYear,
     semester: user.semester,
     activeCourseUnits: user.activeCourseUnits,
@@ -386,7 +405,18 @@ export function verifySessionToken(token: string): RegisteredUser | null {
     }
 
     const found = findUserById(payload.id);
-    if (found) return found;
+    if (found) {
+      if (payload.institutionId && !found.institutionId) found.institutionId = payload.institutionId;
+      if (payload.programmeId && !found.programmeId) found.programmeId = payload.programmeId;
+      if (payload.academicYear && !found.academicYear) found.academicYear = payload.academicYear;
+      if (payload.semester && !found.semester) found.semester = payload.semester;
+      if (payload.activeCourseUnits?.length && !found.activeCourseUnits?.length) {
+        found.activeCourseUnits = payload.activeCourseUnits;
+      }
+      found.institutionName = getInstitutionName(found.institutionId || payload.institutionId);
+      found.programme = getProgrammeName(found.programmeId || payload.programmeId);
+      return found;
+    }
 
     const fallbackUser: RegisteredUser = {
       id: payload.id,
@@ -395,9 +425,11 @@ export function verifySessionToken(token: string): RegisteredUser | null {
       role: payload.role,
       verificationStatus: payload.verificationStatus,
       institutionId: payload.institutionId,
+      institutionName: payload.institutionName || getInstitutionName(payload.institutionId),
       faculty: payload.faculty,
       department: payload.department,
       programmeId: payload.programmeId,
+      programme: payload.programme || getProgrammeName(payload.programmeId),
       academicYear: payload.academicYear,
       semester: payload.semester,
       activeCourseUnits: payload.activeCourseUnits || [],

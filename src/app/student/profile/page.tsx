@@ -13,6 +13,7 @@ import {
   X,
   Trash2,
 } from "lucide-react";
+import { getInstitutionName, getProgrammeName } from "@/lib/constants/academic";
 
 export default function StudentAcademicProfilePage() {
   const [studentName, setStudentName] = useState("Student");
@@ -29,6 +30,24 @@ export default function StudentAcademicProfilePage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    // 1. Synchronously populate from cached user session
+    try {
+      const cached = localStorage.getItem("somaug_user_session");
+      if (cached) {
+        const u = JSON.parse(cached);
+        if (u.fullName) setStudentName(u.fullName);
+        if (u.institutionId) setInstitution(u.institutionId);
+        if (u.programmeId) setProgramme(u.programmeId);
+        if (u.academicYear) setAcademicYear(Number(u.academicYear));
+        if (u.semester) setSemester(Number(u.semester));
+        if (Array.isArray(u.activeCourseUnits) && u.activeCourseUnits.length > 0) {
+          setSelectedCourses(u.activeCourseUnits);
+        } else if (Array.isArray(u.selectedCourses) && u.selectedCourses.length > 0) {
+          setSelectedCourses(u.selectedCourses);
+        }
+      }
+    } catch { }
+
     async function fetchDatabaseProfile() {
       try {
         const res = await fetch("/api/auth/profile");
@@ -50,24 +69,6 @@ export default function StudentAcademicProfilePage() {
       } catch (err) {
         console.warn("Could not fetch remote profile:", err);
       }
-
-      // Fallback to local session cache
-      try {
-        const cached = localStorage.getItem("somaug_user_session");
-        if (cached) {
-          const u = JSON.parse(cached);
-          if (u.fullName) setStudentName(u.fullName);
-          if (u.institutionId) setInstitution(u.institutionId);
-          if (u.programmeId) setProgramme(u.programmeId);
-          if (u.academicYear) setAcademicYear(Number(u.academicYear));
-          if (u.semester) setSemester(Number(u.semester));
-          if (Array.isArray(u.activeCourseUnits) && u.activeCourseUnits.length > 0) {
-            setSelectedCourses(u.activeCourseUnits);
-          } else if (Array.isArray(u.selectedCourses) && u.selectedCourses.length > 0) {
-            setSelectedCourses(u.selectedCourses);
-          }
-        }
-      } catch { }
     }
 
     fetchDatabaseProfile();
@@ -123,7 +124,9 @@ export default function StudentAcademicProfilePage() {
         ...current,
         fullName: studentName,
         institutionId: institution,
+        institutionName: getInstitutionName(institution),
         programmeId: programme,
+        programme: getProgrammeName(programme),
         academicYear,
         semester,
         selectedCourses,

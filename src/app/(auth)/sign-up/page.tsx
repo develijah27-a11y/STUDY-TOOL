@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getInstitutionName, getProgrammeName } from "@/lib/constants/academic";
 import {
   GraduationCap,
   Lock,
@@ -109,12 +110,16 @@ export default function SignUpPage() {
       }
 
       if (typeof window !== "undefined" && data.user) {
+        const instName = getInstitutionName(institutionId);
+        const progName = getProgrammeName(programmeId);
         const fullUser = {
           ...data.user,
           institutionId,
+          institutionName: data.user.institutionName || instName,
           programmeId,
-          academicYear,
-          semester,
+          programme: data.user.programme || progName,
+          academicYear: Number(academicYear),
+          semester: Number(semester),
           selectedCourses: parsedUnits,
           activeCourseUnits: parsedUnits,
         };

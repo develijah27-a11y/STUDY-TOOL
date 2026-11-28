@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { formatUGX } from "@/lib/utils";
 import { offlineStorage } from "@/lib/offline/offline-storage";
+import { getInstitutionName, getProgrammeName } from "@/lib/constants/academic";
 
 export default function StudentLayout({
   children,
@@ -69,11 +70,12 @@ export default function StudentLayout({
       const cached = localStorage.getItem("somaug_user_session");
       if (cached) {
         const u = JSON.parse(cached);
+        const resolvedInst = getInstitutionName(u.institutionName || u.institutionId);
         setStudent({
           id: u.id || "student",
           fullName: u.fullName || "Student",
           email: u.email || "",
-          institutionName: u.institutionName || "Uganda Higher Education",
+          institutionName: resolvedInst,
         });
       }
     } catch { }
@@ -84,13 +86,26 @@ export default function StudentLayout({
         if (res.ok) {
           const data = await res.json();
           if (data?.user) {
+            const resolvedInst = getInstitutionName(data.user.institutionName || data.user.institutionId);
             setStudent({
               id: data.user.id,
               fullName: data.user.fullName || "Student",
               email: data.user.email || "",
-              institutionName: data.user.institutionName || "Uganda Higher Education",
+              institutionName: resolvedInst,
             });
-            localStorage.setItem("somaug_user_session", JSON.stringify(data.user));
+
+            // Merge with existing localStorage without overwriting student details
+            try {
+              const existingStr = localStorage.getItem("somaug_user_session");
+              const existing = existingStr ? JSON.parse(existingStr) : {};
+              const merged = {
+                ...existing,
+                ...data.user,
+                institutionName: resolvedInst,
+                programme: getProgrammeName(data.user.programme || data.user.programmeId || existing.programme || existing.programmeId),
+              };
+              localStorage.setItem("somaug_user_session", JSON.stringify(merged));
+            } catch { }
 
             const walRes = await fetch(
               `/api/wallet?userId=${data.user.id}&targetUserId=${data.user.id}&walletType=student`
